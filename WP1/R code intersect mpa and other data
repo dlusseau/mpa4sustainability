@@ -1,0 +1,2194 @@
+
+########################################################################################################################
+########################################################################################################################
+#### R code by David Lusseau
+#### started 30 May 2022
+#### direct questions to davlu@dtu.dk with the subject mpa4sustainability>MPAintersections
+########################################################################################################################
+########################################################################################################################
+#### MPA intersections with
+#human settlement
+#flickr
+#fishing
+#infrastructure for EU
+# et al
+
+### citation for MPA shapefile:
+#UNEP-WCMC and IUCN (2022), Protected Planet: The World Database on Protected Areas (WDPA) 
+#and World Database on Other Effective Area-based Conservation Measures (WD-OECM) [Online], 
+#June 2022, Cambridge, UK: UNEP-WCMC and IUCN. Available at: www.protectedplanet.net.
+
+library(sf)
+library(stars)
+library(s2)
+
+
+mpa0<-st_read("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/shp0/WDPA_WDOECM_Jun2022_Public_marine_shp-polygons.shp")
+mpa1<-st_read("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/shp1/WDPA_WDOECM_Jun2022_Public_marine_shp-polygons.shp")
+mpa2<-st_read("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/shp2/WDPA_WDOECM_Jun2022_Public_marine_shp-polygons.shp")
+
+mpas<-rbind(mpa0,mpa1,mpa2)
+
+save(mpas,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+#### we need to gain an understanding of the relevant scale at which to sample other data
+#first for human settlement is the 1km scale of smod sufficient, or do we need to go esm (10m)
+
+#####
+##the first issue:
+# [517] Loop 5236 is not valid: Edge 75 crosses edge 77
+# [4781] Loop 0 edge 0 crosses loop 1 edge 2211
+# [12291] Loop 72 is not valid: Edge 2515 crosses edge 2517
+# [13155] Loop 0 edge 314 crosses loop 5 edge 24
+# [14226] Loop 247 is not valid: Edge 0 crosses edge 3
+# [14232] Loop 131 is not valid: Edge 15924 crosses edge 15926
+# [14243] Loop 70 is not valid: Edge 19964 crosses edge 19966
+# [14244] Loop 16 is not valid: Edge 1217 crosses edge 1219
+# [14251] Loop 3 is not valid: Edge 593 crosses edge 595
+# [14765] Loop 0 edge 5189 crosses loop 1 edge 1906
+# ...and 3 more.
+#missing 3
+#areas<-st_area(mpas[14766:dim(mpas)[1],])
+
+wrong<-c(517,4781,12291,13155,14226,14232,14243,14244,14251,14765,14768,(14765+417),(14765+1036))
+
+for (i in wrong) {
+mpas$geometry[i] <- st_make_valid(mpas$geometry[i]) 
+
+}
+
+#edge crossing between loops
+stillwrong<-c(13155,14232,14243,14244)
+
+for (i in stillwrong) {
+mpas$geometry[i] <- st_make_valid(st_set_precision(mpas$geometry[i], 1e6))
+
+}
+
+#edge crossing within loop
+st_area(mpas$geometry[14244])
+try<-st_transform(mpas$geometry[14244],crs = 3857)
+mpas$geometry[14244]<-st_transform(try,crs = 4326)
+st_area(mpas$geometry[14244])
+
+mpas$geometry[14244] <- st_make_valid(st_set_precision(mpas$geometry[14244], 1e5))
+
+
+allareas<-st_area(mpas)
+
+mpas$area<-allareas
+
+#save the updated and fixed file
+save(mpas,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+#fix some dateline issues for a couple of mpas
+
+mpa_moll <- st_transform(mpas, "+proj=moll")
+ plot(st_geometry(mpa_moll), col = "transparent")
+
+mpa_wrp<-st_wrap_dateline(mpas,options = c("WRAPDATELINE=YES", "DATELINEOFFSET=180"),quiet = TRUE)
+mpa_moll <- st_transform(mpa_wrp, "+proj=moll")
+ plot(st_geometry(mpa_moll), col = "transparent")
+
+#fixed
+mpas<-mpa_wrp
+
+save(mpas,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+allareas<-st_area(mpas)
+
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+#settlement
+#from https://ghsl.jrc.ec.europa.eu
+
+
+#library(raster)
+#smod<-raster("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif")
+
+#remove the NA and water, turn to points, and get to the right CRS
+
+smod<-read_stars("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif")
+smod.sf1<-st_as_sf(smod[,1:10000,,],as_points=TRUE,crs=st_crs(smod))
+save(smod.sf1,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf1.Rdata")
+smod.sf1<-smod.sf1[smod.sf1$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif!=10,]
+gc()
+smod.sf1<-st_transform(smod.sf1,4326)
+gc()
+save(smod.sf1,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf1.Rdata")
+q()
+
+
+library(stars)
+library(sf)
+smod<-read_stars("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif")
+smod.sf2a<-st_as_sf(smod[,10001:15000,,],as_points=TRUE,crs=st_crs(smod))
+save(smod.sf2a,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf2a.Rdata")
+smod.sf2a<-smod.sf2a[smod.sf2a$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif!=10,]
+gc()
+smod.sf2a<-st_transform(smod.sf2a,4326)
+save(smod.sf2a,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf2a.Rdata")
+
+smod.sf2b<-st_as_sf(smod[,15001:20000,,],as_points=TRUE,crs=st_crs(smod))
+save(smod.sf2b,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf2b.Rdata")
+smod.sf2b<-smod.sf2b[smod.sf2b$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif!=10,]
+gc()
+smod.sf2b<-st_transform(smod.sf2b,4326)
+save(smod.sf2b,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf2b.Rdata")
+
+
+library(stars)
+library(sf)
+smod<-read_stars("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif")
+smod.sf3<-st_as_sf(smod[,20001:30000,,],as_points=TRUE,crs=st_crs(smod))
+save(smod.sf3,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf3.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf3.Rdata")
+
+smod.sf3<-smod.sf3[smod.sf3$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif!=10,]
+gc()
+smod.sf3<-st_transform(smod.sf3,4326)
+save(smod.sf3,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf3.Rdata")
+
+library(stars)
+library(sf)
+smod<-read_stars("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif")
+smod.sf4<-st_as_sf(smod[,30001:36082,,],as_points=TRUE,crs=st_crs(smod))
+save(smod.sf4,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf4.Rdata")
+smod.sf4<-smod.sf4[smod.sf4$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif!=10,]
+gc()
+smod.sf4<-st_transform(smod.sf4,4326)
+save(smod.sf4,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf4.Rdata")
+
+
+####we are going to look at both within mpas as well as neighbouring area
+# question is how far from the mpa limits, 1km
+
+library(sf)
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+mpas.buf<-st_buffer(mpas,1000)
+save(mpas.buf,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas_buffered.Rdata")
+
+mpas.buf.50<-st_buffer(mpas,50000) #fishing effect
+save(mpas.buf.50,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas_buffered_50km.Rdata")
+
+############################
+##let's populate
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf4.Rdata")
+
+tic<-Sys.time()
+mpa.join<-st_intersects(mpas.buf, smod.sf4,sparse=TRUE)
+Sys.time()-tic
+
+smod.key<-data.frame(value=c(30,23,22,21,13,12,11,10),level=c("city","town","semi-dense town","suburbs","village","dispersed rural","mostly uninhabited","water"))
+mpa.smod<-data.frame(WDPAID=mpas.buf$WDPAID,city=0,town=0,semidense_town=0,suburbs=0,village=0,dispersed_rural=0,mostly_uninhabited=0,water=0)
+
+pres<-unlist(lapply(mpa.join,length))
+some<-which(pres>0)
+
+for (i in some) {
+tt<-table(smod.sf4$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif[mpa.join[[i]]])
+mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]<-mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]+as.numeric(tt)
+}
+
+save(mpa.smod,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_smod_intersection.Rdata")
+rm(smod.sf4)
+gc()
+
+################################################
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf1.Rdata")
+
+tic<-Sys.time()
+mpa.join<-st_intersects(mpas.buf, smod.sf1,sparse=TRUE)
+Sys.time()-tic
+
+pres<-unlist(lapply(mpa.join,length))
+some<-which(pres>0)
+
+for (i in some) {
+tt<-table(smod.sf1$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif[mpa.join[[i]]])
+mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]<-mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]+as.numeric(tt)
+}
+
+save(mpa.smod,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_smod_intersection.Rdata")
+rm(smod.sf1)
+gc()
+################################################
+
+################################################
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf2a.Rdata")
+
+tic<-Sys.time()
+mpa.join<-st_intersects(mpas.buf, smod.sf2a,sparse=TRUE)
+Sys.time()-tic
+
+pres<-unlist(lapply(mpa.join,length))
+some<-which(pres>0)
+
+for (i in some) {
+tt<-table(smod.sf2a$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif[mpa.join[[i]]])
+mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]<-mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]+as.numeric(tt)
+}
+
+save(mpa.smod,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_smod_intersection.Rdata")
+rm(smod.sf2a)
+gc()
+################################################
+##
+################################################
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf2b.Rdata")
+
+tic<-Sys.time()
+mpa.join<-st_intersects(mpas.buf, smod.sf2b,sparse=TRUE)
+Sys.time()-tic
+
+pres<-unlist(lapply(mpa.join,length))
+some<-which(pres>0)
+
+for (i in some) {
+tt<-table(smod.sf2b$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif[mpa.join[[i]]])
+mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]<-mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]+as.numeric(tt)
+}
+
+save(mpa.smod,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_smod_intersection.Rdata")
+rm(smod.sf2b)
+gc()
+################################################
+
+################################################
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/smod/smodsf3.Rdata")
+
+tic<-Sys.time()
+mpa.join<-st_intersects(mpas.buf, smod.sf3,sparse=TRUE)
+Sys.time()-tic
+
+pres<-unlist(lapply(mpa.join,length))
+some<-which(pres>0)
+
+for (i in some) {
+tt<-table(smod.sf3$GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0.tif[mpa.join[[i]]])
+mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]<-mpa.smod[i,(match(as.numeric(names(tt)),smod.key$value)+1)]+as.numeric(tt)
+}
+
+save(mpa.smod,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_smod_intersection.Rdata")
+rm(smod.sf3)
+gc()
+
+################################################
+################################################
+################################################
+############# typify the mpas
+mpa.smod$size<-round(as.numeric(st_area(mpas.buf)/1000000),0) #in km2 to match resolution of smod
+mpa.smod$water<-mpa.smod$size-rowSums(mpa.smod[,2:8])
+mpa.smod$water[which(mpa.smod$water<0)]<-0
+save(mpa.smod,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_smod_intersection.Rdata")
+
+mpa.smod.rel<-mpa.smod[,2:9]/rowSums(mpa.smod[,2:9])
+library(vegan)
+mpa.dist<-vegdist(mpa.smod.rel,method="bray")
+mpa.clus<-hclust(mpa.dist,"average")
+plot(mpa.clus)
+
+mpa.mds<-metaMDS(mpa.smod.rel,dist="bray")
+################################################
+################################################
+################################################
+################################################
+################################################
+
+
+###############################################################################################################################
+##################################################################################################################################
+### Aquamaps
+
+devtools::install_github("raquamaps/raquamaps")  
+
+library("classInt")
+library("ggplot2")
+library("raster")
+library("RColorBrewer")
+
+# data manipulation
+library("plyr")
+library("dplyr")
+library("reshape2")
+
+# data modelling
+library(rgbif)
+library(raquamaps)
+library(httr)
+library(stringr)
+
+# datasets <- data(package = "raquamaps")$results[ ,"Item"]
+# print(datasets)
+
+#"http://www.aquamaps.org/ScientificNameSearchList.php?Crit1_FieldName=scientific_names.Genus&Crit1_FieldType=CHAR&Crit2_FieldName=scientific_names.Species&Crit2_FieldType=CHAR&Group=All&Crit1_Operator=EQUAL&Crit1_Value=Tursiops&Crit2_Operator=CONTAINS&Crit2_Value=truncatus"
+#https://www.aquamaps.org/ScientificNameSearchList.php?Crit1_FieldName=scientific_names.Genus&Crit1_FieldType=CHAR&Crit2_FieldName=scientific_names.Species&Crit2_FieldType=CHAR&Group=All&Crit1_Operator=EQUAL&Crit1_Value=tursiops&Crit2_Operator=CONTAINS&Crit2_Value=truncatus
+
+source("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/aquamaps_nativerange_DL.r")
+
+species<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/iucn/common_names.csv",header=T)
+
+all.species<-data.frame(species=unique(species$scientificName),identifier=NA)
+for (i in 1:dim(all.species)[1]) {
+all.species$identifier[i]<-get_am_name_uris(latinname=all.species$species[i])[1]
+
+}
+save(all.species,file=paste0("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/allspecies4aquamaps.Rdata"))
+
+get_am_name_uris(latinname="Tursiops truncatus")
+
+get_am_name_uris(latinname=species$scientificName[1])
+
+species.present<-all.species$species[!is.na(all.species$identifier)]
+
+for (i in 1:length(species.present)) {
+range<-tryCatch(nativerange(latinname=species.present[i]), error=function(e) {e})
+if (grepl("Error in begg:endd : argument of length 0",range)) { #we seem to get a stochastic error in the read, which may be related to the html read (rate limit?). in any case, asking again nicely does the trick
+range<-nativerange(latinname=species.present[i])}
+
+print(i)
+flush.console()
+#Sys.sleep(1)
+save(range,file=paste0("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/aquamaps/",species.present[i],"_",i,".Rdata"))
+}
+
+#we are missing species
+
+
+assessment<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/iucn/assessments.csv",header=T)
+
+all.species2<-data.frame(species=assessment$scientificName[which(is.na(match(assessment$scientificName,all.species$species)))],identifier=NA)
+
+for (i in 1:dim(all.species2)[1]) {
+all.species2$identifier[i]<-get_am_name_uris(latinname=all.species2$species[i])[1]
+
+}
+save(all.species,all.species2,file=paste0("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/allspecies4aquamaps.Rdata"))
+
+
+species.present2<-all.species2$species[!is.na(all.species2$identifier)]
+
+for (i in 1:length(species.present2)) {
+range<-tryCatch(nativerange(latinname=species.present2[i]), error=function(e) {e})
+if (grepl("Error in begg:endd : argument of length 0",range)) { #we seem to get a stochastic error in the read, which may be related to the html read (rate limit?). in any case, asking again nicely does the trick
+range<-nativerange(latinname=species.present2[i])}
+
+print(i)
+flush.console()
+#Sys.sleep(1)
+save(range,file=paste0("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/aquamaps/",species.present2[i],"_part2_",i,".Rdata"))
+}
+
+
+# ####################For an offline version
+# install_gitub("raquamaps/aquamapsdata", dependencies = TRUE)
+
+# # initial run-once step required to install remote db locally
+
+# library(aquamapsdata)
+# download_db(force = TRUE)
+# default_db("sqlite")
+# Once the database is available locally, it can be queried using a couple of different functions.
+
+# Please remember to begin your session by activating the connection to the downloaded database:
+
+ library(aquamapsdata)
+ default_db("sqlite")
+# ##########################
+## we can reverse the process here: use all aquampas and find those that are on IUCN redlist
+
+
+###########################################################################
+##### useful for species use:
+# speciesoccursum_r	deepwater	Does the species occur in the deep-sea (i.e. tagged bathypelagic or bathydemersal in FishBase or SeaLifeBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	angling	Is the species a sport fish (i.e. tagged as a GameFish in FishBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	diving	Is the species found on a dive (i.e. where DepthPrefMin in HSPEN < 20 meters)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	dangerous	Is the species dangerous (i.e. tagged as ‘traumatogenic or venonous’ in FishBase or SeaLifeBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	m_invertebrates	Is the species a marine invertebrate? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	highseas	Is the species an open ocean fish species (i.e. tagged as pelagic-oceanic in FishBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	invasive	Is the species recorded to be invasive (i.e. in FishBase or SeaLifeBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	resilience	Resilience of the species (i.e. as recorded in FishBase/SeaLifeBase)	varchar	chr
+
+##################################################################################################################
+##################################################################################################################
+##################################################################################################################
+## now we have all the species, we need to intersect them with the mpas
+##################################################################################################################
+##################################################################################################################
+
+library(sf)
+
+#is it sufficient to keep the data as points or do we need to go to raster
+#let's take some very small distributions and see the outcome
+
+species<-list.files("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/aquamaps/",full.names=T)
+sp.ls<-gsub("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/aquamaps/","",species)
+sp.ls<-gsub("_.*","",sp.ls)
+
+# range.kb<-file.info(species)$size
+# range.kb<-range.kb$size
+# trial<-species[which(range.kb<500)])
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+############################
+##let's populate
+i=1
+load(species[i])
+range.sp<-st_as_sf(range[range[,6]>.5,],coords=c(4,3))
+try<-st_buffer(range.sp,.25,endCapStyle = "SQUARE",) #(half degree cells)
+st_crs(try)<-4326
+st_crs(range.sp)<-4326
+try.u<-st_union(try)
+st_crs(try.u)<-4326
+native<-st_cast(try.u,"POLYGON")
+
+plot(native[[1]])
+
+###############we need to turn s2 off for intersects!!!!!! 12 sec v 4 min
+sf_use_s2(use_s2=FALSE)
+
+tic<-Sys.time()
+mpa.join<-st_intersects(native,mpas)
+Sys.time()-tic
+ 
+mpa.species<-data.frame(mpa=mpas$WDPA_PID[unlist(mpa.join)],species=sp.ls[i])
+
+errors<-26
+for (i in 294:length(species)) {
+load(species[i])
+
+if (!is.na(range)) {
+if(!is.null(dim(range)[2])){
+if(dim(range)[2]<6) {
+errors<-c(errors,i)} else {
+range.sp<-st_as_sf(range[range[,6]>.5,],coords=c(4,3))
+try<-st_buffer(range.sp,.25,endCapStyle = "SQUARE",) #(half degree cells)
+st_crs(try)<-4326
+st_crs(range.sp)<-4326
+try.u<-st_union(try)
+st_crs(try.u)<-4326
+native<-st_cast(try.u,"POLYGON")
+
+mpa.join<-st_intersects(native,mpas)
+if (length(unlist(mpa.join))>0) {
+ 
+temp<-data.frame(mpa=mpas$WDPA_PID[unlist(mpa.join)],species=sp.ls[i])
+mpa.species<-rbind(mpa.species,temp)
+}
+}
+}
+}
+print(i/10709)
+flush.console()
+
+}
+
+save(mpa.species,sp.ls,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_species.Rdata")
+
+#we are going to have duplicates from mpas that are multipolygons
+
+library(dplyr)
+mpa.species.distinct<-distinct(mpa.species)
+
+counta<-as.numeric(table(mpa.species.distinct$mpa))
+mpas.count<-dimnames(table(mpa.species.distinct$mpa))[[1]]
+plot(log10(counta)~log10(mpas$GIS_M_AREA[match(mpas.count,mpas$WDPA_PID)]))
+
+save(mpa.species,sp.ls,mpa.species.distinct,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_species.Rdata")
+
+#species to threats
+
+assessments<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/iucn/assessments.csv",header=T)
+threats<-read.csv("C:/Users/davlu/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/iucn/threats.csv",header=T)
+
+all.threats<-unique(threats$code)
+
+mpa.threats<-data.frame(mpa=rep(unique(mpa.species.distinct$mpa),each=length(all.threats)),threats=rep(all.threats,length(unique(mpa.species.distinct$mpa))))
+mpa.threats$count<-0
+
+all.species<-unique(mpa.species.distinct$species)
+
+for (i in 1:length(all.species)) {
+
+temp.T<-threats$code[threats$scientificName==all.species[i]]
+
+temp.M<-mpa.species.distinct$mpa[mpa.species.distinct$species==all.species[i]]
+
+mpa.threats$count[mpa.threats$mpa%in%temp.M & mpa.threats$threats%in%temp.T]<-1+mpa.threats$count[mpa.threats$mpa%in%temp.M & mpa.threats$threats%in%temp.T]
+}
+
+##threat entropy
+
+mpa.char<-data.frame(mpa=mpas.count,species.count=counta,area=mpas$GIS_M_AREA[match(mpas.count,mpas$WDPA_PID)])
+mpa.char$entropy<-NA
+
+for (i in 1:length(mpas.count)) {
+tot=sum(mpa.threats$count[mpa.threats$mpa==mpas.count[i]])
+mpa.char$entropy[i]<-(-sum((mpa.threats$count[mpa.threats$mpa==mpas.count[i]]/tot)*log((mpa.threats$count[mpa.threats$mpa==mpas.count[i]]/tot),2),na.rm=T))
+
+}
+
+plot(mpa.char$entropy~mpa.char$species.count)
+
+save(mpa.char,sp.ls,mpa.species.distinct,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+
+loc<-st_centroid(mpas)
+as.numeric(loc$geometry)
+
+library(tidyverse)
+mpa.positions<-loc%>%
+mutate(long = unlist(map(loc$geometry,1)),
+           lat = unlist(map(loc$geometry,2)))
+mpa.char$lat<-	mpa.positions$lat[match(mpa.char$mpa,mpa.positions$WDPA_PID)]
+
+save(mpa.threats,mpa.char,sp.ls,mpa.species.distinct,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+
+plot(mpa.char$species.count~mpa.char$lat)
+
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+
+mpa.threats$threats.subcat<-sub("(.*?\\..*?)\\..*", "\\1", mpa.threats$threats)
+mpa.threats$threats.maincat<-sub("(.+?)(\\..*)","\\1",mpa.threats$threats)
+
+library(dplyr)
+temp.mpa<-as.data.frame(mpa.threats %>% group_by(mpa, threats.maincat) %>% summarise(count = sum(count)))
+##### no because in this way a species can be pseudoreplicates within each coarser categories
+
+##need to retabulate
+threats$maincode<-sub("(.+?)(\\..*)","\\1",threats$code)
+threats$subcode<-sub("(.*?\\..*?)\\..*", "\\1",threats$code)
+
+all.mainthreats<-unique(threats$maincode)
+all.subthreats<-unique(threats$subcode)
+
+mpa.mainthreats<-data.frame(mpa=rep(unique(mpa.species.distinct$mpa),each=length(all.mainthreats)),threats=rep(all.mainthreats,length(unique(mpa.species.distinct$mpa))))
+mpa.mainthreats$count<-0
+
+mpa.subthreats<-data.frame(mpa=rep(unique(mpa.species.distinct$mpa),each=length(all.subthreats)),threats=rep(all.subthreats,length(unique(mpa.species.distinct$mpa))))
+mpa.subthreats$count<-0
+
+all.species<-unique(mpa.species.distinct$species)
+
+for (i in 1:length(all.species)) {
+
+temp.T.main<-threats$maincode[threats$scientificName==all.species[i]]
+temp.T.sub<-threats$subcode[threats$scientificName==all.species[i]]
+
+
+temp.M<-mpa.species.distinct$mpa[mpa.species.distinct$species==all.species[i]]
+
+mpa.mainthreats$count[mpa.mainthreats$mpa%in%temp.M & mpa.mainthreats$threats%in%temp.T.main]<-1+mpa.mainthreats$count[mpa.mainthreats$mpa%in%temp.M & mpa.mainthreats$threats%in%temp.T.main]
+mpa.subthreats$count[mpa.subthreats$mpa%in%temp.M & mpa.subthreats$threats%in%temp.T.sub]<-1+mpa.subthreats$count[mpa.subthreats$mpa%in%temp.M & mpa.subthreats$threats%in%temp.T.sub]
+
+}
+
+mpa.char$mainentropy<-NA
+mpa.char$subentropy<-NA
+
+for (i in 1:dim(mpa.char)[1]) {
+totm=sum(mpa.mainthreats$count[mpa.mainthreats$mpa==mpa.char$mpa[i]])
+tots=sum(mpa.subthreats$count[mpa.subthreats$mpa==mpa.char$mpa[i]])
+
+mpa.char$mainentropy[i]<-(-sum((mpa.mainthreats$count[mpa.mainthreats$mpa==mpa.char$mpa[i]]/totm)*log((mpa.mainthreats$count[mpa.mainthreats$mpa==mpa.char$mpa[i]]/totm),2),na.rm=T))
+mpa.char$subentropy[i]<-(-sum((mpa.subthreats$count[mpa.subthreats$mpa==mpa.char$mpa[i]]/tots)*log((mpa.subthreats$count[mpa.subthreats$mpa==mpa.char$mpa[i]]/tots),2),na.rm=T))
+
+}
+
+save(mpa.mainthreats,mpa.subthreats,mpa.threats,mpa.char,sp.ls,mpa.species.distinct,file="C:/Users/davlu/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+
+plot((mpa.char$entropy)~(mpa.char$mainentropy))
+
+plot((mpa.char$subentropy)~(mpa.char$mainentropy))
+
+plot(log10(mpa.char$area)~(mpa.char$mainentropy))
+
+
+plot(log10(mpa.char$mainentropy)~log10(mpa.char$species.count))
+
+mpa.char$nthreat<-NA
+mpa.char$nmainthreat<-NA
+mpa.char$nsubthreat<-NA
+
+for (i in 1:dim(mpa.char)[1]) {
+mpa.char$nmainthreat[i]<-sum(mpa.mainthreats$count[mpa.mainthreats$mpa==mpa.char$mpa[i]]>0)
+mpa.char$nsubthreat[i]<-sum(mpa.subthreats$count[mpa.subthreats$mpa==mpa.char$mpa[i]]>0)
+mpa.char$nthreat[i]<-sum(mpa.threats$count[mpa.threats$mpa==mpa.char$mpa[i]]>0)
+
+}
+
+
+save(mpa.mainthreats,mpa.subthreats,mpa.threats,mpa.char,sp.ls,mpa.species.distinct,file="C:/Users/davlu/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+
+library(ggplot2)
+
+ggplot(mpa.char, aes(x=nthreat,y=log10(species.count))) +
+geom_point()
+
+ggplot(mpa.char, aes(x=nmainthreat,y=log10(species.count))) +
+geom_point()
+
+
+ggplot(mpa.char, aes(x=nmainthreat,y=mainentropy)) +
+geom_point()
+
+
+ggplot(mpa.char, aes(x=nthreat,y=entropy)) +
+geom_point()
+
+ggplot(mpa.char, aes(y=entropy/log(nthreat,2),x=log10(species.count))) +
+geom_point()
+
+
+ggplot(mpa.char, aes(y=mainentropy/log(nmainthreat,2),x=log10(species.count))) +
+geom_point()
+
+
+ggplot(mpa.char, aes(y=entropy/log(nthreat,2),x=(species.count))) +
+geom_point()+
+xlim(100,2000)
+
+
+ggplot(mpa.char, aes(y=mainentropy/log(nmainthreat,2),x=(lat))) +
+geom_point()
+
+
+ggplot(mpa.char, aes(y=entropy/log(nthreat,2),x=(lat))) +
+geom_point()
+
+
+ggplot(mpa.char, aes(y=entropy,x=(lat))) +
+geom_point()
+
+
+##################################################################################################################
+##################################################################################################################
+##################################################################################################################
+###
+## retrieve from free text in assessment whether the species interacts with fisheries (unintentional catches) and if so 
+### wether the gear type can be retrieved
+
+#let's get the gear type
+vessels<-read.csv("C:/Users/davlu/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/globalfishwatch/fishing-vessels-v2.csv",header=T)
+gear<-as.character(unique(vessels$vessel_class_gfw))
+gear<-sub("_", " ", gear)
+gear<-sub("_", " ", gear)
+gear<-sub("(.*)s$", '\\1', gear)
+gear<-c(gear,"seine","gillnet","bycatch","incidental catch", "unintentional catch", "entanglement","longline","pot and trap","pots and traps")
+
+assessment<-read.csv("C:/Users/davlu/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/iucn/assessments.csv",header=T,stringsAsFactors =F)
+
+library(stringr)
+
+fisheries.interactions<-assessment %>% 
+	filter(str_detect(threats,paste(gear,collapse="|")))
+	
+gear2<-c("seine","trawl","gillnet","longline","pole and line","jigger","trap","pot","dredge","line","net")
+
+fish.interact<-data.frame(internalTaxonId=fisheries.interactions$internalTaxonId,scientificName=fisheries.interactions$scientificName,seine=FALSE,trawl=FALSE,gillnet=FALSE,longline=FALSE,pole.line=FALSE,jigger=FALSE,trap=FALSE,pot=FALSE,dredge=FALSE)
+
+for (i in 1: length(gear2)) {
+fish.interact[,2+i]<-str_detect(fisheries.interactions$threats,gear2[i])
+}
+
+gear.interaction<-rowSums(fish.interact[,3:(2+i)])
+death<-c("bycatch","incidental", "unintentional", "entanglement")
+death.interact<-data.frame(internalTaxonId=fisheries.interactions$internalTaxonId,scientificName=fisheries.interactions$scientificName,bycatch=FALSE,incidental=FALSE, unintentional=FALSE, entanglement=FALSE)
+
+for (i in 1: length(death)) {
+death.interact[,2+i]<-str_detect(fisheries.interactions$threats,death[i])
+}
+
+death.interaction<-rowSums(death.interact[,3:(2+i)])
+
+table(death.interaction,gear.interaction)
+
+
+tfish<-table(mpa.species.distinct$mpa[mpa.species.distinct$species%in%fisheries.interactions$scientificName])
+tnfish<-table(mpa.species.distinct$mpa[!mpa.species.distinct$species%in%fisheries.interactions$scientificName])
+
+mpa.fisheries.threat<-data.frame(mpa=unique(mpa.species.distinct$mpa),Fthreat=0,noFthreat=0)
+
+mpa.fisheries.threat$Fthreat[match(dimnames(tfish)[[1]],mpa.fisheries.threat$mpa)]<-as.numeric(tfish)
+mpa.fisheries.threat$noFthreat[match(dimnames(tnfish)[[1]],mpa.fisheries.threat$mpa)]<-as.numeric(tnfish)
+mpa.fisheries.threat$pFthreat<-mpa.fisheries.threat$Fthreat/(mpa.fisheries.threat$Fthreat+mpa.fisheries.threat$noFthreat)
+
+mpa.char$nFisheriesthreat<-mpa.fisheries.threat$Fthreat[match(mpa.char$mpa,mpa.fisheries.threat$mpa)]
+mpa.char$pFisheriesthreat<-mpa.fisheries.threat$pFthreat[match(mpa.char$mpa,mpa.fisheries.threat$mpa)]
+
+save(fish.interact,death.interact,mpa.fisheries.threat,mpa.mainthreats,mpa.subthreats,mpa.threats,mpa.char,sp.ls,mpa.species.distinct,file="C:/Users/davlu/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+
+library(ggplot2)
+
+ggplot(mpa.char, aes(y=pFisheriesthreat,x=log10(species.count))) +
+geom_point()
+
+ggplot(mpa.char, aes(y=pFisheriesthreat,x=(species.count))) +
+geom_point()
+
+ggplot(mpa.char, aes(y=pFisheriesthreat,x=entropy/log(nthreat,2))) +
+geom_point()
+
+
+ggplot(mpa.char, aes(y=log10(nFisheriesthreat),x=log10(species.count))) +
+geom_point()
+
+
+
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+#mpa.char is going to become our compedium of mpa characteristics.
+#lets add smod
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_smod_intersection.Rdata")
+#avoid WDPAID us the character variable WDPAID_PID, luckily mpa.smod was filled in the same row order as mpas
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+mpa.smod$WDPA_PID<-mpas$WDPA_PID
+sum(paste0(mpa.smod$WDPAID,mpa.smod$WDPAID_PID)%in%paste0(mpas$WDPAID,mpas$WDPA_PID))
+#checks out, all TRUE
+
+#while we are here
+
+mpa.char$PA_DEF<-mpas$PA_DEF[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$NAME<-mpas$NAME[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$DESIG<-mpas$DESIG[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$DESIG_ENG<-mpas$DESIG_ENG[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$DESIG_TYPE<-mpas$DESIG_TYPE[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$DESIG<-mpas$DESIG[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$IUCN_CAT<-mpas$IUCN_CAT[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$GIS_M_AREA<-mpas$GIS_M_AREA[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$NO_TAKE<-mpas$NO_TAKE[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$NO_TK_AREA<-mpas$NO_TK_AREA[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$STATUS<-mpas$STATUS[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$STATUS_YR<-mpas$STATUS_YR[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$GOV_TYPE<-mpas$GOV_TYPE[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$OWN_TYPE<-mpas$OWN_TYPE[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$MANG_AUTH<-mpas$MANG_AUTH[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$MANG_PLAN<-mpas$MANG_PLAN[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$MARINE<-mpas$MARINE[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$STATUS<-mpas$STATUS[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$PARENT_ISO<-mpas$PARENT_ISO[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$CONS_OBJ<-mpas$CONS_OBJ[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$calc.area<-as.numeric(mpas$area)[match(mpa.char$mpa,mpas$WDPA_PID)]
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+rm(mpas)
+
+#smod we are going to keep it as count of raster point and have the total number of sample obtained for now (we can always revert
+#back to proportion)
+#recall smod estimates for 1 km buffer
+
+mpa.char$smod.count<-mpa.smod$size[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.city<-mpa.smod$city[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.town<-mpa.smod$town[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.semiDenseTown<-mpa.smod$semidense_town[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.suburbs<-mpa.smod$suburbs[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.village<-mpa.smod$village[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.rural<-mpa.smod$dispersed_rural[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.uninhabited<-mpa.smod$mostly_uninhabited[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+mpa.char$smod.water<-mpa.smod$water[match(mpa.char$mpa,mpa.smod$WDPA_PID)]
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+## let's add shipping
+# values are hours of vessel presence (steaming or stationary) between Jan-2015 and Feb-2021 by vessel types
+#data from IMF study
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+devtools::install_github("isciences/exactextractr")
+
+library(raster)
+library(exactextractr)
+### this is so much more efficient that the stars approach
+
+library(sf)
+
+AIS.files<-list.files("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/AIS/",full.names=T)
+AIS.files.tif<-AIS.files[grepl("(.*)tif$", AIS.files)]
+
+AIS.temp<-raster(AIS.files.tif[1])
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+mpa.temp<-st_transform(mpas,crs(AIS.temp))
+rm(mpas)
+#(much) more time efficient to transofrm the polygon than to transform the raster
+
+# plot(AIS.temp,axes=FALSE)
+# plot(st_geometry(mpas),add=TRUE)
+gc()
+
+AIS.hours<-exact_extract(AIS.temp,mpa.temp,"sum",progress=FALSE)
+#we sum here as we have the area for each mpa we can take the average afterwards, the sum takes fraction of raster cell covered by polygons already
+mpa.char$AIS.commercial<-AIS.hours.mean[match(mpa.char$mpa,mpa.temp$WDPA_PID)]
+
+
+mpa.char$AIS.fishing<-0
+mpa.char$AIS.global<-0
+mpa.char$AIS.leisure<-0
+mpa.char$AIS.oilgas<-0
+mpa.char$AIS.passenger<-0
+
+for (i in 2:length(AIS.files.tif)) {
+AIS.temp<-raster(AIS.files.tif[i])
+AIS.hours<-exact_extract(AIS.temp,mpa.temp,"sum",progress=FALSE)
+
+mpa.char[,40+i]<-AIS.hours[match(mpa.char$mpa,mpa.temp$WDPA_PID)]
+
+gc()
+
+}
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+#st_as_sf(smod[,10001:15000,,],as_points=TRUE,crs=st_crs(smod))
+# library(sp)
+# AIS.temp.st<-st_as_stars(AIS.temp)
+
+
+library(raster)
+library(exactextractr)
+### this is so much more efficient that the stars approach
+
+library(sf)
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas_buffered.Rdata")
+
+cropNW<-raster("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/Global_cropland_NW_2019.tif")
+mpa.temp<-st_transform(mpas.buf,crs(cropNW))
+rm(mpas.buf)
+
+#binary data (presence or absence)
+crop<-exact_extract(cropNW,mpa.temp,"sum",progress=FALSE)
+
+save(crop,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropNW.mpa.Rdata")
+
+#############################
+library(raster)
+library(exactextractr)
+library(sf)
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas_buffered.Rdata")
+
+cropSE<-raster("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/Global_cropland_SE_2019.tif")
+mpa.temp<-st_transform(mpas.buf,crs(cropSE))
+rm(mpas.buf)
+
+#binary data (presence or absence)
+cropSE<-exact_extract(cropSE,mpa.temp,"sum",progress=FALSE)
+save(cropSE,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropSE.mpa.Rdata")
+
+#############################
+library(raster)
+library(exactextractr)
+library(sf)
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas_buffered.Rdata")
+
+cropSW<-raster("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/Global_cropland_SW_2019.tif")
+mpa.temp<-st_transform(mpas.buf,crs(cropSW))
+rm(mpas.buf)
+
+#binary data (presence or absence)
+cropSW<-exact_extract(cropSW,mpa.temp,"sum",progress=FALSE)
+
+save(cropSW,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropSW.mpa.Rdata")
+
+#############################
+library(raster)
+library(exactextractr)
+library(sf)
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas_buffered.Rdata")
+
+cropNE<-raster("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/Global_cropland_NE_2019.tif")
+mpa.temp<-st_transform(mpas.buf,crs(cropNE))
+rm(mpas.buf)
+
+#binary data (presence or absence)
+cropNE<-exact_extract(cropNE,mpa.temp,"sum",progress=FALSE)
+
+save(cropNE,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropNE.mpa.Rdata")
+
+
+#############################
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas_buffered.Rdata")
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropNW.mpa.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropNE.mpa.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropSW.mpa.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/cropland/cropSE.mpa.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+mpa.char$cropland.2019<-crop[match(mpa.char$mpa,mpas.buf$WDPA_PID)] +cropNE[match(mpa.char$mpa,mpas.buf$WDPA_PID)] +cropSW[match(mpa.char$mpa,mpas.buf$WDPA_PID)] +cropSE[match(mpa.char$mpa,mpas.buf$WDPA_PID)]
+
+library(hdrcde)
+plot(cde(mpa.char$lat,log10(mpa.char$cropland.2019+1))) # it is more of a northern hemisphere challenge
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+######################################
+#### fish aesthetics
+##2417 species measured
+
+aesthetics<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/iucn/fish.aesthetics.csv",header=T)
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_threats_characteristics.Rdata")
+rm(mpa.char) # careful not to get confused with different versions of mpa.char the old one is bundled here
+
+aesthetics$Species%in%mpa.species.distinct$species
+
+# we are missing quite a few species for which we have an aesthetics value and we have a native range map but we don't have
+#an IUCN RL assessment
+##################################################################################
+## we need later on to look at p_threat(recreation & tourism) ~ aesthetics value
+####################################################################################
+
+#let's add those native range in a separate folder
+
+additional.species<-aesthetics$Species[!aesthetics$Species%in%mpa.species.distinct$species]
+
+library(raster)
+library(sf)
+library(exactextractr)
+
+ library(aquamapsdata)
+ default_db("sqlite")
+
+
+
+key <- am_search_fuzzy(additional.species[1])$key
+ras <- am_raster(key)
+values(ras)[values(ras)>0.5]<-1
+values(ras)[values(ras)<1]<-0
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+mpa.temp<-st_transform(mpas,crs(ras))
+
+#binary data (presence or absence)
+mpa.join<-exact_extract(ras,mpa.temp,"sum",progress=FALSE)
+
+mpa.species.missing.aesthetics<-data.frame(mpa=mpas$WDPA_PID[mpa.join>0],species=additional.species[1])
+
+for (i in 2:length(additional.species)) {
+
+key <- am_search_fuzzy(additional.species[1])$key
+if (length(key)>0) {
+ras <- am_raster(key)
+values(ras)[values(ras)>0.5]<-1
+values(ras)[values(ras)<1]<-0
+
+mpa.join<-exact_extract(ras,mpa.temp,"sum",progress=FALSE)
+temp<-data.frame(mpa=mpas$WDPA_PID[mpa.join>0],species=additional.species[i])
+mpa.species.missing.aesthetics<-rbind(mpa.species.missing.aesthetics,temp)
+}
+print(i)
+flush.console()
+
+}
+
+library(dplyr)
+mpa.species.missing.aesthetics.distinct<-distinct(mpa.species.missing.aesthetics)
+
+save(mpa.species.missing.aesthetics,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_species_additional_aesthetics.Rdata")
+
+mpa.species.aesthetics<-rbind(mpa.species.missing.aesthetics.distinct,mpa.species.distinct)
+
+mpa.species.aesthetics$aesthetics<-NA
+sum(is.na(match(mpa.species.aesthetics$species,aesthetics$Species)))
+max(match(mpa.species.aesthetics$species,aesthetics$Species))
+
+mpa.species.aesthetics$aesthetics<-aesthetics$Aesthetic[match(mpa.species.aesthetics$species,aesthetics$Species)]
+#mpa.species.aesthetics<-mpa.species.aesthetics[!is.na(mpa.species.aesthetics$aesthetics),]
+
+save(mpa.species.aesthetics,mpa.species.missing.aesthetics,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_species_additional_aesthetics.Rdata")
+
+###########################################################################
+##### useful for species use:
+# speciesoccursum_r	deepwater	Does the species occur in the deep-sea (i.e. tagged bathypelagic or bathydemersal in FishBase or SeaLifeBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	angling	Is the species a sport fish (i.e. tagged as a GameFish in FishBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	diving	Is the species found on a dive (i.e. where DepthPrefMin in HSPEN < 20 meters)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	dangerous	Is the species dangerous (i.e. tagged as ‘traumatogenic or venonous’ in FishBase or SeaLifeBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	m_invertebrates	Is the species a marine invertebrate? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	highseas	Is the species an open ocean fish species (i.e. tagged as pelagic-oceanic in FishBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	invasive	Is the species recorded to be invasive (i.e. in FishBase or SeaLifeBase)? 0=No, 1=Yes	tinyint	int
+# speciesoccursum_r	resilience	Resilience of the species (i.e. as recorded in FishBase/SeaLifeBase)	varchar	chr
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_species_additional_aesthetics.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+library(sf)
+loc<-st_centroid(mpas)
+
+library(tidyverse)
+mpa.positions<-loc%>%
+mutate(long = unlist(map(loc$geometry,1)),
+           lat = unlist(map(loc$geometry,2)))
+mpa.char$lon<-	mpa.positions$long[match(mpa.char$mpa,mpa.positions$WDPA_PID)]
+
+cropland.res<-0.00025
+
+mpa.char$cropland.2019.area.km2<-NA
+for (i in 1:dim(mpa.char)[1]) {
+a=st_distance(st_sfc(st_point(c(mpa.char$lon[i],mpa.char$lat[i])),crs=st_crs(mpas)),st_sfc(st_point(c(mpa.char$lon[i],mpa.char$lat[i]+cropland.res)),crs=st_crs(mpas)))
+b=st_distance(st_sfc(st_point(c(mpa.char$lon[i],mpa.char$lat[i])),crs=st_crs(mpas)),st_sfc(st_point(c(mpa.char$lon[i]+cropland.res,mpa.char$lat[i])),crs=st_crs(mpas)))
+
+mpa.char$cropland.2019.area.km2[i]<-mpa.char$cropland.2019[i]*a*b/1000000
+}
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+#mpa are listed in the same order
+mpa.char$fish.aesthetics.max<-as.numeric(by(mpa.species.aesthetics$aesthetics,mpa.species.aesthetics$mpa,function(x) max(x,na.rm=T)))
+mpa.char$fish.aesthetics.max[mpa.char$fish.aesthetics.max==-Inf]<-NA
+mpa.char$fish.aesthetics.mean<-as.numeric(by(mpa.species.aesthetics$aesthetics,mpa.species.aesthetics$mpa,function(x) mean(x,na.rm=T)))
+mpa.char$fish.aesthetics.sd<-as.numeric(by(mpa.species.aesthetics$aesthetics,mpa.species.aesthetics$mpa,function(x) sd(x,na.rm=T)))
+mpa.char$fish.aesthetics.count<-as.numeric(by(mpa.species.aesthetics$aesthetics,mpa.species.aesthetics$mpa,function(x) length(x)-sum(is.na(x))))
+
+plot((mpa.char$fish.aesthetics.sd/mpa.char$fish.aesthetics.mean)~log10(mpa.char$fish.aesthetics.count))
+
+plot(mpa.char$fish.aesthetics.mean~log10(mpa.char$fish.aesthetics.count))
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##globalfishwatch data
+library(exactextractr)
+library(sf)
+library(raster)
+
+GFW2012<-list.files("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/globalfishwatch/fleet-daily-csvs-100-v2-2012/",full.names=T)
+
+F2012<-read.csv(GFW2012[1])
+for (i in 1: length(GFW2012)) {
+temp<-read.csv(GFW2012[i])
+F2012<-rbind(F2012,temp)
+print(i)
+flush.console()
+}
+
+save(F2012,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/globalfishwatch/fishing2012.Rdata")
+
+#################################	
+F2012.year<-aggregate(fishing_hours~cell_ll_lat+cell_ll_lon+geartype,F2012,sum)
+## we need to go from lower left corner to centre (as raster will assume coordinate is for the centre)
+F2012.year$lat.cent<-F2012.year$cell_ll_lat+0.005  #given the 100th degree resolution
+F2012.year$lon.cent<-F2012.year$cell_ll_lon+0.005
+
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+vessels<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/globalfishwatch/fishing-vessels-v2.csv",header=T,stringsAsFactor=FALSE)
+complete.gear<-unique(unlist(str_split(unique(vessels$vessel_class_registry),"\\|")))
+complete.gear<-complete.gear[-c(16,18)] # NA and empty
+years<-c(2012:2020)
+
+var.list<-as.vector(outer(complete.gear,years,paste,sep="."))
+mpa.fish<-vector("list",length(years))
+names(mpa.fish)<-years
+fish<-data.frame(mpa=mpas$WDPA_PID)
+fish[complete.gear]<-NA
+
+for (i in 1:length(years)) {
+mpa.fish[[i]]<-fish
+}
+
+
+library(raster)
+
+i=1
+j=1
+
+for (i in 12:length(complete.gear)) {
+ras<-tryCatch(rasterFromXYZ(F2012.year[F2012.year$geartype==complete.gear[i],c(6,5,4)],res=c(.01,.01), crs=CRS("+init=epsg:4326")),error=function(e) e)
+
+if (length(ras)>2) {
+mpa.fish[[j]][,i+1]<-exact_extract(ras,mpas,"sum",progress=FALSE)
+}
+print(i)
+flush.console()
+}
+
+
+save(mpa.fish,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_within_all_fisheries_effort.Rdata")
+
+#######################################################
+#### iterate
+
+year.dir<-list.dirs("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/globalfishwatch/",full.names=T)
+years<-c(2012:2020)
+year.dir<-year.dir[-1]
+#we just did the first one
+
+
+for (j in 1:length(year.dir)) {
+
+GFW<-list.files(year.dir[j],full.names=T)
+
+F.ef<-read.csv(GFW[1])
+
+for (i in 2: length(GFW)) {
+temp<-read.csv(GFW[i])
+F.ef<-rbind(F.ef,temp)
+print(paste0("daily effort=",i))
+flush.console()
+}
+
+save(F.ef,file=paste0("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/globalfishwatch/fishing",years[j],".Rdata"))
+
+#load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/globalfishwatch/fishing",2019,".Rdata")
+#################################	
+F.ef.year<-aggregate(fishing_hours~cell_ll_lat+cell_ll_lon+geartype,F.ef,sum)
+## we need to go from lower left corner to centre (as raster will assume coordinate is for the centre)
+F.ef.year$lat.cent<-F.ef.year$cell_ll_lat+0.005  #given the 100th degree resolution
+F.ef.year$lon.cent<-F.ef.year$cell_ll_lon+0.005
+
+for (i in 1:length(complete.gear)) {
+ras<-tryCatch(rasterFromXYZ(F.ef.year[F.ef.year$geartype==complete.gear[i],c(6,5,4)],res=c(.01,.01), crs=CRS("+init=epsg:4326")),error=function(e) e)
+
+if (length(ras)>2) {
+mpa.fish[[j]][,i+1]<-exact_extract(ras,mpas,"sum",progress=FALSE)
+}
+print(paste0("within year gear=",i))
+flush.console()
+}
+
+print(paste0("j=",j))
+
+save(mpa.fish,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_within_all_fisheries_effort.Rdata")
+}
+
+####################################################################################
+#### include summary stats in mpa.char
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa_within_all_fisheries_effort.Rdata")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+head(mpa.fish[[1]])
+library(dplyr)
+
+mpa.fish.sum<-as.data.frame(mpa.fish[[1]])[,2:18]+
+	as.data.frame(mpa.fish[[2]])[,2:18]+
+	as.data.frame(mpa.fish[[3]])[,2:18]+
+	as.data.frame(mpa.fish[[4]])[,2:18]+
+	as.data.frame(mpa.fish[[5]])[,2:18]+
+	as.data.frame(mpa.fish[[6]])[,2:18]+
+	as.data.frame(mpa.fish[[7]])[,2:18]+
+	as.data.frame(mpa.fish[[8]])[,2:18]+
+	as.data.frame(mpa.fish[[9]])[,2:18]
+mpa.fish.sum$mpa<-as.data.frame(mpa.fish[[1]])[,1]
+mpa.fish.sum<-mpa.fish.sum[,-c(12,14)]
+names(mpa.fish.sum)[1:15]<-paste0(names(mpa.fish.sum)[1:15],"_2012_2020")
+
+mpa.fish.2019<-as.data.frame(mpa.fish[[8]])
+mpa.fish.2019<-mpa.fish.2019[,-c(13,15)]
+names(mpa.fish.2019)[2:16]<-paste0(names(mpa.fish.2019)[2:16],"_2019")
+
+
+mpa.char<-cbind(mpa.char,mpa.fish.sum[match(mpa.char$mpa,mpa.fish.sum$mpa),])
+mpa.char<-cbind(mpa.char,mpa.fish.2019[match(mpa.char$mpa,mpa.fish.2019$mpa),])
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+
+
+
+#####################################################################
+#### lastly flickr first photo volume 
+### recall there is a sampling bias at small scale (mpas less than about 5km2 are likely not well informed by this data type)
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+#####################################################################
+#user days
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/alldata_userdays_Feb2021.Rdata")
+
+flickr.userdays<-userdays.df[userdays.df$orientation=="none",]
+
+rm(unfolded_all,userdays.df)
+
+sum(unique(flickr.userdays$WDPA_PID)%in%mpa.char$mpa==FALSE)
+
+#oh dear WDPA_PID changes
+library(sf)
+mpa2020<-st_read("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/shapefile/WDPA_May2020_marine-shapefile-polygons.shp")
+mpa2020[mpa2020$WDPA_PID==unique(flickr.userdays$WDPA_PID)[2],]
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+sum(grepl(mpa2020[mpa2020$WDPA_PID==unique(flickr.userdays$WDPA_PID)[2],]$NAME,mpas$NAME))
+
+sum(mpas$GIS_AREA[mpas$ISO3=="RUS"])
+sum(mpa2020$GIS_AREA[mpa2020$ISO3=="RUS"])
+
+#########ok, so we did lose some MPAS
+mpa.lost<-unique(flickr.userdays$WDPA_PID)[unique(flickr.userdays$WDPA_PID)%in%mpa.char$mpa==FALSE]
+mpa2020[match(mpa.lost,mpa2020$WDPA_PID),]$DESIG
+
+grepl(mpa2020[match(mpa.lost,mpa2020$WDPA_PID),][34,]$ORIG_NAME,mpas$NAME)
+sum(mpas$WDPA_PID=="136329")
+#########################################
+### contacted unep-wcmc to see what's going on (24 Jun 2022) as eg Seal Sands SSI is still designated but removed
+
+flickr.userdays.tot<-aggregate(user.count~WDPA_PID,flickr.userdays,sum)
+#### for now to deal with losses
+flickr.userdays.tot<-flickr.userdays.tot[unique(flickr.userdays.tot$WDPA_PID)%in%mpa.char$mpa==TRUE,]
+
+mpa.char$Flickr_userdays_2010_2019<-NA
+mpa.char$Flickr_userdays_2010_2019[match(flickr.userdays.tot$WDPA_PID,mpa.char$mpa)]<-flickr.userdays.tot$user.count
+
+flickr.userdays.2019<-flickr.userdays[flickr.userdays$year==2019,]
+#### for now to deal with losses
+flickr.userdays.2019<-flickr.userdays.2019[unique(flickr.userdays.2019$WDPA_PID)%in%mpa.char$mpa==TRUE,]
+
+mpa.char$Flickr_userdays_2019<-NA
+mpa.char$Flickr_userdays_2019[match(flickr.userdays.2019$WDPA_PID,mpa.char$mpa)]<-flickr.userdays.2019$user.count
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+#####################################################################
+#photos & users
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/alldata_user_Feb2021.Rdata")
+
+flickr.user<-user.df[user.df$orientation=="none",]
+
+
+flickr.user.tot<-aggregate(cbind(user.count,photo.count)~WDPA_PID,flickr.user,sum)
+flickr.user.tot<-flickr.user.tot[unique(flickr.user.tot$WDPA_PID)%in%mpa.char$mpa==TRUE,]
+
+mpa.char$Flickr_user_2010_2019<-NA
+mpa.char$Flickr_user_2010_2019[match(flickr.user.tot$WDPA_PID,mpa.char$mpa)]<-flickr.user.tot$user.count
+
+mpa.char$Flickr_photos_2010_2019<-NA
+mpa.char$Flickr_photos_2010_2019[match(flickr.user.tot$WDPA_PID,mpa.char$mpa)]<-flickr.user.tot$photo.count
+
+
+flickr.user.2019<-flickr.user[flickr.user$year==2019,]
+flickr.user.2019<-flickr.user.2019[unique(flickr.user.2019$WDPA_PID)%in%mpa.char$mpa==TRUE,]
+
+mpa.char$Flickr_user_2019<-NA
+mpa.char$Flickr_user_2019[match(flickr.user.2019$WDPA_PID,mpa.char$mpa)]<-flickr.user.2019$user.count
+mpa.char$Flickr_photos_2019<-NA
+mpa.char$Flickr_photos_2019[match(flickr.user.2019$WDPA_PID,mpa.char$mpa)]<-flickr.user.2019$photo.count
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+########################################################################################################################
+#################### sample new MPAs
+########################################################################################################################
+##### so of course, right now the data is sumarise for the whole period and for 2019, but we can also do a before and after approach on the data, with annual
+#### repeated measure for MPAs created between 2010 and 2019.
+#######################################################################################################################
+### we have 2020 sampled separately for the other MPAs, let's include 2020 in the sampling of these new ones too
+#######################################################################################################################
+library(sf)
+library(photosearcher)
+
+mindate="2010-01-01"
+maxdate="2020-12-31"
+setwd("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/") # to get to the API key sys file
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+unsampled.MPA<-mpa.char$mpa[is.na(mpa.char$Flickr_user_2010_2019)] # checks out the same mpas regardless of which flickr variable is used
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+unsampled.polygons<-mpas[mpas$WDPA_PID%in%unsampled.MPA,]
+rm(mpas)
+
+
+
+i=3
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+
+MPA.photos<-all.photos[,c(2,3,13,16,17,18)]
+MPA.photos$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+
+for (i in 4:dim(unsampled.polygons)[1]) {
+
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+
+if (is.null(dim(all.photos))==FALSE) {
+if (dim(all.photos)[1]>0) {
+
+temp<-all.photos[,c(2,3,13,16,17,18)]
+temp$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+MPA.photos<-rbind(MPA.photos,temp)
+
+}
+}
+
+
+print(i)
+flush.console()
+
+}
+
+save(MPA.photos,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs.Rdata")
+
+#######################################################################################################################
+library(sf)
+library(photosearcher)
+
+mindate="2010-01-01"
+maxdate="2020-12-31"
+setwd("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/") # to get to the API key sys file
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+unsampled.MPA<-mpa.char$mpa[is.na(mpa.char$Flickr_user_2010_2019)] # checks out the same mpas regardless of which flickr variable is used
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+unsampled.polygons<-mpas[mpas$WDPA_PID%in%unsampled.MPA,]
+rm(mpas)
+
+
+
+i=1015
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+all.photos
+
+MPA.photos<-all.photos[,c(2,3,13,16,17,18)]
+MPA.photos$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+
+for (i in 1016:2000) {
+
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+
+if (is.null(dim(all.photos))==FALSE) {
+if (dim(all.photos)[1]>0) {
+
+temp<-all.photos[,c(2,3,13,16,17,18)]
+temp$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+MPA.photos<-rbind(MPA.photos,temp)
+
+}
+}
+
+
+print(i)
+flush.console()
+
+}
+
+save(MPA.photos,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_1000_2000.Rdata")
+
+
+#######################################################################################################################
+library(sf)
+library(photosearcher)
+
+mindate="2010-01-01"
+maxdate="2020-12-31"
+setwd("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/") # to get to the API key sys file
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+unsampled.MPA<-mpa.char$mpa[is.na(mpa.char$Flickr_user_2010_2019)] # checks out the same mpas regardless of which flickr variable is used
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+unsampled.polygons<-mpas[mpas$WDPA_PID%in%unsampled.MPA,]
+rm(mpas)
+
+
+
+i=2003
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+all.photos
+
+MPA.photos<-all.photos[,c(2,3,13,16,17,18)]
+MPA.photos$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+
+for (i in 2004:3000) {
+
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+
+if (is.null(dim(all.photos))==FALSE) {
+if (dim(all.photos)[1]>0) {
+
+temp<-all.photos[,c(2,3,13,16,17,18)]
+temp$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+MPA.photos<-rbind(MPA.photos,temp)
+
+}
+}
+
+
+print(i)
+flush.console()
+
+}
+
+save(MPA.photos,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_2000_3000.Rdata")
+
+#######################################################################################################################
+library(sf)
+library(photosearcher)
+
+mindate="2010-01-01"
+maxdate="2020-12-31"
+setwd("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/") # to get to the API key sys file
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+unsampled.MPA<-mpa.char$mpa[is.na(mpa.char$Flickr_user_2010_2019)] # checks out the same mpas regardless of which flickr variable is used
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+unsampled.polygons<-mpas[mpas$WDPA_PID%in%unsampled.MPA,]
+rm(mpas)
+
+
+
+i=3001
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+all.photos
+
+MPA.photos<-all.photos[,c(2,3,13,16,17,18)]
+MPA.photos$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+
+for (i in 3002:4000) {
+
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+
+if (is.null(dim(all.photos))==FALSE) {
+if (dim(all.photos)[1]>0) {
+
+temp<-all.photos[,c(2,3,13,16,17,18)]
+temp$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+MPA.photos<-rbind(MPA.photos,temp)
+
+}
+}
+
+
+print(i)
+flush.console()
+
+}
+
+save(MPA.photos,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_3000_4000.Rdata")
+
+#######################################################################################################################
+library(sf)
+library(photosearcher)
+
+mindate="2010-01-01"
+maxdate="2020-12-31"
+setwd("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/") # to get to the API key sys file
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+unsampled.MPA<-mpa.char$mpa[is.na(mpa.char$Flickr_user_2010_2019)] # checks out the same mpas regardless of which flickr variable is used
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+unsampled.polygons<-mpas[mpas$WDPA_PID%in%unsampled.MPA,]
+rm(mpas)
+
+
+
+i=4003
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+all.photos
+
+MPA.photos<-all.photos[,c(2,3,13,16,17,18)]
+MPA.photos$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+
+for (i in 4004:dim(unsampled.polygons)[1]) {
+
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) NA)
+
+if (is.null(dim(all.photos))==FALSE) {
+if (dim(all.photos)[1]>0) {
+
+temp<-all.photos[,c(2,3,13,16,17,18)]
+temp$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+MPA.photos<-rbind(MPA.photos,temp)
+
+}
+}
+
+
+print(i)
+flush.console()
+
+}
+
+save(MPA.photos,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_4000_end.Rdata")
+
+
+######################################################################################################################
+#### QC of missing is it zero or time outs
+#########################################################################################################################
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs.Rdata")
+allMPAphotos<-MPA.photos
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_1000_2000.Rdata")
+allMPAphotos<-rbind(allMPAphotos,MPA.photos)
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_2000_3000.Rdata")
+allMPAphotos<-rbind(allMPAphotos,MPA.photos)
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_3000_4000.Rdata")
+allMPAphotos<-rbind(allMPAphotos,MPA.photos)
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_4000_end.Rdata")
+allMPAphotos<-rbind(allMPAphotos,MPA.photos)
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+unsampled.MPA<-mpa.char$mpa[is.na(mpa.char$Flickr_user_2010_2019)] # checks out the same mpas regardless of which flickr variable is used
+remains<-unsampled.MPA[!unsampled.MPA%in%allMPAphotos$WDPA_PID]
+
+library(sf)
+library(photosearcher)
+
+mindate="2010-01-01"
+maxdate="2020-12-31"
+setwd("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/") # to get to the API key sys file
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+unsampled.polygons<-mpas[mpas$WDPA_PID%in%remains,]
+rm(mpas)
+
+MPA.photos<-MPA.photos[-c(1:dim(MPA.photos)[1]),]
+errors<-data.frame(WDPA_PID=NA,error.message="none")
+
+
+for (i in 1:length(remains)) {
+
+mpa.temp<-st_transform(unsampled.polygons[i,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+
+all.photos<-tryCatch( photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) e)
+
+if (is.null(dim(all.photos))==FALSE) {
+if (dim(all.photos)[1]>0) {
+
+temp<-all.photos[,c(2,3,13,16,17,18)]
+temp$WDPA_PID<-unsampled.polygons$WDPA_PID[i]
+
+MPA.photos<-rbind(MPA.photos,temp)
+
+}
+} else {
+
+#errors<-rbind(errors,data.frame(WDPA_PID=remains[i],error.message=all.photos[[1]])) # that's a mistake remains not in the same order as unsampled.polygon
+errors<-rbind(errors,data.frame(WDPA_PID=unsampled.polygons$WDPA_PID[i],error.message=all.photos[[1]]))
+
+}
+
+
+print(i)
+flush.console()
+
+}
+
+
+dim(MPA.photos)
+allMPAphotos<-rbind(allMPAphotos,MPA.photos)
+
+errors<-errors[-1,]
+ errors$WDPA_PID_real<-unsampled.polygons$WDPA_PID[match(errors$WDPA_PID,remains)]
+sum(errors$error.message==errors$error.message[2])
+length(errors$error.message)
+try.again<-errors[errors$error.message!=errors$error.message[2],]
+
+thezeros<-errors$WDPA_PID_real[errors$error.message==errors$error.message[1]] # for those user,userdays,photos =0
+
+#
+#dealing with version control during parallel completion of mpa.char
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+dim(mpa.char[mpa.char$mpa%in%thezeros,c(86,87,88,89,90,98)])
+sum(is.na(mpa.char[mpa.char$mpa%in%thezeros,c(86,87,88,89,90,98)]))
+mpa.char[mpa.char$mpa%in%thezeros,c(86,87,88,89,90,98)]<-0
+
+###################################################################
+##### fill up the ones for which we have data
+
+allMPAphotos$year<-format(allMPAphotos$datetaken,"%Y")
+save(allMPAphotos,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_all.Rdata")
+
+library(dplyr)
+big.table<-allMPAphotos %>%
+group_by(owner,WDPA_PID,year) %>%
+ summarize(count=n())
+
+unfolded_tb<-as.data.frame(big.table)
+
+photos.new<-aggregate(count~WDPA_PID+year,unfolded_tb,sum)
+photos.new.2019<-subset(photos.new,year=="2019")
+photos.new.2010_2019<-subset(photos.new,year!="2020")
+
+
+mpa.char$Flickr_photos_2019[match(photos.new.2019$WDPA_PID,mpa.char$mpa)]  <-photos.new.2019$count
+mpa.char$Flickr_photos_2010_2019[match(photos.new.2010_2019$WDPA_PID,mpa.char$mpa)]  <-photos.new.2010_2019$count
+mpa.char$Flickr_photos_2019[!is.na(mpa.char$Flickr_photos_2010_2019)&is.na(mpa.char$Flickr_photos_2019)]<-0  ##those for which we have photos in 2010-2018 hence we know sampling worked
+
+user.new<-aggregate(owner~WDPA_PID+year,unfolded_tb,length)
+user.new.2019<-subset(user.new,year=="2019")
+user.new.2010_2019<-subset(user.new,year!="2020")
+
+mpa.char$Flickr_user_2019[match(user.new.2019$WDPA_PID,mpa.char$mpa)]  <-user.new.2019$owner
+mpa.char$Flickr_user_2010_2019[match(user.new.2010_2019$WDPA_PID,mpa.char$mpa)]  <-user.new.2010_2019$owner
+mpa.char$Flickr_user_2019[!is.na(mpa.char$Flickr_user_2010_2019)&is.na(mpa.char$Flickr_user_2019)]<-0  ##those for which we have photos in 2010-2018 hence we know sampling worked
+
+
+allMPAphotos$days<-format(allMPAphotos$datetaken,"%Y/%m/%d")
+userdays.df<-aggregate(days~owner+WDPA_PID+year,allMPAphotos,length)
+userdays.new<-aggregate(days~WDPA_PID+year,userdays.df,sum)
+
+userdays.new.2019<-subset(userdays.new,year=="2019")
+userdays.new.2010_2019<-subset(userdays.new,year!="2020")
+
+mpa.char$Flickr_userdays_2019[match(userdays.new.2019$WDPA_PID,mpa.char$mpa)]  <-userdays.new.2019$days
+mpa.char$Flickr_userdays_2010_2019[match(userdays.new.2010_2019$WDPA_PID,mpa.char$mpa)]  <-userdays.new.2010_2019$days
+mpa.char$Flickr_userdays_2019[!is.na(mpa.char$Flickr_userdays_2010_2019)&is.na(mpa.char$Flickr_userdays_2019)]<-0  ##those for which we have photos in 2010-2018 hence we know sampling worked
+
+
+try.again.ud<-mpa.char$mpa[is.na(mpa.char$Flickr_userdays_2019)]
+try.again.u<-mpa.char$mpa[is.na(mpa.char$Flickr_user_2019)]
+try.again.p<-mpa.char$mpa[is.na(mpa.char$Flickr_photos_2019)]
+#QC it checks out
+
+sum(unsampled.polygons$WDPA_PID%in%try.again.p)
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+#let's go by hand for the polygon issues
+polygon.issues<-c("555670040","555624810_A","555624810_C")
+dateline.issues.polygons<-unsampled.polygons[unsampled.polygons$WDPA_PID%in%polygon.issues,]
+
+mpa.temp<-st_transform(dateline.issues.polygons[1,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+sf_use_s2(FALSE) # naughty s2 again
+mpa.temp<- st_make_valid(st_set_precision(mpa.temp, 1e8))
+
+st_area(mpa.temp)
+
+all.photos<-tryCatch(photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) e)
+dim(all.photos)
+
+MPA.photos.geom<-all.photos[,c(2,3,13,16,17,18)]
+MPA.photos.geom$WDPA_PID<-polygon.issues[1]
+#############################################
+mpa.temp<-st_transform(dateline.issues.polygons[2,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+mpa.temp<- st_make_valid(st_set_precision(mpa.temp, 1e8))
+
+st_area(mpa.temp)
+
+all.photos<-tryCatch(photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) e)
+dim(all.photos)
+ #rejects to undefined column
+#################################################
+mpa.temp<-st_transform(dateline.issues.polygons[3,], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+mpa.temp<- st_make_valid(st_set_precision(mpa.temp, 1e8))
+
+st_area(mpa.temp)
+
+all.photos<-tryCatch(photo_search(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) e)
+dim(all.photos)
+
+temp<-all.photos[,c(2,3,13,16,17,18)]
+temp$WDPA_PID<-polygon.issues[1]
+MPA.photos.geom<-rbind(MPA.photos.geom,temp)
+
+
+#################################################
+MPA.photos.geom$year<-format(MPA.photos.geom$datetaken,"%Y")
+MPA.photos.geom$days<-format(MPA.photos.geom$datetaken,"%Y/%m/%d")
+allMPAphotos<-rbind(allMPAphotos,MPA.photos.geom)
+
+save(allMPAphotos,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/allMPAphotos_Jun2022_newMPAs_all.Rdata")
+
+
+###################################################################
+try.again<-mpa.char$mpa[is.na(mpa.char$Flickr_userdays_2010_2019)]
+
+plot(unsampled.polygons[unsampled.polygons$WDPA_PID%in%try.again,]["PARENT_ISO"])
+
+
+mpa.temp<-st_transform(unsampled.polygons[unsampled.polygons$WDPA_PID==try.again[1],], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+
+source("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/photo_search_amended_total_only.R")
+source("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/utils.r")
+source("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/OneDrive - University of Aberdeen/MPAFlickr/photo_search_amended.R")
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+
+special.ones<-data.frame(WDPA_PID=try.again,photos=NA)
+
+for (i in 1:length(try.again)) {
+
+mpa.temp<-st_transform(mpas[mpas$WDPA_PID==try.again[i],], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+all.photos<-tryCatch(photo_search_amended_total_only(mindate_taken = mindate, maxdate_taken = maxdate,sf_layer=mpa.temp),error=function(e) e)
+if (is.numeric(all.photos)==TRUE) {
+special.ones$photos[i]<-all.photos
+}
+}
+
+# for those we only get photo numbers
+mpa.char$Flickr_photos_2010_2019[match(special.ones$WDPA_PID,mpa.char$mpa)]  <-special.ones$photos
+
+special.ones$photos20102019<-special.ones$photos2019<-NA
+mindate2019<-"2019-01-01"
+maxdate2019<-"2019-12-31"
+
+for (i in 1:length(try.again)) {
+
+mpa.temp<-st_transform(mpas[mpas$WDPA_PID==try.again[i],], 3857)
+mpa.buf<-st_buffer(mpa.temp, 500)
+mpa.temp<-st_transform(mpa.buf, 4326)
+
+all.photos1019<-tryCatch(photo_search_amended_total_only(mindate_taken = mindate, maxdate_taken = maxdate2019,sf_layer=mpa.temp),error=function(e) e)
+all.photos19<-tryCatch(photo_search_amended_total_only(mindate_taken = mindate2019, maxdate_taken = maxdate2019,sf_layer=mpa.temp),error=function(e) e)
+
+if (is.numeric(all.photos19)==TRUE) {
+special.ones$photos2019[i]<-all.photos19
+}
+if (is.numeric(all.photos1019)==TRUE) {
+special.ones$photos20102019[i]<-all.photos1019
+}
+
+}
+
+mpa.char$Flickr_photos_2010_2019[match(special.ones$WDPA_PID,mpa.char$mpa)]  <-special.ones$photos20102019
+mpa.char$Flickr_photos_2019[match(special.ones$WDPA_PID,mpa.char$mpa)]  <-special.ones$photos2019
+
+sum(is.na(mpa.char$Flickr_userdays_2010_2019[mpa.char$Flickr_photos_2010_2019==0]))
+mpa.char$Flickr_userdays_2010_2019[mpa.char$Flickr_photos_2010_2019==0]<-0
+mpa.char$Flickr_user_2010_2019[mpa.char$Flickr_photos_2010_2019==0]<-0
+mpa.char$Flickr_userdays_2019[mpa.char$Flickr_photos_2019==0]<-0
+mpa.char$Flickr_user_2019[mpa.char$Flickr_photos_2019==0]<-0
+
+mpa.char$Flickr_userdays_2010_2019[mpa.char$Flickr_photos_2010_2019==1]<-1
+mpa.char$Flickr_user_2010_2019[mpa.char$Flickr_photos_2010_2019==1]<-1
+mpa.char$Flickr_userdays_2019[mpa.char$Flickr_photos_2019==1]<-1
+mpa.char$Flickr_user_2019[mpa.char$Flickr_photos_2019==1]<-1
+
+sum(is.na(mpa.char$Flickr_user_2019))
+
+#### we are missing 32 and 272 mpas for 2019 and 2010-2019 for users and user.days due to API errors and we know thse are >1
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+mpa.char$ISO3<-mpas$ISO3[match(mpa.char$mpa,mpas$WDPA_PID)]
+mpa.char$SUB_LOC<-mpas$SUB_LOC[match(mpa.char$mpa,mpas$WDPA_PID)]
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+#
+#effluent 2015 data from KNB Tuholske et al. 2021 PLoS ONE (grams of N) resolution 0.00833 x 0.00833 degrees
+#
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+library(raster)
+library(sf)
+library(exactextractr)
+
+
+effluent.files<-list.files("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/effluent/",full.names=T)
+effluent.files.tif<-effluent.files[grepl("(.*)tif$", effluent.files)]
+
+effluent.temp<-raster(effluent.files.tif[3])
+plot(effluent.temp)
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+mpa.temp<-st_transform(mpas,crs(effluent.temp))
+rm(mpas)
+#(much) more time efficient to transofrm the polygon than to transform the raster
+
+# plot(AIS.temp,axes=FALSE)
+# plot(st_geometry(mpas),add=TRUE)
+gc()
+
+effluent<-exact_extract(effluent.temp,mpa.temp,"sum",progress=FALSE)
+#we sum here as we have the area for each mpa we can take the average afterwards, the sum takes fraction of raster cell covered by polygons already
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+
+mpa.char$total_N_effluent_2015<-effluent[match(mpa.char$mpa,mpa.temp$WDPA_PID)]
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+#
+#mariculture Reported at a resolution of 0.083 x 0.083 degrees (5 arc minutes)
+#how lucky are we that Clawson et al. just released their model predictions!
+# Clawson et al. (2022) Aquaculture
+#downloaded from KNB
+#read and QA for use by DL Jun 2022
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+library(raster)
+library(sf)
+library(exactextractr)
+
+############## start with production FAO production allocated to each farm
+#### in tonnes for 2017 - production source FAO
+
+aquaculture.files<-list.files("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/aquaculture/data/rasters/",full.names=T)
+aquaculture.files.tif<-aquaculture.files[grepl("(.*)tif$", aquaculture.files)]
+
+variable.name<-gsub("_rast.tif","",list.files("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/aquaculture/data/rasters/"))
+
+aquaculture.temp<-raster(aquaculture.files.tif[1])
+plot(aquaculture.temp)
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/mpa/allmpas.Rdata")
+mpa.temp<-st_transform(mpas,crs(aquaculture.temp))
+rm(mpas)
+#(much) more time efficient to transofrm the polygon than to transform the raster
+
+# plot(AIS.temp,axes=FALSE)
+# plot(st_geometry(mpas),add=TRUE)
+gc()
+
+bivalve<-exact_extract(aquaculture.temp,mpa.temp,"sum",progress=FALSE)
+
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+
+mpa.char[variable.name[1]]<-bivalve[match(mpa.char$mpa,mpa.temp$WDPA_PID)]
+
+for ( i in 2:length(aquaculture.files.tif)) {
+
+aquaculture.temp<-raster(aquaculture.files.tif[i])
+temp<-exact_extract(aquaculture.temp,mpa.temp,"sum",progress=FALSE)
+mpa.char[variable.name[i]]<-temp[match(mpa.char$mpa,mpa.temp$WDPA_PID)]
+
+}
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+#marine forest
+## Assis et al. 2020 Scientific Data
+## species occurrence complementing OBIS et al.
+#point data 
+# it is there, we can make use of it if we want (I suggest as further presence/absence data rather than extent within MPA though)
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+
+
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+#Ocean Health index 2021
+# while I downloaded the data from KBN, we will go through the github site to increase replicability
+#see http://ohi-science.org/toolbox-training/ for all info
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+######################################################################################################################
+load("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+devtools::install_github("ohi-science/ohicore")
+library(ohicore)
+
+?CalculateAll # we just want the scores, but this library will provide us with the mean to calculate a regional assessment, this may be useful for Øresund
+
+
+OHI.scores<-read.table("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/ocean health index 2021/OHI_final_formatted_scores_2021-11-04.txt",header=T,sep=",")
+
+library(countrycode)
+ISO.avail<-countrycode(unique(OHI.scores$region_name),origin="country.name",destination="iso3c")
+OHI.scores$ISO<-countrycode(OHI.scores$region_name,origin="country.name",destination="iso3c")
+#  Some values were not matched unambiguously: Amsterdam Island and Saint Paul Island, Andaman and Nicobar, Ascension, Azores, Bonaire, Canary Islands, Clipperton Island, Crozet Islands, Global average, Glorioso Islands, Guadeloupe and Martinique, Howland Island and Baker Island, Ile Europa, Ile Tromelin, Jan Mayen, Jarvis Island, Johnston Atoll, Juan de Nova Island, Kerguelen Islands, Macquarie Island, Madeira, Micronesia, Northern Mariana Islands and Guam, Northern Saint-Martin, Oecussi Ambeno, Palmyra Atoll, Prince Edward Islands, Puerto Rico and Virgin Islands of the United States, R_union, Saba, Sint Eustatius, Tristan da Cunha, Wake Island
+#Some strings were matched more than once, and therefore set to <NA> in the result: Guadeloupe and Martinique,GLP,MTQ; Northern Mariana Islands and Guam,GUM,MNP; Puerto Rico and Virgin Islands of the United States,PRI,VIR,USA
+
+sum(mpa.char$ISO3=="MTQ")
+sum(mpa.char$ISO3=="GLP")
+#we are going to need to do some mix and match for regions that do not have an ISO3 (based on st_bbox of the region) and multiple matches for those with multiple ISO3
+#let's start with the latter as it is more straightforward
+#we create a variable in mpa.char that will hold the OHI region_name
+
+mpa.char$region_name<-NA
+mpa.char$region_name<-OHI.scores$region_name[match(mpa.char$ISO3,OHI.scores$ISO)]
+
+mpa.char$region_name[mpa.char$ISO3=="MTQ"]<-"Guadeloupe and Martinique"
+mpa.char$region_name[mpa.char$ISO3=="GLP"]<-"Guadeloupe and Martinique"
+mpa.char$region_name[mpa.char$ISO3=="BLM;GLP;MAF;MTQ"]<-"Guadeloupe and Martinique"
+
+mpa.char$region_name[mpa.char$ISO3=="GUM"]<-"Northern Mariana Islands and Guam"
+mpa.char$region_name[mpa.char$ISO3=="MNP"]<-"Northern Mariana Islands and Guam"
+mpa.char$region_name[mpa.char$ISO3=="MNP;GUM"]<-"Northern Mariana Islands and Guam"
+mpa.char$region_name[mpa.char$ISO3=="MNP;UMI"]<-"Northern Mariana Islands and Guam"
+
+mpa.char$region_name[mpa.char$ISO3=="PRI"]<-"Puerto Rico and Virgin Islands of the United States"
+mpa.char$region_name[mpa.char$ISO3=="VIR"]<-"Puerto Rico and Virgin Islands of the United States"
+
+mpa.char$region_name[mpa.char$ISO3=="FSM"]<-"Micronesia"
+mpa.char$region_name[mpa.char$ISO3=="REU"]<-"R_union" #i know
+mpa.char$region_name[mpa.char$ISO3=="SJM"]<-"Norway"
+mpa.char$region_name[mpa.char$ISO3=="IMN"]<-"United Kingdom"
+
+###that's the easy ones done now the harder ones
+# 
+#Ile Tromelin, Jan Mayen, Jarvis Island (UMI), Johnston Atoll (UMI), 
+#Juan de Nova Island, Kerguelen Islands, Macquarie Island,  Oecussi Ambeno, Palmyra Atoll, 
+#Prince Edward Islands, Saba, Sint Eustatius, 
+#Tristan da Cunha, Wake Island
+
+ #SUB_LOC is in ISO 3166-2
+library(ISOcodes)
+data("ISO_3166_2")
+
+
+mpa.char$region_name[mpa.char$SUB_LOC==ISO_3166_2$Code[(grepl("Madeira",ISO_3166_2$Name))]]<-"Madeira"
+
+
+table(mpa.char$ISO3[mpa.char$PARENT_ISO=="PRT"]) # looks like we are missing many for the islands
+
+table(mpa.char$ISO3[mpa.char$PARENT_ISO=="ESP"]) #same with canary islands
+
+mpa.char$NAME[grepl("madeira|Porto Santo|desertas|savage island", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("madeira|Porto Santo|desertas|savage island", mpa.char$NAME, ignore.case=TRUE)]<-"Madeira"
+
+mpa.char$ISO3[grepl("canarias|tenerife|fuerteventura|gran canaria|lanzarote|la palma|la gomera|el hierro|la graciosa", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("canarias|tenerife|fuerteventura|gran canaria|lanzarote|la palma|la gomera|el hierro|la graciosa", mpa.char$NAME, ignore.case=TRUE)]<-"Canary Islands"
+
+mpa.char$ISO3[grepl("saint paul", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$NAME[mpa.char$ISO3=="ATF"]
+## we need to come back to ATF
+mpa.char$region_name[mpa.char$NAME=="Ile d'Europa"]<-"Ile Europa"
+
+mpa.char$region_name[mpa.char$ISO3=="ALA"]<-"Finland" #ouch, I know
+mpa.char$region_name[mpa.char$ISO3=="FIN;SWE"]<-"Finland" #ouch, I know
+mpa.char$region_name[mpa.char$ISO3=="FIN;SWE"]<-"Finland" #ouch, I know
+mpa.char$region_name[mpa.char$ISO3=="MAF"]<-"Northern Saint-Martin"
+
+mpa.char$SUB_LOC[mpa.char$ISO=="UMI"]
+mpa.char$NAME[mpa.char$SUB_LOC=="US-UNKF"]
+
+mpa.char$ISO3[grepl("Ascension", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Ascension", mpa.char$NAME, ignore.case=TRUE)]<-"Ascension"
+
+mpa.char$region_name[mpa.char$ISO3=="PRT" & grepl("Açores|Azores|Flores|Corvo|Graciosa|Terceira|São Jorge|Pico|Faial|São Miguel|Santa Maria|Formigas", mpa.char$NAME, ignore.case=TRUE)]<-"Azores"
+
+mpa.char$ISO3[grepl("Bonaire", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Bonaire", mpa.char$NAME, ignore.case=TRUE)]<-"Bonaire"
+
+mpa.char$ISO3[grepl("Clipperton", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Clipperton", mpa.char$NAME, ignore.case=TRUE)]<-"Clipperton Island"
+
+mpa.char$ISO3[grepl("Crozet", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$ISO3[grepl("Glorioso", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$ISO3[grepl("Howland", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Howland", mpa.char$NAME, ignore.case=TRUE)]<-"Howland Island and Baker Island"
+mpa.char$ISO3[grepl("Baker", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[mpa.char$ISO3=="UMI" & grepl("Baker", mpa.char$NAME, ignore.case=TRUE)]<-"Howland Island and Baker Island"
+
+mpa.char$ISO3[grepl("Tromelin", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$ISO3[grepl("Jan Mayen", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Jan Mayen", mpa.char$NAME, ignore.case=TRUE)]<-"Jan Mayen"
+
+mpa.char$ISO3[grepl("Jarvis", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Jarvis", mpa.char$NAME, ignore.case=TRUE)]<-"Jarvis Island"
+
+mpa.char$ISO3[grepl("Johnston Atoll", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Johnston Atoll", mpa.char$NAME, ignore.case=TRUE)]<-"Johnston Atoll"
+mpa.char$region_name[grepl("Johnston Island National Wildlife Refuge", mpa.char$NAME, ignore.case=TRUE)]<-"Johnston Atoll"
+
+mpa.char$ISO3[grepl("Juan de Nova", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$ISO3[grepl("Kerguelen", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$ISO3[grepl("Macquarie", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$NAME[grepl("Macquarie", mpa.char$NAME, ignore.case=TRUE)]
+
+mpa.char$region_name[grepl("Macquarie Island", mpa.char$NAME, ignore.case=TRUE)]<-"Macquarie Island"
+
+mpa.char$NAME[grepl("Palmyra", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Palmyra Atoll", mpa.char$NAME, ignore.case=TRUE)]<-"Palmyra Atoll"
+
+mpa.char$NAME[grepl("CA-PE", mpa.char$SUB_LOC, ignore.case=TRUE)]
+mpa.char$region_name[grepl("CA-PE", mpa.char$SUB_LOC, ignore.case=TRUE)]<-"Prince Edward Islands"
+
+mpa.char$NAME[grepl("Saba", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[mpa.char$ISO3=="BES" & grepl("Saba", mpa.char$NAME, ignore.case=TRUE)]<-"Saba"
+
+mpa.char$ISO3[grepl("Eustatius", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Eustatius", mpa.char$NAME, ignore.case=TRUE)]<-"Sint Eustatius"
+
+mpa.char$ISO3[grepl("Tristan da Cunha", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[grepl("Tristan da Cunha", mpa.char$NAME, ignore.case=TRUE)]<-"Tristan da Cunha"
+
+mpa.char$ISO3[grepl("Wake", mpa.char$NAME, ignore.case=TRUE)]
+mpa.char$region_name[mpa.char$ISO3=="UMI" & grepl("Wake", mpa.char$NAME, ignore.case=TRUE)]<-"Wake Island"
+
+mpa.char$NAME[is.na(mpa.char$region_name)]
+mpa.char$NAME[mpa.char$ISO3=="UMI" & is.na(mpa.char$region_name)]
+
+mpa.char$region_name[mpa.char$NAME=="Kingman Reef National Wildlife Refuge"]<-"Palmyra Atoll"
+mpa.char$region_name[mpa.char$NAME=="Kingman Reef"]<-"Palmyra Atoll"
+mpa.char$region_name[mpa.char$NAME=="Kingman Reef National Wildlife Refu"]<-"Palmyra Atoll"
+
+mpa.char$region_name[mpa.char$NAME=="Navassa Island National Wildlife Refuge"]<-"Haiti"  #!!!!! misclassified as UMI in UNWCMC-WDPA
+mpa.char$region_name[mpa.char$NAME=="Navassa Island"]<-"Haiti"  #!!!!! misclassified UMI in UNWCMC-WDPA
+
+mpa.char$NAME[mpa.char$ISO3=="BES" & is.na(mpa.char$region_name)]
+mpa.char$region_name[mpa.char$ISO3=="BES" & is.na(mpa.char$region_name)]<-"Bonaire"
+mpa.char$region_name[mpa.char$ISO3=="HKG"]<-"China" #ouch
+
+mpa.char$NAME[mpa.char$ISO3=="ATF" & is.na(mpa.char$region_name)]
+mpa.char$lat[mpa.char$ISO3=="ATF" & is.na(mpa.char$region_name)]
+mpa.char$lon[mpa.char$ISO3=="ATF" & is.na(mpa.char$region_name)]
+
+mpa.char$region_name[mpa.char$ISO3=="ATF" & is.na(mpa.char$region_name)]<-"Crozet Islands" #snapped to it
+
+#mpa.char$region_name[mpa.char$ISO3=="BLM"]  no region alignment, hard to infer beyond FRA
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+
+#######################################################################################################################################################
+#######################################################################################################################################################
+## ok so now that we have the region_name matched, let's match the data
+
+unique(OHI.scores$goal)
+unique(OHI.scores$dimension)
+unique(OHI.scores$region_name)
+
+table(OHI.scores$goal,OHI.scores$scenario) #10 years, 18 goals, 222 regions
+table(OHI.scores$goal,OHI.scores$scenario) #10 years, 18 goals, 1329 regions
+
+#let's take all goals, score and trend from dimension for 2021
+OHI.score.2021<-subset(OHI.scores,dimension=="score" & scenario==2021)
+OHI.trend.2021<-subset(OHI.scores,dimension=="trend" & scenario==2021)
+
+table(OHI.score.2021$region_name,OHI.score.2021$goal)
+table(OHI.trend.2021$region_name,OHI.trend.2021$goal) #the index is not there just the goals
+
+ohiscorenames<-paste("OHI.score.2021",unique(OHI.score.2021$goal),sep=".")
+ohitrendnames<-paste("OHI.trend.2021",unique(OHI.trend.2021$goal),sep=".")
+
+mpa.char[ohiscorenames]<-NA
+mpa.char[ohitrendnames]<-NA
+
+str(mpa.char,list.len = 200)
+
+goals<-unique(OHI.score.2021$goal)
+## we could do it more efficiently, but I want to make sure to spell it out clearly to ensure I am not messing up the addresses
+for (i in 1:length(goals)) {
+temp.score<-OHI.score.2021[OHI.score.2021$goal==goals[i],]
+mpa.char[ohiscorenames[i]]<-temp.score$value[match(mpa.char$region_name,temp.score$region_name)]
+}
+
+goals.tr<-unique(OHI.trend.2021$goal)
+
+for (i in 1:length(goals.tr)) {
+temp.trend<-OHI.trend.2021[OHI.trend.2021$goal==goals.tr[i],]
+mpa.char[ohitrendnames[i]]<-temp.trend$value[match(mpa.char$region_name,temp.trend$region_name)]
+}
+
+
+save(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.Rdata")
+
+write.csv(mpa.char,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/mpa intersections/all.characteristics.mpas.csv")
+
+################################################################################################################################################
+######################## first released version 4 July 2022##################################################################################
+######################## this marks the code break corresponding to the first version released on github/dlusseau/map4sustainability#########
+##############################################################################################################################################
