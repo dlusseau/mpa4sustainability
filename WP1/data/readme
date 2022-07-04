@@ -1,0 +1,4 @@
+here we have the data compiling global observations intersected with the UNWCMC-WDPA shapefiles downloaded 30 May 2022 (version)
+
+the main file is all.characteristics.mpas.Rdata please read metadata metadata_mpa.char_version0_1.txt for information about all variables contained in this file.
+a csv version of the same file is all.characteristics.mpas.csv
