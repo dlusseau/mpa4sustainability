@@ -1,0 +1,151 @@
+#metadata for the object mpa.char
+#version 0.1 26 Jun 2022
+
+#mpa.char was created by intersecting WDPA MPA shapefile version 1.6 with a range of spatially explicit information about human activities
+# at this stage 2 types of intersections are available (specified for each variable below): intersection with the MPA multipolygons or intersection with the 1-km buffered MPA multipolygons.
+# the latter aims to capture for MPA in coastal zones the anthropogenic landscape neighbouring them (level of urbanisation and farmed land)
+
+#the data frame is composed of 17200 rows (one for each MPA) and at this stage 138 variables
+
+#variable definition:
+#mpa: 			the unique identifier (WDPA_PID from the UNEP-WCMC database) for the mpa
+#species.count: 	the number of species that have been assessed on the IUCN Red List for which we have a native range prediction on Aquamaps. the probabilistic native range is binarised 
+#			(p_presence>0.5 becomes present). the count represents the number of species for which at least on aquampa cell intersects the mpa
+#area:			the calculated area of the MPA (m2)
+#entropy:		the Shannon entropy of IUCN Red List human threats represented by the assessed species present in the mpa. estimated on the tabulated count of threats based on the threat list for each species present
+#lat:			the latitude of the MPA centroid
+#mainentropy:		as entropy but estimated at the main threat level (1-12)
+#subentropy:		as entropy but estimated at the sub-threat level (1.1 etc)
+#nthreat:		the number of unique threats that assessed species face in this MPA
+#nmainthreat:		the number of unique main threats that assessed species face in this MPA
+#nsubthreat:		the number of unique sub-threats that assessed species face in this MPA
+#nFisheriesthreat:	the number of assessed species which has fisheries described as a threat in their threat narrative (including gear type, and threat type)
+#pFisheriesthreat:	#nFisheriesthreat/species.count
+#PA_DEF:		from WDPA
+#NAME:			name of the mpa from WDPA
+#DESIG:			from WDPA, described nature of the designation status
+#DESIG_ENG:		from WDPA, categorised DESIG
+#DESIG_TYPE:		from WDPA, governance scale of the designation institution
+#IUCN_CAT:		from WDPA, IUCN Criteria for MPA
+#GIS_M_AREA:		from WDPA: reported area of the MPA
+#NO_TAKE		from WDPA: is the MPA a no take zone (not reported, none, all, partial)
+#NO_TK_AREA		from WDPA, area covered by no take designation
+#STATUS			from WDPA, current status of the MPA: Designated,Proposed,Adopted,Inscribed,Established,Not Reported
+#STATUS_YR		from WDPA, when this status was designated
+#GOV_TYPE		from WDPA, who governs the MPA:  Federal or national ministry or agency,Sub-national ministry or agency,Government-delegated management,Not Reported,Collaborative governance,Non-profit organisations,Indigenous peoples,Joint governance,Local communities,Individual landowners,For-profit organisations 
+#OWN_TYPE		from WDPA, who owns the MPA: State,Not Reported,Multiple ownership,Individual landowners,Communal,Joint ownership,Non-profit organisations,For-profit organisations
+#MANG_AUTH		from WDPA, management authority: detailed, 1155 levels (including country-specific agencies)
+#MANG_PLAN		from WDPA, is a management plan in place: not reported or the url to the plan
+#MARINE			from WDPA, marine system included in the MPA: 0 (no marine component), 1 (partial marine component), 2 (fully marine)
+#PARENT_ISO		from WDPA, ISO code of the country in which the MPA is located 
+#CONS_OBJ		from WDPA, are conservation objectives set: Not Applicable,Not Reported,Primary,Secondary
+#calc.area		replicate of area
+#smod.count		number of SMOD grid cells (1km2) intersecting the MPA - 1-km buffered - , Global human settlement layer from JRC, 1km resolution, Mollweide projection, GHS-SMOD (GHS_SMOD_POP2015_GLOBE_R2019A_54009_1K_V2_0)
+#smod.city		number of SMOD grid cells intersecting the MPA classified as city
+#smod.town		number of SMOD grid cells intersecting the MPA classified as town
+#smod.semiDenseTown	number of SMOD grid cells intersecting the MPA classified as semi dense town
+#smod.suburbs		number of SMOD grid cells intersecting the MPA classified as suburbs
+#smod.village		number of SMOD grid cells intersecting the MPA classified as villages
+#smod.rural		number of SMOD grid cells intersecting the MPA classified as rural area
+#smod.uninhabited	number of SMOD grid cells intersecting the MPA classified as uninhabited
+#smod.water		number of SMOD grid cells intersecting the MPA classified as water
+#AIS.commercial		hours of shipping done by vessels categorised as commercial vessels which has taken place in the MPA from Jan-2015 to Feb-2021. data from IMF's World Seaborne Trade Monitoring System (Cerdeiro, Komaromi, Liu and Saeed, 2020), aggregated to 0.005 by 0.005 degrees grid cells
+#AIS.fishing		hours of shipping done by vessels categorised as fishing vessels which has taken place in the MPA from Jan-2015 to Feb-2021. (note this include vessels fishing and vessels steaming)
+#AIS.global		hours of shipping done by all vessels carrying AIS and with AIS turned on which has taken place in the MPA from Jan-2015 to Feb-2021. 
+#AIS.leisure		hours of shipping done by vessels categorised as leisure vessles which has taken place in the MPA from Jan-2015 to Feb-2021.
+#AIS.oilgas		hours of shipping done by vessels associated with OGP and OGE which has taken place in the MPA from Jan-2015 to Feb-2021.
+#AIS.passenger		hours of shipping done by vessels categorised as passenger ships which has taken place in the MPA from Jan-2015 to Feb-2021.
+#cropland.2019		the number of grid cells in the cropland data intersecting the MPA - 1-km buffered -, data from  https://glad.umd.edu/dataset/croplands 0.00025 x 0.00025 grid cells classified in 2019 as cropland
+#lon			the longitude of the MPA centroid
+#cropland.2019.area.km2	the area (km2) of the MPA - 1-km buffered - covered by cropland as defined from satellite imagery
+#fish.aesthetics.max	the maximum aesthetics value predicted for the fish species present in the MPA (assumed present given native range from aquamaps) for which aesthetics values were estimated by Langlois et al 2022 PLoS Biology (journal.pbio.3001640.s004)
+#fish.aesthetics.mean	the mean aesthetics value predicted for the fish species present in the MPA (assumed present given native range from aquamaps) for which aesthetics values were estimated by Langlois et al 2022 PLoS Biology (journal.pbio.3001640.s004)
+#fish.aesthetics.sd	the standard deviation of the aesthetics values predicted for the fish species present in the MPA (assumed present given native range from aquamaps) for which aesthetics values were estimated by Langlois et al 2022 PLoS Biology (journal.pbio.3001640.s004)
+#fish.aesthetics.count	the number of fish species present in the MPA (assumed present given native range from aquamaps) for which aesthetics value were estimated by Langlois et al 2022 PLoS Biology (journal.pbio.3001640.s004)
+#trawlers_2012_2020	the apparent number of hours of trawler fishing that took place in the MPA from 2012 to 2020. data disaagregated by year is available in an additional data list (mpa.fish). data from the GlobalFishWatch based on estimated fishing hours for trawling vessels aggregated to 1/100th x 1/100th degree grid cells. the MPA total fishing hours is the sum of the fishing hours in the grid cells intersecting the MPA where partially intersecting grid cells contributions to the sum are weighted by the area of the cell contained in the MPA. data from GlobalFishingWatch version 2
+#tuna_purse_seines_2012_2020	the apparent number of hours of tuna purse seine fishing that took place in the MPA from 2012 to 2020.
+#fishing_2012_2020	the apparent number of hours of uncategorised fishing that took place in the MPA from 2012 to 2020. here fishing is not the sum of all gear types.
+#purse_seines_2012_2020	the apparent number of hours of purse seine fishing that took place in the MPA from 2012 to 2020.
+#drifting_longlines_2012_2020	the apparent number of hours of drifting longline fishing that took place in the MPA from 2012 to 2020.
+#set_longlines_2012_2020	the apparent number of hours of set longline fishing that took place in the MPA from 2012 to 2020.
+#squid_jigger_2012_2020	the apparent number of hours of squid jigging fishing that took place in the MPA from 2012 to 2020.
+#set_gillnets_2012_2020	the apparent number of hours of set gillnet fishing that took place in the MPA from 2012 to 2020. caution here as the 'fishing effort' estimate is vessel based and not gear based. this provides ore an indication of how often fixed gear was set in the MPA (still a useful piece of information)
+#pots_and_traps_2012_2020	the apparent number of hours of pot and traps fishing that took place in the MPA from 2012 to 2020. caution here as the 'fishing effort' estimate is vessel based and not gear based. this provides ore an indication of how often fixed gear was set in the MPA (still a useful piece of information)
+#trollers_2012_2020	the apparent number of hours of troller fishing that took place in the MPA from 2012 to 2020.
+#dredge_fishing_2012_2020	the apparent number of hours of dredge fishing that took place in the MPA from 2012 to 2020.
+#pole_and_line_2012_2020	the apparent number of hours of pole and line fishing that took place in the MPA from 2012 to 2020.
+#other_seines_2012_2020	the apparent number of hours of other seine fishing that took place in the MPA from 2012 to 2020.
+#seiners_2012_2020	the apparent number of hours of seine fishing that took place in the MPA from 2012 to 2020.
+#other_purse_seines_2012_2020 the apparent number of hours of other purse seine fishing that took place in the MPA from 2012 to 2020.
+#mpa			internal QC to ensure data frame merging was adequately performed, a replicate of mpa
+#mpa			internal QC to ensure data frame merging was adequately performed, a replicate of mpa
+#trawlers_2019		as above for 2019 alone
+#tuna_purse_seines_2019	as above for 2019 alone
+#fishing_2019		as above for 2019 alone
+#purse_seines_2019	as above for 2019 alone
+#drifting_longlines_2019	as above for 2019 alone
+#set_longlines_2019	as above for 2019 alone
+#squid_jigger_2019	as above for 2019 alone
+#set_gillnets_2019	as above for 2019 alone
+#pots_and_traps_2019	as above for 2019 alone
+#trollers_2019		as above for 2019 alone
+#dredge_fishing_2019	as above for 2019 alone
+#pole_and_line_2019	as above for 2019 alone
+#other_seines_2019	as above for 2019 alone
+#seiners_2019		as above for 2019 alone
+#other_purse_seines_2019	as above for 2019 alone
+#Flickr_userdays_2010_2019	number of days unique users spent posting photographs taken in the MPA from 2010 to 2019 on Flickr. data from Erskine et al. 2020 One Earth ###missing Flickr data for new mpas which are not in Erskine et al. were sampled. all mpas informed by Flickr data
+#Flickr_userdays_2019	number of days unique users spent posting photographs taken in the MPA in 2019 on Flickr. data from Erskine et al. 2020 One Earth. yearly data is available in another data frame.
+#Flickr_user_2010_2019	number of unique users posting photographs taken in the MPA from 2010 to 2019 on Flickr. data from Erskine et al. 2020 One Earth
+#Flickr_user_2019	number of unique users posting photographs taken in the MPA in 2019 on Flickr. data from Erskine et al. 2020 One Earth. yearly data is available in another data frame.
+#Flickr_photo_2010_2019	number of unique photographs posted on Flickr taken in the MPA from 2010 to 2019 . data from Erskine et al. 2020 One Earth
+#Flickr_photo_2019	number of unique photographs posted on Flickr taken in the MPA in 2019 on Flickr. data from Erskine et al. 2020 One Earth. yearly data is available in another data frame.
+#total_N_effluent_2015	predicted total sewage effluent in grams of N reported in (from KNB) Tuholske et al. 2021 PLoS ONE (grams of N) resolution 0.00833 x 0.00833 degrees. prediction based on plume model on terrestrial (including coastal) effluents
+
+#bivalve_production	predicted bivalve aquaculture production in 2017 in tonnes in the MPA #predicted mariculture Reported at a resolution of 0.083 x 0.083 degrees (5 arc minutes) Clawson et al. (2022) Aquaculture downloaded from KNB
+#crustaceans_production predicted crustacean aquaculture production in 2017 in tonnes in the MPA #predicted mariculture Reported at a resolution of 0.083 x 0.083 degrees (5 arc minutes) Clawson et al. (2022) Aquaculture downloaded from KNB        
+#marine_fish_general_production	predicted marine fish aquaculture production in 2017 in tonnes in the MPA #predicted mariculture Reported at a resolution of 0.083 x 0.083 degrees (5 arc minutes) Clawson et al. (2022) Aquaculture downloaded from KNB 
+#salmon_production	predicted salmon aquaculture production in 2017 in tonnes in the MPA #predicted mariculture Reported at a resolution of 0.083 x 0.083 degrees (5 arc minutes) Clawson et al. (2022) Aquaculture downloaded from KNB              
+#shrimp_production	predicted shrimp aquaculture production in 2017 in tonnes in the MPA #predicted mariculture Reported at a resolution of 0.083 x 0.083 degrees (5 arc minutes) Clawson et al. (2022) Aquaculture downloaded from KNB              
+#tuna_production	predicted tuna aquaculture production in 2017 in tonnes in the MPA #predicted mariculture Reported at a resolution of 0.083 x 0.083 degrees (5 arc minutes) Clawson et al. (2022) Aquaculture downloaded from KNB
+#ISO3			ISO 3166-1 code for the MPA location                           
+#SUB_LOC                reported ISO 3166-2 code for the MPA location (use with caution as key regions have not reported their geographical ISO3166-2)        
+#region_name		Ocean Health Index region_name associated with the location of the MPA (recovered using a combination of ISO3, SUB_LOC and NAME regex on mpa.char)                     
+#OHI.score.2021.AO	Ocean Health Index 2021 score for goal "Artisanal opportunities"              
+#OHI.score.2021.BD	Ocean Health Index 2021 score for goal "Biodiversity"              
+#OHI.score.2021.CP  	Ocean Health Index 2021 score for goal "Coastal protection"            
+#OHI.score.2021.CS 	Ocean Health Index 2021 score for goal "Carbon storage"
+#OHI.score.2021.CW 	Ocean Health Index 2021 score for goal "Clean water"
+#OHI.score.2021.ECO 	Ocean Health Index 2021 score for goal "Economies"
+#OHI.score.2021.FIS	Ocean Health Index 2021 score for goal "Fisheries subgoal"
+#OHI.score.2021.FP  	Ocean Health Index 2021 score for goal "Food provision"
+#OHI.score.2021.HAB 	Ocean Health Index 2021 score for goal "Habitat subgoal"
+#OHI.score.2021.ICO 	Ocean Health Index 2021 score for goal "iconic species subgoal"
+#OHI.score.2021.Index	Ocean Health Index 2021 score for the overall index
+#OHI.score.2021.LE   	Ocean Health Index 2021 score for goal "livelihoods & economies"
+#OHI.score.2021.LIV  	Ocean Health Index 2021 score for goal "livelihoods"
+#OHI.score.2021.LSP  	Ocean Health Index 2021 score for goal "lasting special places subgoal"
+#OHI.score.2021.MAR 	Ocean Health Index 2021 score for goal "mariculture subgoal"
+#OHI.score.2021.NP   	Ocean Health Index 2021 score for goal "natural products"
+#OHI.score.2021.SP 	Ocean Health Index 2021 score for goal "sense of place"
+#OHI.score.2021.SPP	Ocean Health Index 2021 score for goal "species condition subgoal"
+#OHI.score.2021.TR 	Ocean Health Index 2021 score for goal "tourism and recreation"
+#OHI.trend.2021.AO	Ocean Health Index 2021 trend for goal "Artisanal opportunities"              
+#OHI.trend.2021.BD	Ocean Health Index 2021 trend for goal "Biodiversity"              
+#OHI.trend.2021.CP  	Ocean Health Index 2021 trend for goal "Coastal protection"            
+#OHI.trend.2021.CS 	Ocean Health Index 2021 trend for goal "Carbon storage"
+#OHI.trend.2021.CW 	Ocean Health Index 2021 trend for goal "Clean water"
+#OHI.trend.2021.ECO 	Ocean Health Index 2021 trend for goal "Economies"
+#OHI.trend.2021.FIS	Ocean Health Index 2021 trend for goal "Fisheries subgoal"
+#OHI.trend.2021.FP  	Ocean Health Index 2021 trend for goal "Food provision"
+#OHI.trend.2021.HAB 	Ocean Health Index 2021 trend for goal "Habitat subgoal"
+#OHI.trend.2021.ICO 	Ocean Health Index 2021 trend for goal "iconic species subgoal"
+#OHI.trend.2021.LE   	Ocean Health Index 2021 trend for goal "livelihoods & economies"
+#OHI.trend.2021.LIV  	Ocean Health Index 2021 trend for goal "livelihoods"
+#OHI.trend.2021.LSP  	Ocean Health Index 2021 trend for goal "lasting special places subgoal"
+#OHI.trend.2021.MAR 	Ocean Health Index 2021 trend for goal "mariculture subgoal"
+#OHI.trend.2021.NP   	Ocean Health Index 2021 trend for goal "natural products"
+#OHI.trend.2021.SP 	Ocean Health Index 2021 trend for goal "sense of place"
+#OHI.trend.2021.SPP	Ocean Health Index 2021 trend for goal "species condition subgoal"
+#OHI.trend.2021.TR 	Ocean Health Index 2021 trend for goal "tourism and recreation"
+
