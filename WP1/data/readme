@@ -2,3 +2,11 @@ here we have the data compiling global observations intersected with the UNWCMC-
 
 the main file is all.characteristics.mpas.Rdata please read metadata metadata_mpa.char_version0_1.txt for information about all variables contained in this file.
 a csv version of the same file is all.characteristics.mpas.csv
+
+additional data:
+mpa_within_all_fisheries_effort.Rdata: list of 9 data frames (2012 to 2020) breaking down the estimate apparent fishing effort in the MPAs for each of the 17 gear types
+
+mpa_threats_characteristics.Rdata: R object containing 9 data frames describing the count of species for each MPA which threatened by each IUCN Red List 
+conservation threat/sub-threats/full threat description. This file also contains
+death.interact which describes for each species threatened by fisheries the mode of the threat (bycatch, incidental catches, unintentional catches, and entaglement) and
+fish.interact which describes for each species threatened by fisheries which gear type causes this threat.
