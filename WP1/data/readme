@@ -10,3 +10,6 @@ mpa_threats_characteristics.Rdata: R object containing 9 data frames describing 
 conservation threat/sub-threats/full threat description. This file also contains
 death.interact which describes for each species threatened by fisheries the mode of the threat (bycatch, incidental catches, unintentional catches, and entaglement) and
 fish.interact which describes for each species threatened by fisheries which gear type causes this threat.
+
+mpa_species_additional_aesthetics.Rdata contains predicted aesthetics value for fish species found in each MPA for which such values are available but which have not
+had a IUCN Red List assessment.
