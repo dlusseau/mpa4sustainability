@@ -2,7 +2,7 @@ h###############################################################################
 ###### function to extend the url retrieval via the Eur-Lex API to free text search    ######
 ###### it returns document ids which can then be used to retrieve those documents and  ######
 ###### their citations using the eurlex R library                                      ######
-###### September 2022							                                       ######
+###### September 2022							                                                     ######
 #############################################################################################
 
 # "exactly" has two options: 
