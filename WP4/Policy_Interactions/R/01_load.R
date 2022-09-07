@@ -9,6 +9,7 @@ library("eurlex")
 library("dplyr")
 library("tibble")
 library("stringr")
+library("purrr")
 
 # Define functions --------------------------------------------------------
 
@@ -78,11 +79,11 @@ freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
 
 # Resource Types we want with associated list of act codes (FM_CODE) 
   # Directives: DIR
-  # Legislative acts: ACT_LEGIS 
+  # Legislative acts: ACT_LEGIS --> issues about the leg acts: https://eur-lex.europa.eu/search.html?lang=en&text=marine+protected+area*&qid=1662553896352&type=quick&scope=EURLEX&FM_CODED=ACT_LEGIS
   # Regulation: REG
   # Delegated regulation: REG_DEL
   # Delegated act: Cannot find it seems like the code is ACT_DEL, but no documents associated  
-  # National implementations Cannot find it
+  # National implementations Cannot find it...
   # Decisions adopted by bodies created by international agreements: ACT_ADOPT_INTERNATION 
   # Treaties: TREATY
   # Convention: CONVENTION
@@ -127,13 +128,12 @@ mpaCELEX.df <-
   mpaCELEX.df %>%
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX))
 
-# eurlex search ---------------
+# eurlex package search ---------------
 
-results2 <- 
-  elx_run_query(query = test_query) %>% 
-  rename(date = `callret-3`) #rename column to be more understandable
+#error when trying to do all 774... takes too long...can to ~100 results...
+CELEX_text.data <- 
+  mpaCELEX.df[1:100,] %>%
+  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
+  mutate(title = map_chr(url, elx_fetch_data, "text")) %>% 
+  as_tibble() 
 
-
-elx_fetch_data(url = mpaCELEX.df$url[1], type = "title")
-
-elx_download_xml(url = "http://publications.europa.eu/resource/celex/32014R0001", notice = "object")
