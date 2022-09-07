@@ -1,0 +1,83 @@
+#############################################################################################
+###### function to extend the url retrieval via the Eur-Lex API to free text search    ######
+###### it returns document ids which can then be used to retrieve those documents and  ######
+###### their citations using the eurlex R library                                      ######
+###### September 2022                                                                  ######
+#############################################################################################
+
+# "exactly" has two options: 
+# if you are look for the exact phrase given in the search term (text), then exactly=TRUE
+# if you are looking for text containing all words in the search term (text), then exactly=FALSE
+
+# act provides a mean to subset the type of acts searched. the default is DIR for Directive
+# check out the list of act codes (FM_CODE) provided by Eur-Lex for a complete dictionary
+
+# qid is a session identifier (probably linked to IP), there is no documentation on how qid behaves available.
+# At the moment I assume that qid is temporally fixed. this may not be the case. if 404 errors occur I would suggest first
+# refreshing qid (do the search in the browser version of eur-lex and check out the qid provided)
+# I am hoping for better documentation to emerge from Eur-Lex on how to improve connectivity
+
+# lang is to specify the language of the search term which would then direct you to the the legal documents
+# in that same language. default is english ("en"), which is the original language for all texts
+
+# value: the function returns an array of CELEX number, unique identifiers that can be used in eurlex subsequently
+
+# example: mpaCELEX<-freetext_eurlex("marine protected area*",act="DIR",lang="en",exactly=TRUE)
+# note that the search can take wildcards
+
+require(rvest)
+
+freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
+if (is.character(text)) {
+text<-gsub(" ", "+",text)
+site<-paste0("https://eur-lex.europa.eu/search.html?scope=EURLEX&lang=",lang,"&text=")
+session<-paste0("&lang=en&type=quick&qid=1662534219143&FM_CODED=",act,"&page=")
+
+#page 1
+
+if (exactly==FALSE) {
+query<-paste0(site,text,session,"1") 
+} else {
+query<-paste0(site,'"',text,'"',session,"1") 
+}
+
+result<-read_html(query)
+nodes<- html_nodes(result, "[class='SearchResult']")
+flat<-unlist(strsplit(html_element(nodes,"[class='col-sm-6']")%>%html_text2(),"\n"))
+CELEX<-flat[which(flat=="CELEX number:")+1]
+
+#how many pages by default 10 results per page
+returns<-html_nodes(result, "[class='checkbox']")%>%html_text2()
+ndocs<-as.numeric(sub(".*of ", "", returns[1]))
+npage<-ceiling(ndocs/10)
+print(paste0("there are ",npage," pages of results"))
+flush.console()
+
+if ((npage>1)&is.na(npage)==FALSE) {
+for (i in 2:npage) {
+
+if (exactly==FALSE) {
+query<-paste0(site,text,session,i) 
+} else {
+query<-paste0(site,'"',text,'"',session,i) 
+}
+
+result<-read_html(query)
+nodes<- html_nodes(result, "[class='SearchResult']")
+flat<-unlist(strsplit(html_element(nodes,"[class='col-sm-6']")%>%html_text2(),"\n"))
+temp<-flat[which(flat=="CELEX number:")+1]
+
+CELEX<-c(CELEX,temp)
+
+
+}
+}
+
+
+} else {
+stop("the query must be a character string, don't forget the quotations marks", call.=TRUE) 
+}
+
+return(CELEX)
+}
+
