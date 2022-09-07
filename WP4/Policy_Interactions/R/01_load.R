@@ -7,12 +7,13 @@ rm(list = ls())
 
 library("eurlex")
 library("dplyr")
-
+library("tibble")
+library("stringr")
 
 # Define functions --------------------------------------------------------
 
 #this isnt working :( 
-#source(file = "/Users/annajorgensen/Desktop/Anna's R code/mpa4sustainability/WP3/eurlex_precursor_freetext_search")
+#source(file = "/WP4/Policy_Interactions/R/freetext_eurlex")
 
 require(rvest)
 
@@ -90,11 +91,11 @@ freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
 mpaCELEX<-freetext_eurlex("marine protected area*",act="DIR",lang="en",exactly=TRUE)
 mpaCELEX
 
-resource.types <- c("DIR","REG_DEL",
+resource.types <- c("DIR","REG_DEL","REG",
                     "DEC_ADOPT_INTERNATION","TREATY", 
                     "CONVENTION","ACT_OTHER")
 
-#"ACT_LEGIS","REG",
+#"ACT_LEGIS"
 
 mpaCELEX<-list()
 
@@ -107,9 +108,20 @@ for (i in 1:length(resource.types)) {
 
 }
 
+# Lets give each list the name based on the resource type: 
+mpaCELEX <- structure(mpaCELEX, names=resource.types)
 
-#lets give each list the name based on the designations: 
-mpaCELEX.list <- structure(mpaCELEX, names=resource.types)
+# Make it into a dataframe
+mpaCELEX.x <- 
+  mpaCELEX %>%
+  unlist(.) %>%
+  as.data.frame() %>%
+  rownames_to_column(.) %>%
+  rename(.,  CELEX = .) %>%
+  rename(.,  resource.type = rowname) %>%
+  mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
+
+
 
 
 
