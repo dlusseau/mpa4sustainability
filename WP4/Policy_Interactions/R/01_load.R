@@ -78,6 +78,9 @@ freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
 # query term: marine protected area* (no parenthesis!)
 
 # Resource Types we want with associated list of act codes (FM_CODE) 
+# what we are interested in: 
+# https://european-union.europa.eu/institutions-law-budget/law/types-legislation_en
+
   # Directives: DIR
   # Legislative acts: ACT_LEGIS --> issues about the leg acts: https://eur-lex.europa.eu/search.html?lang=en&text=marine+protected+area*&qid=1662553896352&type=quick&scope=EURLEX&FM_CODED=ACT_LEGIS
   # Regulation: REG
@@ -130,10 +133,22 @@ mpaCELEX.df <-
 
 # eurlex package search ---------------
 
+# extract text data: 
 #error when trying to do all 774... takes too long...can to ~100 results...
 CELEX_text.data <- 
-  mpaCELEX.df[1:100,] %>%
+  mpaCELEX.df[1:5,] %>%
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-  mutate(title = map_chr(url, elx_fetch_data, "text")) %>% 
+  as_tibble() %>%
+  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
   as_tibble() 
+
+# lets get non-text data: 
+# we have to make a key...
+dirs <- elx_make_query(resource_type = "directive",
+                       include_eurovoc = TRUE,
+                       include_date = TRUE, 
+                       include_force = TRUE) %>% 
+  elx_run_query() %>% 
+  rename(date = `callret-3`) #rename column to be more understandable
+
 
