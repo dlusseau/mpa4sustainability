@@ -88,19 +88,14 @@ freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
   # Convention: CONVENTION
   # other acts: ACT_OTHER
 
-mpaCELEX<-freetext_eurlex("marine protected area*",act="DIR",lang="en",exactly=TRUE)
-mpaCELEX
-
-resource.types <- c("DIR","REG_DEL","REG",
+resource.types <- c("DIR","REG_DEL","REG", "ACT_LEGIS",
                     "DEC_ADOPT_INTERNATION","TREATY", 
                     "CONVENTION","ACT_OTHER")
 
-#"ACT_LEGIS"
-
-mpaCELEX<-list()
+mpaCELEX.list<-list()
 
 for (i in 1:length(resource.types)) {  
-  mpaCELEX[[i]]<- 
+  mpaCELEX.list[[i]]<- 
     freetext_eurlex("marine protected area*",
                     act=resource.types[[i]],
                     lang="en",
@@ -109,11 +104,11 @@ for (i in 1:length(resource.types)) {
 }
 
 # Lets give each list the name based on the resource type: 
-mpaCELEX <- structure(mpaCELEX, names=resource.types)
+mpaCELEX.list <- structure(mpaCELEX.list, names=resource.types)
 
-# Make it into a dataframe
-mpaCELEX.x <- 
-  mpaCELEX %>%
+# Make it into a nice data frame
+mpaCELEX.df <- 
+  mpaCELEX.list %>%
   unlist(.) %>%
   as.data.frame() %>%
   rownames_to_column(.) %>%
@@ -121,8 +116,12 @@ mpaCELEX.x <-
   rename(.,  resource.type = rowname) %>%
   mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
 
+# We have 774 EU policy documents relating to marine protexted area*
 
-
+#d uplicate CELEX?? shouldn't be since I am guessing a document can only be categorized into one resource types
+# double check to be sure...
+mpaCELEX.df[duplicated(mpaCELEX.df$CELEX)]
+# no duplicates :) 
 
 
 # eurlex download ---------------
