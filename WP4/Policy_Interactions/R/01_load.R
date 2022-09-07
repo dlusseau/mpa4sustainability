@@ -72,7 +72,7 @@ freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
 }
 # Load data ---------------------------------------------------------------
 
-# In eur-lex search ---------------
+# term eur-lex search ---------------
 
 # query term: marine protected area* (no parenthesis!)
 
@@ -118,20 +118,22 @@ mpaCELEX.df <-
 
 # We have 774 EU policy documents relating to marine protexted area*
 
-#d uplicate CELEX?? shouldn't be since I am guessing a document can only be categorized into one resource types
-# double check to be sure...
+# duplicate CELEX?? shouldn't be since I am guessing a document can 
+# only be categorized into one resource types BUT... double check to be sure
 mpaCELEX.df[duplicated(mpaCELEX.df$CELEX)]
 # no duplicates :) 
 
+mpaCELEX.df <-
+  mpaCELEX.df %>%
+  mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX))
 
-# eurlex download ---------------
+# eurlex search ---------------
 
-test_query <- elx_make_query("any", 
-                             include_eurovoc = TRUE, 
-                             include_force = TRUE,
-                             include_date = TRUE,) 
-
-results <- 
+results2 <- 
   elx_run_query(query = test_query) %>% 
   rename(date = `callret-3`) #rename column to be more understandable
 
+
+elx_fetch_data(url = mpaCELEX.df$url[1], type = "title")
+
+elx_download_xml(url = "http://publications.europa.eu/resource/celex/32014R0001", notice = "object")
