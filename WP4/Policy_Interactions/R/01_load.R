@@ -177,13 +177,13 @@ country.key <-
   codelist %>%
   subset(.,select = c(iso3c,country.name.en))
 
-# EU member countries
+# EU member countries (27 but 28 since we are including the UK for this)
 EU.members <- c("Austria","Belgium","Bulgaria","Croatia","Cyprus",
                 "Czechia","Denmark","Estonia","Finland","France",
                 "Germany","Greece","Hungary","Ireland","Italy",
                 "Latvia","Lithuania","Luxembourg","Malta","Netherlands",
                 "Poland","Portugal","Romania","Slovakia","Slovenia",
-                "Spain","Sweden","United Kingdom") #note UK for this is "EU"
+                "Spain","Sweden","United Kingdom") 
 
 EU.members.key <- data.frame(country.name.en = EU.members, EU = "Yes")
 
@@ -202,6 +202,55 @@ EU.mpa.char <-
   mpa.char1 %>%
   filter(.,EU=="Yes")
 # total 8,448 MPAs associated to EU parent ISOs 
+
+unique(EU.mpa.char$DESIG_TYPE)
+# [1] "National" "International" "Regional"     
+
+# We are only sticking to international and regional designation areas:
+EU.mpa.char.edit <-
+  EU.mpa.char %>%
+  filter(DESIG_TYPE == "International" | 
+         DESIG_TYPE == "Regional" ) %>%
+  mutate(DESIG_ENG = tolower(DESIG_ENG)) # change all to lowercase bc there are some inconsitencies
+# total 3,604 MPAs associated to EU parent ISOs in international or regional designations 
+
+#check:
+unique(EU.mpa.char.edit$DESIG_TYPE)
+# [1] "International" "Regional"     
+
+unique(EU.mpa.char.edit$DESIG_ENG)
+# We have 10 different unique designations: 
+#[1] "ramsar site, wetland of international importance"                            
+#[2] "world heritage site (natural or mixed)"                                      
+#[3] "unesco-mab biosphere reserve"                                                
+#[4] "specially protected areas of mediterranean importance (barcelona convention)"
+#[5] "sites of community importance (habitats directive)"                          
+#[6] "special areas of conservation (habitats directive)"                          
+#[7] "special protection area (birds directive)"                                   
+#[8] "baltic sea protected area (helcom)"                                          
+#[9] "marine protected area (ospar)"                                               
+#10] "specially protected area (cartagena convention)" 
+
+# Our search terms: 
+# "ramsar site"
+# "wetland of international importance"                            
+# "world heritage site (natural or mixed)"                                      
+# "unesco-mab biosphere reserve"                                                
+# "specially protected areas of mediterranean importance"
+# "barcelona convention"
+# "sites of community importance"
+# "habitats directive"                          
+# "special areas of conservation"
+# "habitats directive"                          
+# "special protection area"
+# "birds directive"                                   
+# "baltic sea protected area
+#  "helcom"                                          
+# "marine protected area"
+# "ospar"                                               
+# "specially protected area"
+# "cartagena convention" 
+
 
 
 
