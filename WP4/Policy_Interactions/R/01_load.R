@@ -46,6 +46,13 @@ for (i in 1:length(resource.types)) {
 
 }
 
+# How many result pages show up from the search: 
+#[1] "there are 13 pages of results"
+#[1] "there are 47 pages of results"
+#[1] "there are 26 pages of results"
+#[1] "there are 3 pages of results"
+#[1] "there are 28 pages of results"
+
 # Lets give each list the name based on the resource type: 
 mpaCELEX.list <- structure(mpaCELEX.list, names=resource.types)
 
@@ -60,8 +67,11 @@ mpaCELEX.df <-
   mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
 
 # We have 1,084 EU legislation documents relating to marine protected area*
+# this number changes every time I run the loop... the pages of results dont change, but the document numbers do...
+# one time it was 1114 documents, another time it was 1104 documents
 
-# duplicate CELEX?? shouldn't be since I am guessing a document can 
+
+# duplicate CELEX? shouldn't be since I am guessing a document can 
 # only be categorized into one resource types BUT... double check to be sure
 mpaCELEX.df[duplicated(mpaCELEX.df$CELEX)]
 # no duplicates :) 
@@ -75,7 +85,7 @@ mpaCELEX.df <-
 # we have to make a key to link key terms
 
 SPARQL.resource.type <- c("directive","regulation", 
-                    "decision", "recommendation")
+                          "decision", "recommendation")
 
 SPARQL.CELEX.list<-list()
 
@@ -92,7 +102,6 @@ for (i in 1:length(SPARQL.resource.type)) {
 
 # Lets give each list the name based on the resource type: 
 SPARQL.CELEX.list <- structure(SPARQL.CELEX.list, names=SPARQL.resource.type)
-
 
 # Make it into a nice data frame
 SPARQL.CELEX.df <- 
@@ -117,18 +126,19 @@ mpa.policy.df <-
   left_join(.,SPARQL.CELEX.df, by = c("CELEX" = "celex"))
 #the df has become larger bc there can be multiple keywords for each document
 
-#convert include_eurovoc to actual words
+#convert eurovoc codes to actual words
 eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = mpa.policy.df$eurovoc)
 
 # now lets join them back to the data set 
 mpa.policy.df <-
   mpa.policy.df %>% 
   left_join(.,eurovoc_lookup.key, by = "eurovoc")
+# remember each row is not necessarily a unique document! due to multiple key terms 
 
 # # extract text data: ---------------------------------
-#error when trying to do all 774... takes too long...can to ~100 results...
+# error when trying to do all... takes too long
 CELEX_text.data <- 
-  mpaCELEX.df[1:5,] %>%
+  mpaCELEX.df %>%
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
   as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
