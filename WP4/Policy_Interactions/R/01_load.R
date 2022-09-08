@@ -109,7 +109,21 @@ opinion.key <- elx_make_query(resource_type = "manual",
   rename(date = `callret-3`) #rename column to be more understandable
 
 SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
-  
+
+# Lets bind the CELEX df to the key df:
+
+mpa.policy.df <- 
+  mpaCELEX.df %>%
+  left_join(.,SPARQL.CELEX.df, by = c("CELEX" = "celex"))
+#the df has become larger bc there can be multiple keywords for each document
+
+#convert include_eurovoc to actual words
+eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = mpa.policy.df$eurovoc)
+
+# now lets join them back to the data set 
+mpa.policy.df <-
+  mpa.policy.df %>% 
+  left_join(.,eurovoc_lookup.key, by = "eurovoc")
 
 # # extract text data: ---------------------------------
 #error when trying to do all 774... takes too long...can to ~100 results...
