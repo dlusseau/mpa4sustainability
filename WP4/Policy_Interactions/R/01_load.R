@@ -18,7 +18,9 @@ source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
 
 # Load data ---------------------------------------------------------------
 
-# term eur-lex search ---------------
+# EUR-Lex Data --------------------------------------
+
+# -------- term eur-lex website search ---------------
 
 # query term: marine protected area* (no parenthesis!)
 
@@ -89,7 +91,7 @@ mpaCELEX.df <-
   mpaCELEX.df %>%
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX))
 
-# eurlex package search ---------------
+# -------- eurlex package search ---------------
 
 # we have to make a key to link key terms
 
@@ -144,7 +146,7 @@ mpa.policy.df <-
   left_join(.,eurovoc_lookup.key, by = "eurovoc")
 # remember each row is not necessarily a unique document! due to multiple key terms 
 
-# extract text data: ---------------------------------
+# -------- extract text data: -------------
 
 # error when trying to do all... takes too long
 CELEX_text.data <- 
@@ -153,5 +155,17 @@ CELEX_text.data <-
   as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
   as_tibble() 
+
+
+#
+
+
+
+
+# World Database of Protected Areas Data ------------
+
+load("WP4/Policy_Interactions/data/raw_data/all.characteristics.mpas.Rdata")
+
+
 
 
