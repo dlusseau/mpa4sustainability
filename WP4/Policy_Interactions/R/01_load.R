@@ -26,11 +26,20 @@ source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
 # what we are interested in is legislation (5 types of them):
 # https://european-union.europa.eu/institutions-law-budget/law/types-legislation_en
 
-  # Directives: DIR
-  # Regulation: REG
-  # Decisions: DEC
-  # Recommendations: RECO
-  # Opinions: OPIN
+#result for the webpage:
+  # Directives: DIR -128
+  # Regulation: REG - 466
+  # Decisions: DEC - 259
+  # Recommendations: RECO - 24 
+  # Opinions: OPIN -279
+
+# function results:
+#mpaCELEX.list
+#$ DIR : chr [1:128] "32008L0056" "32014L0089" "32019L1937" "32006L0007" ...
+#$ REG : chr [1:432] "32019R1241" "32009R1107" "32021R1139" "32014R1143" ...
+#$ DEC : chr [1:245] "32013D1386" "32022D0591" "32008D0768" "32017D1324" ...
+#$ RECO: chr [1:22] "32007H0526" "32013H0179" "52020IP0152" "32019H0423(01)" ...
+#$ OPIN: chr [1:277] "52008AE0990(01)" "52016AR2898" "52010AR0339" "52012AR2203" ...
 
 resource.types <- c("DIR","REG", "DEC",
                     "RECO","OPIN")
@@ -135,10 +144,11 @@ mpa.policy.df <-
   left_join(.,eurovoc_lookup.key, by = "eurovoc")
 # remember each row is not necessarily a unique document! due to multiple key terms 
 
-# # extract text data: ---------------------------------
+# extract text data: ---------------------------------
+
 # error when trying to do all... takes too long
 CELEX_text.data <- 
-  mpaCELEX.df %>%
+  mpaCELEX.df[1:5,]%>%
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
   as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
