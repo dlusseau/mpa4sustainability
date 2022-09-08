@@ -10,6 +10,8 @@ library("dplyr")
 library("tibble")
 library("stringr")
 library("purrr")
+library("countrycode")
+library("tidyr")
 
 # Define functions --------------------------------------------------------
 
@@ -157,15 +159,49 @@ CELEX_text.data <-
   as_tibble() 
 
 
-#
-
-
 
 
 # World Database of Protected Areas Data ------------
 
 load("WP4/Policy_Interactions/data/raw_data/all.characteristics.mpas.Rdata")
 
+# O.k. so we first are only interested in countries within the EU so lets subset all other countries out of the data set 
+
+# ‘countrycode’: This package might help with converting the codes to country names: 
+
+# this data set from countrycode package has country names and ISO3 codes
+codelist <- codelist
+str(codelist)
+
+country.key <- 
+  codelist %>%
+  subset(.,select = c(iso3c,country.name.en))
+
+# EU member countries
+EU.members <- c("Austria","Belgium","Bulgaria","Croatia","Cyprus",
+                "Czechia","Denmark","Estonia","Finland","France",
+                "Germany","Greece","Hungary","Ireland","Italy",
+                "Latvia","Lithuania","Luxembourg","Malta","Netherlands",
+                "Poland","Portugal","Romania","Slovakia","Slovenia",
+                "Spain","Sweden","United Kingdom") #note UK for this is "EU"
+
+EU.members.key <- data.frame(country.name.en = EU.members, EU = "Yes")
+
+country.key <- 
+  country.key %>% 
+  left_join(.,EU.members.key, by="country.name.en") %>%
+  mutate(EU = replace_na(EU,"No"))
+
+# lets join with mpa.char
+mpa.char1 <-
+  mpa.char %>%
+  left_join(.,country.key,by= c("PARENT_ISO"="iso3c"))
+
+# We are only interested in EU:
+EU.mpa.char <- 
+  mpa.char1 %>%
+  filter(.,EU=="Yes")
+# total 8,448 MPAs associated to EU parent ISOs 
 
 
 
