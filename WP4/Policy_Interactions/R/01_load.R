@@ -13,64 +13,9 @@ library("purrr")
 
 # Define functions --------------------------------------------------------
 
-#this isnt working :( 
-#source(file = "/WP4/Policy_Interactions/R/freetext_eurlex")
+# pull the function David created: 
+source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
 
-require(rvest)
-
-freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
-  if (is.character(text)) {
-    text<-gsub(" ", "+",text)
-    site<-paste0("https://eur-lex.europa.eu/search.html?scope=EURLEX&lang=",lang,"&text=")
-    session<-paste0("&lang=en&type=quick&qid=1662534219143&FM_CODED=",act,"&page=")
-    
-    #page 1
-    
-    if (exactly==FALSE) {
-      query<-paste0(site,text,session,"1") 
-    } else {
-      query<-paste0(site,'"',text,'"',session,"1") 
-    }
-    
-    result<-read_html(query)
-    nodes<- html_nodes(result, "[class='SearchResult']")
-    flat<-unlist(strsplit(html_element(nodes,"[class='col-sm-6']")%>%html_text2(),"\n"))
-    CELEX<-flat[which(flat=="CELEX number:")+1]
-    
-    #how many pages by default 10 results per page
-    returns<-html_nodes(result, "[class='checkbox']")%>%html_text2()
-    ndocs<-as.numeric(sub(".*of ", "", returns[1]))
-    npage<-ceiling(ndocs/10)
-    print(paste0("there are ",npage," pages of results"))
-    flush.console()
-    
-    if ((npage>1)&is.na(npage)==FALSE) {
-      for (i in 2:npage) {
-        
-        if (exactly==FALSE) {
-          query<-paste0(site,text,session,i) 
-        } else {
-          query<-paste0(site,'"',text,'"',session,i) 
-        }
-        
-        result<-read_html(query)
-        nodes<- html_nodes(result, "[class='SearchResult']")
-        flat<-unlist(strsplit(html_element(nodes,"[class='col-sm-6']")%>%html_text2(),"\n"))
-        temp<-flat[which(flat=="CELEX number:")+1]
-        
-        CELEX<-c(CELEX,temp)
-        
-        
-      }
-    }
-    
-    
-  } else {
-    stop("the query must be a character string, don't forget the quotations marks", call.=TRUE) 
-  }
-  
-  return(CELEX)
-}
 # Load data ---------------------------------------------------------------
 
 # term eur-lex search ---------------
@@ -78,23 +23,17 @@ freetext_eurlex<- function(text,act="DIR",lang="en",exactly=FALSE) {
 # query term: marine protected area* (no parenthesis!)
 
 # Resource Types we want with associated list of act codes (FM_CODE) 
-# what we are interested in: 
+# what we are interested in is legislation (5 types of them):
 # https://european-union.europa.eu/institutions-law-budget/law/types-legislation_en
 
   # Directives: DIR
-  # Legislative acts: ACT_LEGIS --> issues about the leg acts: https://eur-lex.europa.eu/search.html?lang=en&text=marine+protected+area*&qid=1662553896352&type=quick&scope=EURLEX&FM_CODED=ACT_LEGIS
   # Regulation: REG
-  # Delegated regulation: REG_DEL
-  # Delegated act: Cannot find it seems like the code is ACT_DEL, but no documents associated  
-  # National implementations Cannot find it...
-  # Decisions adopted by bodies created by international agreements: ACT_ADOPT_INTERNATION 
-  # Treaties: TREATY
-  # Convention: CONVENTION
-  # other acts: ACT_OTHER
+  # Decisions: DEC
+  # Recommendations: RECO
+  # Opinions: OPIN
 
-resource.types <- c("DIR","REG_DEL","REG", "ACT_LEGIS",
-                    "DEC_ADOPT_INTERNATION","TREATY", 
-                    "CONVENTION","ACT_OTHER")
+resource.types <- c("DIR","REG", "DEC",
+                    "RECO","OPIN")
 
 mpaCELEX.list<-list()
 
@@ -120,7 +59,7 @@ mpaCELEX.df <-
   rename(.,  resource.type = rowname) %>%
   mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
 
-# We have 774 EU policy documents relating to marine protexted area*
+# We have 1,084 EU legislation documents relating to marine protected area*
 
 # duplicate CELEX?? shouldn't be since I am guessing a document can 
 # only be categorized into one resource types BUT... double check to be sure
@@ -133,7 +72,46 @@ mpaCELEX.df <-
 
 # eurlex package search ---------------
 
-# extract text data: 
+# we have to make a key to link key terms
+
+SPARQL.resource.type <- c("directive","regulation", 
+                    "decision", "recommendation")
+
+SPARQL.CELEX.list<-list()
+
+for (i in 1:length(SPARQL.resource.type)) {  
+  SPARQL.CELEX.list[[i]]<- 
+    elx_make_query(resource_type = SPARQL.resource.type[[i]],
+                   include_eurovoc = TRUE,
+                   include_date = TRUE, 
+                   include_force = TRUE) %>% 
+    elx_run_query() %>% 
+    rename(date = `callret-3`) #rename column to be more understandable
+  
+}
+
+# Lets give each list the name based on the resource type: 
+SPARQL.CELEX.list <- structure(SPARQL.CELEX.list, names=SPARQL.resource.type)
+
+
+# Make it into a nice data frame
+SPARQL.CELEX.df <- 
+  SPARQL.CELEX.list %>%
+  bind_rows()
+  
+#opinion has to be done manually: 
+opinion.key <- elx_make_query(resource_type = "manual", 
+                              manual_type = "OPIN",
+                              include_eurovoc = TRUE,
+                              include_date = TRUE, 
+                              include_force = TRUE) %>% 
+  elx_run_query() %>% 
+  rename(date = `callret-3`) #rename column to be more understandable
+
+SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
+  
+
+# # extract text data: ---------------------------------
 #error when trying to do all 774... takes too long...can to ~100 results...
 CELEX_text.data <- 
   mpaCELEX.df[1:5,] %>%
@@ -141,14 +119,5 @@ CELEX_text.data <-
   as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
   as_tibble() 
-
-# lets get non-text data: 
-# we have to make a key...
-dirs <- elx_make_query(resource_type = "directive",
-                       include_eurovoc = TRUE,
-                       include_date = TRUE, 
-                       include_force = TRUE) %>% 
-  elx_run_query() %>% 
-  rename(date = `callret-3`) #rename column to be more understandable
 
 
