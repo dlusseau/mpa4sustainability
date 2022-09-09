@@ -2,7 +2,6 @@
 # Clear work space ---------------------------------------------------------
 rm(list = ls())
 
-
 # Load libraries ----------------------------------------------------------
 
 library("eurlex")
@@ -148,6 +147,10 @@ mpa.policy.df <-
   left_join(.,eurovoc_lookup.key, by = "eurovoc")
 # remember each row is not necessarily a unique document! due to multiple key terms 
 
+# Save file 
+write.csv(x = mpa.policy.df,
+          file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv", row.names=FALSE)
+
 # -------- extract text data: -------------
 
 # error when trying to do all... takes too long
@@ -159,7 +162,12 @@ CELEX_text.data <-
   as_tibble() 
 
 
+text.df2 <- 
+  CELEX_text.data %>%
+  mutate(references = str_extract_all(text, "\\d+\\/\\d+\\/\\b[:alpha:]+")) 
 
+text.df2[1,]$references
+text.df3 <- unnest(text.df2, references)
 
 # World Database of Protected Areas Data ------------
 
@@ -231,6 +239,14 @@ unique(EU.mpa.char.edit$DESIG_ENG)
 #[9] "marine protected area (ospar)"                                               
 #10] "specially protected area (cartagena convention)" 
 
+# Mentioned documents: 
+# habitats directive (92/43/EEC): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:31992L0043 (92/43/EEC)
+# birds directive: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32009L0147
+# barcelona convention: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A21976A0216%2801%29
+# ospar: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A21998A0403%2801%29
+# cartagena convention: https://eur-lex.europa.eu/legal-content/en/ALL/?uri=CELEX:22002A0731(01)
+# helcom: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021PC0534
+
 # Our search terms: 
 # "ramsar site"
 # "wetland of international importance"                            
@@ -245,12 +261,29 @@ unique(EU.mpa.char.edit$DESIG_ENG)
 # "special protection area"
 # "birds directive"                                   
 # "baltic sea protected area
-#  "helcom"                                          
+# "helcom"                                          
 # "marine protected area"
 # "ospar"                                               
 # "specially protected area"
 # "cartagena convention" 
 
-
+search_terms <- c("ramsar site", 
+                  "wetland of international importance",
+                  "world heritage site (natural or mixed)", 
+                  "unesco-mab biosphere reserve",
+                  "specially protected areas of mediterranean importance",
+                  "barcelona convention",
+                  "sites of community importance",
+                  "habitats directive",
+                  "special areas of conservation",
+                  "habitats directive",
+                  "special protection area",
+                  "birds directive",
+                  "baltic sea protected area",
+                  "helcom",                                          
+                  "marine protected area",
+                  "ospar",
+                  "specially protected area",
+                  "cartagena convention")
 
 
