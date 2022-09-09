@@ -106,7 +106,8 @@ for (i in 1:length(SPARQL.resource.type)) {
     elx_make_query(resource_type = SPARQL.resource.type[[i]],
                    include_eurovoc = TRUE,
                    include_date = TRUE, 
-                   include_force = TRUE) %>% 
+                   include_force = TRUE,
+                   include_citations = TRUE) %>% 
     elx_run_query() %>% 
     rename(date = `callret-3`) #rename column to be more understandable
   
