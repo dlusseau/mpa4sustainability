@@ -14,7 +14,7 @@ library("wordcloud")
 # Load data ---------------------------------------------------------------
 mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
 
-# Exploring eurvoc terms --------------------------------------------------
+# Exploring general things --------------------------------------------------
 
 mpa.policy.notext.df %>%
   summarise(n= n_distinct(CELEX)) 
@@ -113,5 +113,20 @@ titled.2006 %>%
   bind_tf_idf(word, CELEX, n) %>% 
   with(wordcloud(word, tf_idf, max.words = 50, scale = c(1.8,0.1)))
 # this seems to be more about foreign policy and programs
+
+# Exploring Eurovoc terms -----------------------------------------------
+
+# Eurovoc Term Co-occurrences: 
+
+mpa.table <- as.data.frame(table(mpa.policy.notext.df$CELEX,mpa.policy.notext.df$labels))
+
+document.term_matrix <-
+  mpa.table  %>%
+  pivot_wider(
+    names_from = Var1,
+    values_from = Freq  ) %>%
+  as.matrix()
+
+# stuck on term co-ocurances:
 
 
