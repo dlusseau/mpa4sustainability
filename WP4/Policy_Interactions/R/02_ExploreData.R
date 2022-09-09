@@ -127,6 +127,43 @@ document.term_matrix <-
     values_from = Freq  ) %>%
   as.matrix()
 
-# stuck on term co-ocurances:
+# stuck on term co-occurrence:
+library("tidytext")
+library("dplyr")
 
+mpa.table <- as.data.frame(table(mpa.policy.notext.df$CELEX,mpa.policy.notext.df$labels))
 
+mpa.table <- 
+  mpa.table %>%
+  rename(CELEX = Var1,
+         label = Var2)
+
+# https://cran.r-project.org/web/packages/tidytext/vignettes/tidying_casting.html
+#document-term matrix
+dtm <-
+  mpa.table %>%
+  cast_dtm(CELEX, label, Freq)
+
+#term-document matrix
+tdm <-
+  mpa.table %>%
+  cast_tdm(CELEX, label, Freq)
+
+# https://ladal.edu.au/coll.html#3_Visualizing_Collocations 
+# convert dtm into sparse matrix
+mpadtm <- Matrix::sparseMatrix(i = tdm$i, 
+                                   j = tdm$j, 
+                                   x = tdm$v, 
+                                   dims = c(tdm$nrow, tdm$ncol),
+                                   dimnames = dimnames(tdm))
+
+# calculate co-occurrence counts
+mpadtm.coocurrences <- t(mpadtm) %*% mpadtm
+mpadtm.coocurrences1 <- crossprod(mpadtm)
+# convert into matrix
+mpa.collocates <- as.matrix(mpadtm.coocurrences1)
+
+diag(mpa.collocates) <- 0
+
+x <- as.data.frame(colSums(mpadtm.coocurrences1))
+# no terms with 0 co-occurances
