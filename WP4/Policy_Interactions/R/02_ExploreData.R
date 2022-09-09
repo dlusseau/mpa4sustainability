@@ -8,6 +8,8 @@ library("ggplot2")
 library("lubridate")
 library("tidytext")
 library("wordcloud")
+library("tidytext")
+library("dplyr")
 
 # Define functions --------------------------------------------------------
 
@@ -128,8 +130,6 @@ document.term_matrix <-
   as.matrix()
 
 # stuck on term co-occurrence:
-library("tidytext")
-library("dplyr")
 
 mpa.table <- as.data.frame(table(mpa.policy.notext.df$CELEX,mpa.policy.notext.df$labels))
 
