@@ -119,8 +119,14 @@ SPARQL.CELEX.list <- structure(SPARQL.CELEX.list, names=SPARQL.resource.type)
 # Make it into a nice data frame
 SPARQL.CELEX.df <- 
   SPARQL.CELEX.list %>%
-  bind_rows()
-  
+  bind_rows(.id = "resource.type") %>%
+  mutate(resource.type = case_when(
+    resource.type == "directive" ~ "DIR",
+    resource.type == "regulation" ~ "REG",
+    resource.type == "decision" ~ "DEC",
+    resource.type == "recommendation" ~ "RECO"))
+
+
 #opinion has to be done manually: 
 opinion.key <- elx_make_query(resource_type = "manual", 
                               manual_type = "OPIN",
@@ -129,7 +135,8 @@ opinion.key <- elx_make_query(resource_type = "manual",
                               include_force = TRUE,
                               include_citations = TRUE) %>% 
   elx_run_query() %>% 
-  rename(date = `callret-3`) #rename column to be more understandable
+  rename(date = `callret-3`) %>% #rename column to be more understandable
+  mutate(resource.type = "OPIN")
 
 SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
 
@@ -140,7 +147,7 @@ write.csv(x = SPARQL.CELEX.df,
 # Lets bind the CELEX df to the key df:
 mpa.policy.df <- 
   mpaCELEX.df %>%
-  left_join(.,SPARQL.CELEX.df, by = c("CELEX" = "celex"))
+  left_join(.,SPARQL.CELEX.df, by = c("CELEX" = "celex","resource.type"))
 #the df has become larger bc there can be multiple keywords for each document
 
 #convert eurovoc codes to actual words
@@ -155,7 +162,7 @@ mpa.policy.df <-
 
 # checking no missing or duplicates...
 n_distinct(unique(mpa.policy.df$CELEX))
-# 1094 matches the original :) 
+# 1104 matches the original :) 
 
 # Save file 
 write.csv(x = mpa.policy.df,
@@ -164,20 +171,20 @@ write.csv(x = mpa.policy.df,
 # -------- extract text data: -------------
 
 # error when trying to do all... takes too long
-CELEX_text.data <- 
-  mpaCELEX.df[1:5,]%>%
-  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-  as_tibble() %>%
-  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
-  as_tibble() 
+#CELEX_text.data <- 
+#  mpaCELEX.df[1:5,]%>%
+#  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
+#  as_tibble() %>%
+#  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
+#  as_tibble() 
 
 
-text.df2 <- 
-  CELEX_text.data %>%
-  mutate(references = str_extract_all(text, "\\d+\\/\\d+\\/\\b[:alpha:]+")) 
+#text.df2 <- 
+#  CELEX_text.data %>%
+#  mutate(references = str_extract_all(text, "\\d+\\/\\d+\\/\\b[:alpha:]+")) 
 
-text.df2[1,]$references
-text.df3 <- unnest(text.df2, references)
+#text.df2[1,]$references
+#text.df3 <- unnest(text.df2, references)
 
 # World Database of Protected Areas Data ------------
 
