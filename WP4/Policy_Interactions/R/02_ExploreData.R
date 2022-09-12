@@ -15,20 +15,20 @@ library("patchwork")
 # Define functions --------------------------------------------------------
 
 # Load data ---------------------------------------------------------------
+
 mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
 
 key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
-
-# Exploring general things --------------------------------------------------
+# Exploring document info over time --------------------------------------------------
 
 mpa.policy.notext.df %>%
   summarise(n= n_distinct(CELEX)) 
-# total 1,094 policy legislation
+# total 1104 policy legislation
 
 mpa.policy.notext.df %>%
   summarise(n= n_distinct(labels)) 
-# total 1,299 unique label terms 
+# total 1303 unique label terms 
 
 mpa.policy.notext.df %>%
   group_by(CELEX) %>%
