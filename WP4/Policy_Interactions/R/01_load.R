@@ -126,14 +126,18 @@ opinion.key <- elx_make_query(resource_type = "manual",
                               manual_type = "OPIN",
                               include_eurovoc = TRUE,
                               include_date = TRUE, 
-                              include_force = TRUE) %>% 
+                              include_force = TRUE,
+                              include_citations = TRUE) %>% 
   elx_run_query() %>% 
   rename(date = `callret-3`) #rename column to be more understandable
 
 SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
 
-# Lets bind the CELEX df to the key df:
+# Save file 
+write.csv(x = SPARQL.CELEX.df,
+          file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv", row.names=FALSE)
 
+# Lets bind the CELEX df to the key df:
 mpa.policy.df <- 
   mpaCELEX.df %>%
   left_join(.,SPARQL.CELEX.df, by = c("CELEX" = "celex"))
@@ -146,7 +150,12 @@ eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = mpa.policy.df$eurovoc)
 mpa.policy.df <-
   mpa.policy.df %>% 
   left_join(.,eurovoc_lookup.key, by = "eurovoc")
-# remember each row is not necessarily a unique document! due to multiple key terms 
+# remember each row is not necessarily a unique document! due to multiple key and citations...
+# so rows can have duplicate info
+
+# checking no missing or duplicates...
+n_distinct(unique(mpa.policy.df$CELEX))
+# 1094 matches the original :) 
 
 # Save file 
 write.csv(x = mpa.policy.df,
@@ -241,12 +250,12 @@ unique(EU.mpa.char.edit$DESIG_ENG)
 #10] "specially protected area (cartagena convention)" 
 
 # Mentioned documents: 
-# habitats directive (92/43/EEC): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:31992L0043 (92/43/EEC)
-# birds directive: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32009L0147
-# barcelona convention: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A21976A0216%2801%29
-# ospar: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A21998A0403%2801%29
-# cartagena convention: https://eur-lex.europa.eu/legal-content/en/ALL/?uri=CELEX:22002A0731(01)
-# helcom: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021PC0534
+# habitats directive (31992L0043): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:31992L0043 (92/43/EEC)
+# birds directive (32009L0147): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32009L0147
+# barcelona convention (21976A0216(01)): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A21976A0216%2801%29
+# ospar (21998A0403(01)): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex%3A21998A0403%2801%29
+# cartagena convention (22002A0731(01)): https://eur-lex.europa.eu/legal-content/en/ALL/?uri=CELEX:22002A0731(01)
+# helcom (52021PC0534): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021PC0534
 
 # Our search terms: 
 # "ramsar site"
