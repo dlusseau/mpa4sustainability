@@ -13,7 +13,7 @@ library("dplyr")
 library("patchwork")
 
 # Define functions --------------------------------------------------------
-#testing 
+
 # Load data ---------------------------------------------------------------
 mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
 
@@ -200,7 +200,7 @@ document.term_matrix <-
   mpa.table  %>%
   pivot_wider(
     names_from = Var1,
-    values_from = Freq  ) %>%
+    values_from = Freq) %>%
   as.matrix()
 
 # stuck on term co-occurrence:
