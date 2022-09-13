@@ -1,4 +1,3 @@
-#testing new computer
 
 # Clear work space ---------------------------------------------------------
 rm(list = ls())
@@ -145,18 +144,37 @@ SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
 write.csv(x = SPARQL.CELEX.df,
           file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv", row.names=FALSE)
 
-#SPARQL.CELEX.df <-  read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+SPARQL.CELEX.df <-  read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
   
 #convert eurovoc codes to actual words
 eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = SPARQL.CELEX.df$eurovoc)
 
+# Downloaded from: 
+# https://op.europa.eu/en/web/eu-vocabularies/dataset/-/resource?uri=http://publications.europa.eu/resource/dataset/eurovoc
 eurovoc.themes <- read.csv("WP4/Policy_Interactions/data/raw_data/eurovoc_export_en.csv")
 
+eurovoc.themes1 <-
+  eurovoc.themes %>%
+  mutate(eurovoc = paste0("http://eurovoc.europa.eu/",.$ï..ID))%>%
+  select(eurovoc,MT)%>%
+  distinct(eurovoc,MT)
+
+str(eurovoc.themes1)
+str(eurovoc_lookup.key)
+
+eurovoc_lookup.key1<-
+  eurovoc_lookup.key %>%
+  left_join(.,eurovoc.themes1, by = "eurovoc")
+
+#which terms have two MTs...
+check<-eurovoc_lookup.key1 %>% 
+  group_by(eurovoc) %>%
+  summarise(n=n_distinct(MT))
 
 # now lets join them back to the data set 
 SPARQL.CELEX.df <-
   SPARQL.CELEX.df %>% 
-  left_join(.,eurovoc_lookup.key, by = "eurovoc")
+  left_join(.,eurovoc_lookup.key1, by = "eurovoc")
 # remember each row is not necessarily a unique document! due to multiple key and citations...
 # so rows can have duplicate info
 
@@ -169,9 +187,11 @@ mpa.policy.df <-
 
 # checking no missing or duplicates...
 n_distinct(unique(mpa.policy.df$CELEX))
-# 1104 matches the original :) 
+# 25 matches the original :) 
 n_distinct(unique(mpa.policy.df$labels))
-
+#104 label terms
+n_distinct(unique(mpa.policy.df$MT))
+#32 label themes
 
 # Save file 
 write.csv(x = mpa.policy.df,
