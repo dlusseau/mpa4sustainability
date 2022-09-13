@@ -54,7 +54,7 @@ for (i in 1:length(resource.types)) {
     freetext_eurlex("marine protected area*",
                     act=resource.types[[i]],
                     lang="en",
-                    exactly=FALSE)
+                    exactly=TRUE)
 
 }
 
@@ -144,25 +144,33 @@ SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
 write.csv(x = SPARQL.CELEX.df,
           file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv", row.names=FALSE)
 
+#SPARQL.CELEX.df <-  read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+  
+#convert eurovoc codes to actual words
+eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = SPARQL.CELEX.df$eurovoc)
+
+eurovoc.themes <- read.csv("WP4/Policy_Interactions/data/raw_data/eurovoc_export_en.csv")
+
+
+# now lets join them back to the data set 
+SPARQL.CELEX.df <-
+  SPARQL.CELEX.df %>% 
+  left_join(.,eurovoc_lookup.key, by = "eurovoc")
+# remember each row is not necessarily a unique document! due to multiple key and citations...
+# so rows can have duplicate info
+
+
 # Lets bind the CELEX df to the key df:
 mpa.policy.df <- 
   mpaCELEX.df %>%
   left_join(.,SPARQL.CELEX.df, by = c("CELEX" = "celex","resource.type"))
 #the df has become larger bc there can be multiple keywords for each document
 
-#convert eurovoc codes to actual words
-eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = mpa.policy.df$eurovoc)
-
-# now lets join them back to the data set 
-mpa.policy.df <-
-  mpa.policy.df %>% 
-  left_join(.,eurovoc_lookup.key, by = "eurovoc")
-# remember each row is not necessarily a unique document! due to multiple key and citations...
-# so rows can have duplicate info
-
 # checking no missing or duplicates...
 n_distinct(unique(mpa.policy.df$CELEX))
 # 1104 matches the original :) 
+n_distinct(unique(mpa.policy.df$labels))
+
 
 # Save file 
 write.csv(x = mpa.policy.df,
