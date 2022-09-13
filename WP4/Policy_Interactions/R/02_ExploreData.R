@@ -254,6 +254,13 @@ attributes2<-
   summarise(sum2 = sum(n)) %>%
   mutate(sum2 = replace_na(sum2,0))
 
+#need to start here :) 
+attributes3 <-
+  mpa.policy.notext.df %>%
+  distinct(labels,MT) %>%
+  
+  group_by(labels,MT)%>%
+
 final.attributes <- 
   full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
   mutate(sum2 = replace_na(sum2,0)) %>%
