@@ -236,24 +236,45 @@ term.pairs_matrix <-
 term.pairs_matrix[is.na(term.pairs_matrix)] <- 0
 term.pairs_matrix <- as.matrix(term.pairs_matrix)
 
-xx<- 
+term.pairs<- 
   label.pairs.sub %>%
   select(-all)
 
+attributes1<- 
+  label.pairs.sub %>%
+  select(-all) %>%
+  group_by(item1) %>%
+  summarise(sum1 = sum(n)) %>%
+  mutate(sum1 = replace_na(sum1,0))
+
+attributes2<- 
+  label.pairs.sub %>%
+  select(-all) %>%
+  group_by(item2) %>%
+  summarise(sum2 = sum(n)) %>%
+  mutate(sum2 = replace_na(sum2,0))
+
+final.attributes <- 
+  full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
+  mutate(sum2 = replace_na(sum2,0)) %>%
+  mutate(sum1 = replace_na(sum1,0)) %>%
+  mutate(total.count=sum1+sum2)
+  
+
 n <-label.pairs.sub$n*1.15
-n1 <-label.pairs.sub$n*.45
 
-network <- graph_from_data_frame(xx, directed = FALSE)
+network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
 
-l=layout_nicely(network) 
+#very helpful document for network vizualizations 
+#http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
 
 plot(network,
-     layout=l,
      edge.width=n,
      edge.color="grey",
-     vertex.size=.5,
-     vertex.label.cex=n1,
-     vertex.shape="none")
+     vertex.size=1,
+     vertex.label.cex=V(network)$total.count*.075,
+     vertex.shape="none"
+     )
 # the layout needs to be fixed but the jist is there....
 
 # archival code --------------------------------
