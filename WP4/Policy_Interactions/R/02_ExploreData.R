@@ -215,7 +215,7 @@ label.pairs <-
   mpa.policy.notext.df.cleaned %>%
   pairwise_count(labels,CELEX, sort=TRUE)
 
-#david\s code help
+#david's code help
 label.pairs$all<-apply(apply(cbind(as.character(label.pairs$item1),as.character(label.pairs$item2)),1,sort),2,function(x) paste(x,collapse="."))
 #this should be the four columns in alphabetical order collapsed and separated by a dot
 
@@ -310,7 +310,6 @@ colors <- as.data.frame(unique(final.attributes$MT))
 col1 <- brewer.pal(n = 8, name = "Dark2") 
 col2 <- brewer.pal(n = 12, name = "Paired")
 col3 <- brewer.pal(n = 9, name = "Set1")
-col4 <- c("black")
 
 color <- as.data.frame(c(col1,col2,col3))
 
@@ -330,7 +329,6 @@ network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, dire
 
 #very helpful document for network vizualizations 
 #http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
-
 
 V(network)$color <- V(network)$color
 
