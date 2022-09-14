@@ -206,8 +206,12 @@ CELEXmpa.text.data <-
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
   as_tibble() 
 
+CELEXmpa.text.data1 <- 
+  CELEXmpa.text.data %>%
+  mutate(total.text = paste0(.$title,.$text))
+
 # Save file 
-write.csv(x = CELEXmpa.text.data,
+write.csv(x = CELEXmpa.text.data1,
           file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv", row.names=FALSE)
 
 # World Database of Protected Areas Data ------------
