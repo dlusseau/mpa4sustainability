@@ -336,13 +336,14 @@ plot(network,
      edge.width=n,
      edge.color="grey",
      vertex.size=1,
-     vertex.label.cex=V(network)$total.count*.045,
+     vertex.label.cex=V(network)$total.count*.075,
      vertex.label.color=V(network)$color,
-     vertex.shape="none"
+     vertex.shape="none",
+     layout=layout.lgl # trying this layout based on pdf above...
      )
 # the layout needs to be fixed but the jist is there....
 
-# archival code --------------------------------
+# Archival code --------------------------------
 # maybe need these data objects for a specific analysis function in the future: 
 # https://cran.r-project.org/web/packages/tidytext/vignettes/tidying_casting.html
 
