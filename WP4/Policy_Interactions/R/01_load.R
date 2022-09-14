@@ -199,21 +199,16 @@ write.csv(x = mpa.policy.df,
 
 # -------- extract text data: -------------
 
-# error when trying to do all... takes too long
-#CELEX_text.data <- 
-#  mpaCELEX.df[1:5,]%>%
-#  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-#  as_tibble() %>%
-#  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
-#  as_tibble() 
+CELEXmpa.text.data <- 
+  mpaCELEX.df %>%
+  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
+  as_tibble() %>%
+  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
+  as_tibble() 
 
-
-#text.df2 <- 
-#  CELEX_text.data %>%
-#  mutate(references = str_extract_all(text, "\\d+\\/\\d+\\/\\b[:alpha:]+")) 
-
-#text.df2[1,]$references
-#text.df3 <- unnest(text.df2, references)
+# Save file 
+write.csv(x = CELEXmpa.text.data,
+          file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv", row.names=FALSE)
 
 # World Database of Protected Areas Data ------------
 
