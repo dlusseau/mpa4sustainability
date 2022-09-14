@@ -16,7 +16,7 @@ library("tidyr")
 mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
 document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
-# Exploring document referencing ------------------------------------------
+# Exploring document citations ------------------------------------------
 
 # (1) We want a matrix of the MPA documents (rows) v.s. documents they cite (columns)
 
@@ -25,6 +25,7 @@ document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.d
 
 Doc.citations <-
   mpa.policy.notext.df %>%
+  filter(CELEX !="32021R0092") %>%
   filter(!is.na(work)) %>% #filtering out the document that is an issue (all data missing) --> reference 02.Rscript
   distinct(CELEX,citationcelex) # make sure no duplicate rows bc of multiple labeles/themes
 
@@ -32,16 +33,16 @@ citation.table <- as.data.frame(table(Doc.citations$CELEX,Doc.citations$citation
 
 citation.table <-
   citation.table %>%
-  rename("Document"="Var1",
-         "Citation"="Var2")
+  rename("to"="Var1",
+         "from"="Var2")
 
 # Lets create an incidence matrix:
 citation_matrix <-
   citation.table  %>%
   pivot_wider(
-    names_from = Citation,
+    names_from = from,
     values_from = Freq) %>%
-  column_to_rownames(.,  var = "Document") 
+  column_to_rownames(.,  var = "to") 
   
 zero_cit <-
   citation_matrix %>%
@@ -68,13 +69,13 @@ citation_info <-
 
 citation_info1 <- 
   citation.table %>%
-  distinct(Citation) %>%
-  anti_join(.,citation_info, by=c("Citation"="CELEX"))%>%
+  distinct(from) %>%
+  anti_join(.,citation_info, by=c("from"="CELEX"))%>%
   mutate(date = NA,
          force = NA,
          resource.type = "OTHER", 
          pulled.from = "reference") %>% 
-  rename("CELEX" = "Citation") %>%
+  rename("CELEX" = "from") %>%
   rbind(.,citation_info) #combine non.leg with the leg data 
 #hmm seems like celex numbers that start with a 5 are here but opinions are 5 aswell....
   
@@ -106,28 +107,43 @@ network.attributes.final <-
 
 network.attributes.final <-
   network.attributes.final %>%
-  select(CELEX,resource.type,date,force,pulled.from)
+  filter(CELEX !="32021R0092") %>%
+  select(CELEX,resource.type,date,force,pulled.from) %>%
+  mutate(color = 
+           case_when(
+             pulled.from == "eurlex.web" ~ "#0cb702",
+             pulled.from == "both" ~ "#f8766d",
+             pulled.from == "reference" ~ "#00a9ff" ))
 
-network <- graph_from_data_frame(d=citation.table, vertices = network.attributes.final, directed = FALSE)
+citation.table.xx <- 
+  citation.table %>%
+  filter(Freq>0)
 
-V(network)$color <- V(network)$pulled.from
+citation.table.yy <- 
+  citation.table %>%
+  filter(Freq==0)
 
-plot(network)
-#hmm this looks wrong
 
-library("igraph")
+network <- graph_from_data_frame(d=citation.table.xx, directed = TRUE, vertices = network.attributes.final)
+print(network, e=TRUE, v=TRUE)
 
-colnames(citation_matrix) <- colnames(citation_matrix) 
-rownames(citation_matrix) <- rownames(citation_matrix)
+l <- layout_nicely(network)
+l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-network <-  graph_from_incidence_matrix(citation_matrix, 
-                                        directed = TRUE,
-                                        mode = c("out"))
 plot(network,
-     vertex.size=10,
-     vertex.label.cex=.5,
+     edge.width=.5,
+     vertex.size=7,
+     vertex.label=NA,
+  #  vertex.label.cex=.75,
+     edge.arrow.size=.75,
+     edge.arrow.width=.75,
+     rescale=F,
+     layout=l*1.2, # trying this layout based on pdf above...
      )
 
+# Exploring MPA referencing through designation text reference ------------------------------------------
+
+# OK THIS IS THE SECOND PART SPECIFICALLY LOOKING AT THE TEXT...
 
 # Mentioned documents within EU MPA designations: 
 # habitats directive (31992L0043): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:31992L0043 (92/43/EEC)
