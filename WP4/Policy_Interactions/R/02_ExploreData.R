@@ -13,6 +13,11 @@ library("dplyr")
 library("patchwork")
 library("igraph")
 library("widyr")
+library("tidyr")
+library("purrr")
+library("tibble")
+library("eurlex")
+library("stringr")
 
 # Define functions --------------------------------------------------------
 
@@ -254,18 +259,69 @@ attributes2<-
   summarise(sum2 = sum(n)) %>%
   mutate(sum2 = replace_na(sum2,0))
 
-#need to start here :) 
-attributes3 <-
+#Which labels have more than one theme?
+mpa.policy.notext.df %>%
+  distinct(labels,MT) %>%
+  group_by(labels) %>%
+  mutate(themes = n_distinct(MT)) %>%
+  filter(themes > 1)
+# Three terms have more than one theme association...
+#1 Mozambique     7221 Africa                   2
+#2 Mozambique     7231 economic geography       2
+
+#3 Seychelles     7221 Africa                   2
+#4 Seychelles     7231 economic geography       2
+
+#5 United Kingdom 7206 Europe                   3
+#6 United Kingdom 7231 economic geography       3
+#7 United Kingdom 7236 political geography      3
+
+# for now I will just keep the location theme since it is the most straight forward 
+# will discuss with David. 
+remove <- 
   mpa.policy.notext.df %>%
   distinct(labels,MT) %>%
-  
-  group_by(labels,MT)%>%
+  group_by(labels) %>%
+  mutate(themes = n_distinct(MT)) %>%
+  filter(themes > 1) %>%
+  filter(MT!= "7221 Africa"&
+         MT!= "7206 Europe") %>%
+  select(-themes)
 
+
+attributes3 <-
+  mpa.policy.notext.df %>%
+  filter(!is.na(work)) %>% #filtering out the document that is an issue (all data missing)
+  distinct(labels,MT) %>%
+  anti_join(.,remove, by = c("labels","MT")) %>%
+  mutate(MT=gsub("\\d","",.$MT))
+
+  
 final.attributes <- 
   full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
   mutate(sum2 = replace_na(sum2,0)) %>%
   mutate(sum1 = replace_na(sum1,0)) %>%
-  mutate(total.count=sum1+sum2)
+  mutate(total.count=sum1+sum2) %>%
+  select(-c("sum1","sum2")) %>%
+  left_join(.,attributes3, by = c("item1"="labels"))
+
+colors <- as.data.frame(unique(final.attributes$MT))
+
+col1 <- brewer.pal(n = 8, name = "Dark2") 
+col2 <- brewer.pal(n = 12, name = "Paired")
+col3 <- brewer.pal(n = 9, name = "Set1")
+col4 <- c("black")
+
+color <- as.data.frame(c(col1,col2,col3))
+
+colors.x <- cbind(colors, color)
+
+final.attributes <- 
+  colors.x %>%
+  rename('MT' = 'unique(final.attributes$MT)',
+         'color' = 'c(col1, col2, col3)') %>% 
+  right_join(.,final.attributes, by = c("MT")) %>% 
+  select(item1,total.count,MT,color)
   
 
 n <-label.pairs.sub$n*1.15
@@ -275,11 +331,15 @@ network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, dire
 #very helpful document for network vizualizations 
 #http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
 
+
+V(network)$color <- V(network)$color
+
 plot(network,
      edge.width=n,
      edge.color="grey",
      vertex.size=1,
-     vertex.label.cex=V(network)$total.count*.075,
+     vertex.label.cex=V(network)$total.count*.045,
+     vertex.label.color=V(network)$color,
      vertex.shape="none"
      )
 # the layout needs to be fixed but the jist is there....
