@@ -14,7 +14,10 @@ library("tidyr")
 # Load data ---------------------------------------------------------------
 
 mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
+
 document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+
+MPA.textdata<- read.csv(file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
 
 # Exploring document citations ------------------------------------------
 
@@ -119,11 +122,6 @@ citation.table.xx <-
   citation.table %>%
   filter(Freq>0)
 
-citation.table.yy <- 
-  citation.table %>%
-  filter(Freq==0)
-
-
 network <- graph_from_data_frame(d=citation.table.xx, directed = TRUE, vertices = network.attributes.final)
 print(network, e=TRUE, v=TRUE)
 
@@ -172,39 +170,45 @@ Desig.Celex <- tibble(
   Name = MPA.desigName
 )
 
+# total search terms:
+search_terms <- c("ramsar site", 
+                  "wetland of international importance",
+                  "world heritage site (natural or mixed)", 
+                  "unesco-mab biosphere reserve",
+                  "specially protected areas of mediterranean importance",
+                  "barcelona convention",
+                  "sites of community importance",
+                  "habitats directive",
+                  "special areas of conservation",
+                  "habitats directive",
+                  "special protection area",
+                  "birds directive",
+                  "baltic sea protected area",
+                  "helcom",                                          
+                  "marine protected area",
+                  "ospar",
+                  "specially protected area",
+                  "cartagena convention")
 
-testing <- 
-  citation_table.nozeros.leg[citation_table.nozeros.leg$Var2 %in% Desig.Celex$CELEX,]
-
-testing <- 
-  testing %>%
-  group_by(Var1) %>%
-  mutate(total = sum(Freq)) %>%
-  filter(total>0) %>%
-  select(-total)
-
-testing <-
-  testing  %>%
-  pivot_wider(
-    names_from = Var1,
-    values_from = Freq) %>%
-  column_to_rownames(.,  var = "Var2") 
-
-testing2 <-
-  as.matrix(testing)
-
-str(testing2)
-# the rownames are the citationcelexs
-# the column names are the pulled eurlex documents
+#test <- 
+#MPA.textdata %>%
+#  mutate(references = str_extract_all(total.text, "ramsar site")) 
 
 
-library("igraph")
+text.ref.list<-list()
 
-colnames(testing2) <- colnames(testing2) 
-rownames(testing2) <- rownames(testing2)
+for (i in 1:length(search_terms)) {  
+  text.ref.list[[i]]<- 
+    MPA.textdata %>%
+    select(-c(title,text)) %>%
+    mutate(references = str_extract_all(total.text, search_terms[[i]])) 
+}
 
-network <-  graph_from_incidence_matrix(testing2)
-plot(network)
+# Lets give each list the name based on the resource type: 
+text.ref.list <- structure(text.ref.list, names=search_terms)
+
+#text.df2[1,]$references
+#text.df3 <- unnest(text.df2, references)
 
 
 # Archival code ---------------------------------------
