@@ -332,3 +332,7 @@ search_terms <- c("ramsar site",
                   "cartagena convention")
 
 
+
+# Save file 
+write.csv(x = EU.mpa.char.edit,
+          file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv", row.names=FALSE)
