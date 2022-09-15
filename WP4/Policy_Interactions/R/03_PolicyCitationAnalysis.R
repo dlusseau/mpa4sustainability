@@ -140,7 +140,7 @@ plot(network,
      edge.width=.5,
      vertex.size=7,
      vertex.label=NA,
-  #  vertex.label.cex=.75,
+    # vertex.label.cex=1,
      edge.arrow.size=.75,
      edge.arrow.width=.75,
      rescale=F,
@@ -364,7 +364,7 @@ Net.attributes <-
 network <- graph_from_data_frame(d=MPA.links.table, directed = FALSE, vertices = Net.attributes)
 print(network, e=TRUE, v=TRUE)
 
-l <- layout.circle(network)
+l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 plot(network,
@@ -377,6 +377,55 @@ plot(network,
      rescale=F,
      layout=l # trying this layout based on pdf above...
 )
+
+# ok instead maybe a better approach is document to designation type?
+# instead of the actual mpa id...
+# will try this out below
+
+MPA.links.table2 <- 
+  MPA.links %>%
+  filter(!is.na(to)) %>% # filter out mpas that dont link to documents
+  select(-from) %>% 
+  rename("from" = "mpa") %>%
+  select(to, from, term) %>% # note: to is the celex of the document, from is the mpa id number
+  distinct(to,term)%>% 
+  rename("from" = "term")
+
+n_distinct(MPA.links.table2$to)
+#7 celex
+n_distinct(MPA.links.table2$from)
+# 6 mps types 
+
+Net.attributes2 <-
+  MPA.links.table2 %>%
+  distinct(from)%>% 
+  mutate(data.type = "MPA.term") %>%
+  rename("id" = "from") %>%
+  select(id,data.type) %>%
+  rbind(.,celex.info) %>%
+  mutate(color = 
+           case_when(
+             data.type == "MPA.term" ~ "#0cb702",
+             data.type == "EU.Leg" ~ "#f8766d" ))
+
+network2 <- graph_from_data_frame(d=MPA.links.table2, directed = FALSE, vertices = Net.attributes2)
+print(network2, e=TRUE, v=TRUE)
+
+l <- layout_nicely(network2)
+l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
+plot(network2,
+     edge.width=.5,
+     vertex.size=10,
+     vertex.label=1,
+     vertex.label.cex=.75,
+     edge.arrow.size=.75,
+     edge.arrow.width=.75,
+     rescale=F,
+     layout=l # trying this layout based on pdf above...
+)
+
+  
 # Archival code ---------------------------------------
 
 # (Maybe we want to do this but for now will keep them in)
