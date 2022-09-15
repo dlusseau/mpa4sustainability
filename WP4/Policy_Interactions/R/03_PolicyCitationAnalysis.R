@@ -186,15 +186,10 @@ search_terms <- c("ramsar site",
                   "birds directive",
                   "baltic sea protected area",
                   "helcom",                                          
-                 # "marine protected area", --> removing this one bc this was the original search term...
+               # "marine protected area", --> removing this one bc this was the original search term...
                   "ospar",
                   "specially protected area",
                   "cartagena convention")
-
-#test <- 
-#MPA.textdata %>%
-#  mutate(references = str_extract_all(total.text, "ramsar site")) 
-
 
 text.ref.list<-list()
 
@@ -210,6 +205,16 @@ for (i in 1:length(search_terms)) {
 text.ref.list <- structure(text.ref.list, names=search_terms)
 
 text.df <- bind_rows(text.ref.list, .id = "search.term" )
+
+referenced.df <- unnest(text.df, references) 
+# here number of rows indicated how many times the search term was written within the document 
+# if that is unimportant to us then we should remve duplicate rows.
+# Documents where the search terms appeared: 
+#"32008L0056" --> marine strategy framework directive
+#"32013L0030" -->  safety of offshore oil and gas operations and amending Directive
+#"32013R1380" --> Common Fisheries Policy, amending Council Regulations
+#"31984D0132"--> Protocol concerning Mediterranean specially protected areas
+
 
 
 # Archival code ---------------------------------------
