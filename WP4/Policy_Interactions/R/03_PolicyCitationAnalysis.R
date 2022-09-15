@@ -9,6 +9,7 @@ library("tibble")
 library("lubridate")
 library("tidyr")
 library("stringr")
+library("igraph")
 
 # Define functions --------------------------------------------------------
 
@@ -19,6 +20,8 @@ mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApoli
 document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 MPA.textdata<- read.csv(file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
+
+EU.mpa.char<- read.csv(file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
 # Exploring document citations ------------------------------------------
 
@@ -139,10 +142,19 @@ plot(network,
      rescale=F,
      layout=l*1.2, # trying this layout based on pdf above...
      )
+# blue are documents referenced within text
+# green are those pulled from out MPA eurlex search
+# red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
 
-# Exploring MPA referencing through designation text reference ------------------------------------------
+# Exploring MPA designation types referenced in EU text ------------------------------------------
 
 # OK THIS IS THE SECOND PART SPECIFICALLY LOOKING AT THE TEXT...
+
+mpa.DES.key <- 
+  EU.mpa.char %>%
+  select(mpa,DESIG_ENG)
+
+# First lets search for the specific documents in mention:
 
 # Mentioned documents within EU MPA designations: 
 # habitats directive (31992L0043): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:31992L0043 (92/43/EEC)
@@ -160,17 +172,28 @@ MPA.desigCELEX <- c("31992L0043",
                     "52021PC0534")
 
 MPA.desigName <- c("habitats directive",
-                    "birds directive",
-                    "barcelona convention",
-                    "ospar",
-                    "cartagena convention",
-                    "helcom")
+                   "birds directive",
+                   "barcelona convention",
+                   "ospar",
+                   "cartagena convention",
+                   "helcom")
 
 Desig.Celex <- tibble(
   CELEX = MPA.desigCELEX,
   Name = MPA.desigName
 )
 
+# lets pull out the documents that specifically reference these above
+doc.referenced <-
+  citation.table.xx %>% # to-from citation table built above
+  filter(from %in% Desig.Celex$CELEX) %>%
+  left_join(.,Desig.Celex, by=c("from"="CELEX")) %>%
+  select(to,from,Name) %>%
+  #mutate(Name. = Name) %>%
+  rename("from.name" = "Name")
+ # select(to,from,Name)
+  
+  
 # total search terms:
 search_terms <- c("ramsar site", 
                   "wetland of international importance",
@@ -215,6 +238,41 @@ referenced.df <- unnest(text.df, references)
 #"32013R1380" --> Common Fisheries Policy, amending Council Regulations
 #"31984D0132"--> Protocol concerning Mediterranean specially protected areas
 
+# O.K. if e combine the document ref and the term ref then the number of times referenced doesnt matter:
+referenced.df1 <- 
+  referenced.df %>%
+  distinct(.keep_all = TRUE) %>%
+  rename("to"="CELEX") %>%
+  mutate(from="celex.unk") %>%
+  select(to,from,references) %>%
+  rename("from.name"="references")
+
+total.MPA.ref <- 
+  rbind(referenced.df1,doc.referenced)
+
+# mpa.DES.key
+# We have 10 different unique designations: 
+#[1] "ramsar site, wetland of international importance"                            
+#[2] "world heritage site (natural or mixed)"                                      
+#[3] "unesco-mab biosphere reserve"                                                
+#[4] "specially protected areas of mediterranean importance (barcelona convention)"
+#[5] "sites of community importance (habitats directive)"                          
+#[6] "special areas of conservation (habitats directive)"                          
+#[7] "special protection area (birds directive)"                                   
+#[8] "baltic sea protected area (helcom)"                                          
+#[9] "marine protected area (ospar)"                                               
+#10] "specially protected area (cartagena convention)" 
+
+head(mpa.DES.key)
+
+mpa.DES.key1 <- 
+  mpa.DES.key %>%
+  mutate(site1 = str_extract(DESIG_ENG,".+\\,"),
+         site2 = str_extract(DESIG_ENG,"\\(.+\\)"),
+         site3 = str_extract(DESIG_ENG,".+\\("),
+         site4 = str_extract(DESIG_ENG,"\\,.+"),
+         site5 = str_extract(DESIG_ENG,"unesco-mab biosphere reserve")) %>%
+  
 
 
 # Archival code ---------------------------------------
