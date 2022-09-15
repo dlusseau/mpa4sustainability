@@ -126,6 +126,10 @@ citation.table.xx <-
   citation.table %>%
   filter(Freq>0)
 
+n_distinct(citation.table.xx$to)
+n_distinct(citation.table.xx$from)
+19+208
+
 network <- graph_from_data_frame(d=citation.table.xx, directed = TRUE, vertices = network.attributes.final)
 print(network, e=TRUE, v=TRUE)
 
@@ -303,7 +307,8 @@ n_distinct(MPA.links$mpa)
 #3604
 
 # 1,373 MPAs dont have a document reference these are:
-MPA.links %>%
+not.linked <-
+  MPA.links %>%
   filter(is.na(to)) %>%
   distinct(mpa)
 #this is bc 12 search terms never popped up in any documents:
@@ -322,8 +327,56 @@ unique(x$term)
 #[9] "helcom"                                               
 #[10] "baltic sea protected area"                            
 #[11] "marine protected area"                                
-#[12] "cartagena convention" 
+#[12] "cartagena convention"
 
+# OK lets try to make a document-mpa link network:
+
+MPA.links.table <- 
+  MPA.links %>%
+  filter(!is.na(to)) %>% # filter out mpas that dont link to documents
+  select(-from) %>% 
+  rename("from" = "mpa") %>%
+  select(to, from, term) %>% # note: to is the celex of the document, from is the mpa id number
+  distinct(to, from, .keep_all = TRUE) #duplicated links bc search terms overlap... do getting rid of that
+
+n_distinct(MPA.links.table$from)
+#3160 
+n_distinct(MPA.links.table$to)
+#7
+
+celex.info <-
+  network.attributes.final %>%
+  filter(CELEX %in% MPA.links.table$to) %>%
+  rename("id" = "CELEX") %>%
+  select(id) %>%
+  mutate(data.type = "EU.Leg")
+
+
+Net.attributes <-
+  mpa.DES.key %>%
+  filter(mpa %in% MPA.links.table$from ) %>% # 3604-1373 =2231 obj. dim. add up
+  mutate(data.type = "MPA") %>%
+  rename("id" = "mpa") %>%
+  select(id,data.type) %>%
+  rbind(.,celex.info)
+
+  
+network <- graph_from_data_frame(d=MPA.links.table, directed = FALSE, vertices = Net.attributes)
+print(network, e=TRUE, v=TRUE)
+
+l <- layout.circle(network)
+l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
+plot(network,
+     edge.width=.5,
+     vertex.size=1,
+     vertex.label=NA,
+     #  vertex.label.cex=.75,
+     edge.arrow.size=.75,
+     edge.arrow.width=.75,
+     rescale=F,
+     layout=l # trying this layout based on pdf above...
+)
 # Archival code ---------------------------------------
 
 # (Maybe we want to do this but for now will keep them in)
