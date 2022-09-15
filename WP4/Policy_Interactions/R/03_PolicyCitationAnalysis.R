@@ -248,7 +248,8 @@ referenced.df1 <-
   rename("from.name"="references")
 
 total.MPA.ref <- 
-  rbind(referenced.df1,doc.referenced)
+  rbind(referenced.df1,doc.referenced) %>%
+  mutate(from.name = str_trim(from.name, side = "both"))
 
 # mpa.DES.key
 # We have 10 different unique designations: 
@@ -272,8 +273,56 @@ mpa.DES.key1 <-
          site3 = str_extract(DESIG_ENG,".+\\("),
          site4 = str_extract(DESIG_ENG,"\\,.+"),
          site5 = str_extract(DESIG_ENG,"unesco-mab biosphere reserve")) %>%
-  
+  mutate(site1 = str_replace_all(site1,"[:punct:]+",""),
+         site2 = str_replace_all(site2,"[:punct:]+",""),
+         site3 = str_replace_all(site3,"[:punct:]+",""),
+         site4 = str_replace_all(site4,"[:punct:]+","")) %>%
+  select(-DESIG_ENG) %>%
+  pivot_longer(
+    cols = starts_with("site"),
+    names_to = "search",
+    values_to = "term",
+    values_drop_na = TRUE
+  ) %>% 
+  select(mpa,term) %>%
+  mutate(term = str_trim(term, side = "both"))
 
+unique(mpa.DES.key1$term)
+#18 search terms here bc still inclusing "marine protected area"
+
+#join the MPA ref to the actual MPAs
+
+MPA.links <- 
+  mpa.DES.key1 %>%
+  left_join(.,total.MPA.ref, by = c("term"="from.name")) %>%
+  select(to,from,term,mpa)
+
+n_distinct(mpa.DES.key1$mpa)
+#3604
+n_distinct(MPA.links$mpa)
+#3604
+
+# 1,373 MPAs dont have a document reference these are:
+MPA.links %>%
+  filter(is.na(to)) %>%
+  distinct(mpa)
+#this is bc 12 search terms never popped up in any documents:
+x <- MPA.links %>%
+  filter(is.na(to))
+
+unique(x$term)
+#[1] "ramsar site"                                          
+#[2] "wetland of international importance"                  
+#[3] "natural or mixed"                                     
+#[4] "world heritage site"                                  
+#[5] "unesco-mab biosphere reserve"                         
+#[6] "barcelona convention"                                 
+#[7] "specially protected areas of mediterranean importance"
+#[8] "sites of community importance"                        
+#[9] "helcom"                                               
+#[10] "baltic sea protected area"                            
+#[11] "marine protected area"                                
+#[12] "cartagena convention" 
 
 # Archival code ---------------------------------------
 
