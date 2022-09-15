@@ -140,11 +140,7 @@ opinion.key <- elx_make_query(resource_type = "manual",
 
 SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
 
-# Save file 
-write.csv(x = SPARQL.CELEX.df,
-          file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv", row.names=FALSE)
-
-SPARQL.CELEX.df <-  read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+#SPARQL.CELEX.df <-  read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
   
 #convert eurovoc codes to actual words
 eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = SPARQL.CELEX.df$eurovoc)
@@ -178,7 +174,6 @@ SPARQL.CELEX.df <-
 # remember each row is not necessarily a unique document! due to multiple key and citations...
 # so rows can have duplicate info
 
-
 # Lets bind the CELEX df to the key df:
 mpa.policy.df <- 
   mpaCELEX.df %>%
@@ -193,10 +188,6 @@ n_distinct(unique(mpa.policy.df$labels))
 n_distinct(unique(mpa.policy.df$MT))
 #32 label themes
 
-# Save file 
-write.csv(x = mpa.policy.df,
-          file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv", row.names=FALSE)
-
 # -------- extract text data: -------------
 
 CELEXmpa.text.data <- 
@@ -209,10 +200,6 @@ CELEXmpa.text.data <-
 CELEXmpa.text.data1 <- 
   CELEXmpa.text.data %>%
   mutate(total.text = paste0(.$title,.$text))
-
-# Save file 
-write.csv(x = CELEXmpa.text.data1,
-          file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv", row.names=FALSE)
 
 # World Database of Protected Areas Data ------------
 
@@ -331,8 +318,22 @@ search_terms <- c("ramsar site",
                   "specially protected area",
                   "cartagena convention")
 
+#these search terms are refered to in the future scripts....
 
+# Save files ---------------------------------------------------------------------
 
-# Save file 
+# mpa search term document results:
+write.csv(x = mpa.policy.df,
+          file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv", row.names=FALSE)
+
+# Large df as a Celex-data key:
+write.csv(x = SPARQL.CELEX.df,
+          file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv", row.names=FALSE)
+
+# MPA EU document text data:
+write.csv(x = CELEXmpa.text.data1,
+          file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv", row.names=FALSE)
+
+# EU mpa characteristics: 
 write.csv(x = EU.mpa.char.edit,
           file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv", row.names=FALSE)
