@@ -8,6 +8,7 @@ library("dplyr")
 library("tibble")
 library("lubridate")
 library("tidyr")
+library("stringr")
 
 # Define functions --------------------------------------------------------
 
@@ -185,7 +186,7 @@ search_terms <- c("ramsar site",
                   "birds directive",
                   "baltic sea protected area",
                   "helcom",                                          
-                  "marine protected area",
+                 # "marine protected area", --> removing this one bc this was the original search term...
                   "ospar",
                   "specially protected area",
                   "cartagena convention")
@@ -201,14 +202,14 @@ for (i in 1:length(search_terms)) {
   text.ref.list[[i]]<- 
     MPA.textdata %>%
     select(-c(title,text)) %>%
-    mutate(references = str_extract_all(total.text, search_terms[[i]])) 
+    mutate(references = str_extract_all(total.text, search_terms[[i]])) %>%
+    select(-c(total.text))
 }
 
 # Lets give each list the name based on the resource type: 
 text.ref.list <- structure(text.ref.list, names=search_terms)
 
-#text.df2[1,]$references
-#text.df3 <- unnest(text.df2, references)
+text.df <- bind_rows(text.ref.list, .id = "search.term" )
 
 
 # Archival code ---------------------------------------
