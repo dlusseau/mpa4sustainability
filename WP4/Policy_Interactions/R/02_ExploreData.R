@@ -331,16 +331,19 @@ network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, dire
 #http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
 
 V(network)$color <- V(network)$color
-l <- layout.fruchterman.reingold(network)
+
+l <- layout_nicely(network)
 
 plot(network,
      edge.width=n,
      edge.color="grey",
      vertex.size=1,
-     vertex.label.cex=V(network)$total.count*.075,
+     vertex.label.cex=V(network)$total.count*.05,
      vertex.label.color=V(network)$color,
      vertex.shape="none",
-     layout=l # trying this layout based on pdf above...
+     rescale = TRUE,
+     layout=l#*.17
+    # trying this layout based on pdf above...
      )
 # the layout needs to be fixed but the jist is there....
 
