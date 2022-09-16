@@ -251,6 +251,7 @@ search_terms <- c("ramsar site",
                   "ospar",
                   "specially protected area",
                   "cartagena convention")
+# add a ? at the end 
 
 text.ref.list<-list()
 
