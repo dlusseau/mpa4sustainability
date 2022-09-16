@@ -29,11 +29,11 @@ EU.mpa.char<- read.csv(file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
 # Note: the citation data from eurlex does not provide how many times the document was referenced/cited within the document.
 # Only that the document was cited (thus citation frequency is 1)
+unique(mpa.policy.notext.df$CELEX)
 
 Doc.citations <-
   mpa.policy.notext.df %>%
-  filter(CELEX !="32021R0092") %>%
-  filter(!is.na(work)) %>% #filtering out the document that is an issue (all data missing) --> reference 02.Rscript
+  filter(CELEX !="32021R0092") %>%  #filtering out the document that is an issue (all data missing) --> reference 02.Rscript
   distinct(CELEX,citationcelex) # make sure no duplicate rows bc of multiple labeles/themes
 
 citation.table <- as.data.frame(table(Doc.citations$CELEX,Doc.citations$citationcelex))
@@ -61,8 +61,10 @@ zero_cit <-
 # 5 documents have no citations
 
 #Eurlex data/attributes about the citations
-citation_info <- document.key.df[document.key.df$celex %in% citation.table$Citation,]
-
+citation_info <- 
+  document.key.df %>%
+  filter(celex %in% citation.table$from)
+  
 citation_info <-
   citation_info %>% 
   distinct(celex, .keep_all = TRUE) %>%
@@ -74,6 +76,12 @@ citation_info <-
 # for now keeping all of the citations regardless of the type of document 
 # I will add them into this DF but will put resource.type as non-leg and NA for other fields. 
 
+citation_info.leg <- 
+  citation.table %>%
+  distinct(from) %>%
+  right_join(.,citation_info, by=c("from"="CELEX"))
+
+
 citation_info1 <- 
   citation.table %>%
   distinct(from) %>%
@@ -82,16 +90,19 @@ citation_info1 <-
          force = NA,
          resource.type = "OTHER", 
          pulled.from = "reference") %>% 
-  rename("CELEX" = "from") %>%
-  rbind(.,citation_info) #combine non.leg with the leg data 
+  select(from, resource.type, date, force,pulled.from)%>%
+  rbind(.,citation_info.leg) %>% #combine non.leg with the leg data 
 #hmm seems like celex numbers that start with a 5 are here but opinions are 5 aswell....
+  rename("CELEX"="from")
   
 network.attributes <-
   mpa.policy.notext.df %>%
   select(resource.type,CELEX,date,force) %>%
   distinct(CELEX,.keep_all = TRUE) %>%
   mutate(pulled.from = "eurlex.web") %>%
-  rbind(.,citation_info1)
+  rbind(.,citation_info1)  %>%
+  filter(CELEX !="32021R0092")  #filtering out the document that is an issue (all data missing) --> reference 02.Rscript
+
 
 both.pulls <-
   network.attributes %>%
@@ -106,7 +117,7 @@ network.attributes.both <-
   network.attributes.both %>%
   distinct(CELEX,.keep_all = TRUE) %>%
   mutate(pulled.from= "both")
-
+  
 network.attributes.notboth <- network.attributes[!network.attributes$CELEX %in% both.pulls$CELEX,]
 
 network.attributes.final <-
@@ -120,39 +131,62 @@ network.attributes.final <-
            case_when(
              pulled.from == "eurlex.web" ~ "#0cb702",
              pulled.from == "both" ~ "#f8766d",
-             pulled.from == "reference" ~ "#00a9ff" ))
+             pulled.from == "reference" ~ "#00a9ff" )) %>%
+  mutate(shape = 
+           case_when(
+             resource.type == "DIR" ~ "circle",
+             resource.type == "REG" ~ "circle",
+             resource.type == "DEC" ~ "circle",
+             resource.type == "RECO" ~ "circle",
+             resource.type == "OPIN" ~ "circle",
+             resource.type == "OTHER" ~ "square"  ))
+
+# object dim 228 ibs
+# this makes sense bc:    232 - 8 + 4 = 228
 
 citation.table.xx <- 
   citation.table %>%
   filter(Freq>0)
 
-n_distinct(citation.table.xx$to)
-n_distinct(citation.table.xx$from)
-19+208
 
 network <- graph_from_data_frame(d=citation.table.xx, directed = TRUE, vertices = network.attributes.final)
 print(network, e=TRUE, v=TRUE)
 
-l <- layout_nicely(network)
+l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
+labels <- network.attributes.final[1:4,1]
+labels <- c("Marine Strategy Framework Dir.","Reg. on European Maritime and Fisheries Fund",
+            "Reg. on the CFP", "Opinion on an integrated EU policy for the Arctic")
+
+labels2 <- rep(NA,time=224)
+labels3 <- c(labels,labels2)
+V(network)$label <- labels3 
+
 
 plot(network,
      edge.width=.5,
-     vertex.size=7,
-     vertex.label=NA,
-    # vertex.label.cex=1,
-     edge.arrow.size=.75,
-     edge.arrow.width=.75,
+     vertex.size=4,
+     vertex.label=V(network)$label,
+     vertex.label.cex=1,
+     edge.arrow.size=.5,
+     edge.arrow.width=2,
      rescale=F,
-     layout=l*1.2, # trying this layout based on pdf above...
+     layout=l*1.1, # trying this layout based on pdf above...
      )
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
+  # Marine Strategy Framework Directive (32008L0056) 
+  # Regulation on European Maritime and Fisheries Fund and repealing Council Regulations (32014R0508)
+  # Regulation on the Common Fisheries Policy, amending Council Regulations (32013R1380)
+  # Opinion on An integrated European Union policy for the Arctic (52016AE4426)
+
+# total 25 documents were pulled from eurlex web 
 
 # Exploring MPA designation types referenced in EU text ------------------------------------------
 
-# OK THIS IS THE SECOND PART SPECIFICALLY LOOKING AT THE TEXT...
+# (2) OK THIS IS THE SECOND PART SPECIFICALLY LOOKING AT THE TEXT...
 
 mpa.DES.key <- 
   EU.mpa.char %>%
@@ -363,19 +397,20 @@ Net.attributes <-
   
 network <- graph_from_data_frame(d=MPA.links.table, directed = FALSE, vertices = Net.attributes)
 print(network, e=TRUE, v=TRUE)
+l <- layout.fruchterman.reingold(network)
 
 l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 plot(network,
      edge.width=.5,
-     vertex.size=1,
+     vertex.size=5,
      vertex.label=NA,
      #  vertex.label.cex=.75,
      edge.arrow.size=.75,
      edge.arrow.width=.75,
      rescale=F,
-     layout=l # trying this layout based on pdf above...
+     layout=l*1.1 # trying this layout based on pdf above...
 )
 
 # ok instead maybe a better approach is document to designation type?
