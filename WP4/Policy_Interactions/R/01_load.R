@@ -51,12 +51,25 @@ mpaCELEX.list<-list()
 
 for (i in 1:length(resource.types)) {  
   mpaCELEX.list[[i]]<- 
-    freetext_eurlex("marine protected area*",
+    freetext_eurlex("marine protected area", 
                     act=resource.types[[i]],
                     lang="en",
-                    exactly=TRUE)
+                    exactly=FALSE)
 
 }
+
+# try without *,
+# first try: with exactly=FALSE without * --> 1108 obs
+# second try: with exactly=FALSE without * --> 1108 obs
+# third try: with exactly=FALSE without * --> 1108 obs
+
+#"marine protected site"
+# first try --> 390 obs
+# second try --> 390 obs
+
+
+#"marine protected"
+
 
 # How many result pages show up from the search: 
 #[1] "there are 13 pages of results"
@@ -69,7 +82,7 @@ for (i in 1:length(resource.types)) {
 mpaCELEX.list <- structure(mpaCELEX.list, names=resource.types)
 
 # Make it into a nice data frame
-mpaCELEX.df <- 
+mpaCELEX.dfarea <- 
   mpaCELEX.list %>%
   unlist(.) %>%
   as.data.frame() %>%
@@ -78,6 +91,12 @@ mpaCELEX.df <-
   rename(.,  resource.type = rowname) %>%
   mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
 
+merge.mpa.res <-
+  rbind(mpaCELEX.dfarea,mpaCELEX.dfsite)
+merge.mpa.res <-
+  merge.mpa.res %>%
+  distinct()
+  
 # We have 1,084 EU legislation documents relating to marine protected area*
 # this number changes every time I run the loop... the pages of results dont change, but the document numbers do...
 # one time it was 1114 documents, another time it was 1104 documents
