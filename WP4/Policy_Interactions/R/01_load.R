@@ -47,10 +47,10 @@ source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
 resource.types <- c("DIR","REG", "DEC",
                     "RECO","OPIN")
 
-mpaCELEX.list<-list()
+mpaCELEX.list.area<-list()
 
 for (i in 1:length(resource.types)) {  
-  mpaCELEX.list[[i]]<- 
+  mpaCELEX.list.area[[i]]<- 
     freetext_eurlex("marine protected area", 
                     act=resource.types[[i]],
                     lang="en",
@@ -58,18 +58,41 @@ for (i in 1:length(resource.types)) {
 
 }
 
+mpaCELEX.list.site<-list()
+
+for (i in 1:length(resource.types)) {  
+  mpaCELEX.list.site[[i]]<- 
+    freetext_eurlex("marine protected site", 
+                    act=resource.types[[i]],
+                    lang="en",
+                    exactly=FALSE)
+  
+}
+
+mpaCELEX.list<-list()
+
+for (i in 1:length(resource.types)) {  
+  mpaCELEX.list[[i]]<- 
+    freetext_eurlex("marine protected", 
+                    act=resource.types[[i]],
+                    lang="en",
+                    exactly=FALSE)
+  
+}
+
 # try without *,
-# first try: with exactly=FALSE without * --> 1108 obs
+# first try: with exactly=FALSE without * --> 1108 obs 
 # second try: with exactly=FALSE without * --> 1108 obs
 # third try: with exactly=FALSE without * --> 1108 obs
+# (ok this happened on Friday Sep 16th) --> redid it Monday to officailly make the new df and...
+# 1098 results will try a second time... now it wasback to 1108...third time:  1088 :(
+# on the website the results are 1,1840
 
 #"marine protected site"
 # first try --> 390 obs
 # second try --> 390 obs
 
-
-#"marine protected"
-
+#"marine protected" --> friday it was 1,465 and  monday it was 1,485
 
 # How many result pages show up from the search: 
 #[1] "there are 13 pages of results"
@@ -79,10 +102,30 @@ for (i in 1:length(resource.types)) {
 #[1] "there are 28 pages of results"
 
 # Lets give each list the name based on the resource type: 
+mpaCELEX.list.area <- structure(mpaCELEX.list.area, names=resource.types)
+mpaCELEX.list.site <- structure(mpaCELEX.list.site, names=resource.types)
 mpaCELEX.list <- structure(mpaCELEX.list, names=resource.types)
 
 # Make it into a nice data frame
-mpaCELEX.dfarea <- 
+mpaCELEX.df.area <- 
+  mpaCELEX.list.area %>%
+  unlist(.) %>%
+  as.data.frame() %>%
+  rownames_to_column(.) %>%
+  rename(.,  CELEX = .) %>%
+  rename(.,  resource.type = rowname) %>%
+  mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
+
+mpaCELEX.df.site <- 
+  mpaCELEX.list.site %>%
+  unlist(.) %>%
+  as.data.frame() %>%
+  rownames_to_column(.) %>%
+  rename(.,  CELEX = .) %>%
+  rename(.,  resource.type = rowname) %>%
+  mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
+
+mpaCELEX.df <- 
   mpaCELEX.list %>%
   unlist(.) %>%
   as.data.frame() %>%
@@ -91,8 +134,10 @@ mpaCELEX.dfarea <-
   rename(.,  resource.type = rowname) %>%
   mutate(resource.type = str_extract(resource.type,"[:alpha:]+"))
 
+
 merge.mpa.res <-
-  rbind(mpaCELEX.dfarea,mpaCELEX.dfsite)
+  rbind(mpaCELEX.df.area,mpaCELEX.df.site)
+
 merge.mpa.res <-
   merge.mpa.res %>%
   distinct()
@@ -105,10 +150,15 @@ merge.mpa.res <-
 # duplicate CELEX? shouldn't be since I am guessing a document can 
 # only be categorized into one resource types BUT... double check to be sure
 mpaCELEX.df[duplicated(mpaCELEX.df$CELEX)]
+merge.mpa.res[duplicated(merge.mpa.res$CELEX)]
 # no duplicates :) 
 
 mpaCELEX.df <-
   mpaCELEX.df %>%
+  mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX))
+
+merge.mpa.res <-
+  merge.mpa.res %>%
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX))
 
 # -------- eurlex package search ---------------
@@ -117,6 +167,7 @@ mpaCELEX.df <-
 
 SPARQL.resource.type <- c("directive","regulation", 
                           "decision", "recommendation")
+
 
 SPARQL.CELEX.list<-list()
 
@@ -298,46 +349,88 @@ unique(EU.mpa.char.edit$DESIG_ENG)
 # cartagena convention (22002A0731(01)): https://eur-lex.europa.eu/legal-content/en/ALL/?uri=CELEX:22002A0731(01)
 # helcom (52021PC0534): https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52021PC0534
 
-# Our search terms: 
-# "ramsar site"
-# "wetland of international importance"                            
-# "world heritage site (natural or mixed)"                                      
-# "unesco-mab biosphere reserve"                                                
-# "specially protected areas of mediterranean importance"
-# "barcelona convention"
-# "sites of community importance"
-# "habitats directive"                          
-# "special areas of conservation"
-# "habitats directive"                          
-# "special protection area"
-# "birds directive"                                   
-# "baltic sea protected area
-# "helcom"                                          
-# "marine protected area"
-# "ospar"                                               
-# "specially protected area"
-# "cartagena convention" 
+mpa.DES.key <- 
+  EU.mpa.char.edit %>%
+  select(mpa,DESIG_ENG)
 
-search_terms <- c("ramsar site", 
-                  "wetland of international importance",
-                  "world heritage site (natural or mixed)", 
-                  "unesco-mab biosphere reserve",
-                  "specially protected areas of mediterranean importance",
-                  "barcelona convention",
-                  "sites of community importance",
-                  "habitats directive",
-                  "special areas of conservation",
-                  "habitats directive",
-                  "special protection area",
-                  "birds directive",
-                  "baltic sea protected area",
-                  "helcom",                                          
-                  "marine protected area",
-                  "ospar",
-                  "specially protected area",
-                  "cartagena convention")
+head(mpa.DES.key)
 
-#these search terms are refered to in the future scripts....
+mpa.DES.key1 <- 
+  mpa.DES.key %>%
+  mutate(site1 = str_extract(DESIG_ENG,".+\\,"),
+         site2 = str_extract(DESIG_ENG,"\\(.+\\)"),
+         site3 = str_extract(DESIG_ENG,".+\\("),
+         site4 = str_extract(DESIG_ENG,"\\,.+"),
+         site5 = str_extract(DESIG_ENG,"unesco-mab biosphere reserve")) %>%
+  mutate(site1 = str_replace_all(site1,"[:punct:]+",""),
+         site2 = str_replace_all(site2,"[:punct:]+",""),
+         site3 = str_replace_all(site3,"[:punct:]+",""),
+         site4 = str_replace_all(site4,"[:punct:]+","")) %>%
+  select(-DESIG_ENG) %>%
+  pivot_longer(
+    cols = starts_with("site"),
+    names_to = "search",
+    values_to = "term",
+    values_drop_na = TRUE
+  ) %>% 
+  select(mpa,term) %>%
+  mutate(term = str_trim(term, side = "both"))%>%
+  mutate(search.term = paste0(.$term,"?")) # add a ? at the end 
+
+unique(mpa.DES.key1$search.term)
+#18 search terms here bc still inclusing "marine protected area"
+#[1] "ramsar site?"                                           "wetland of international importance?"                  
+#[3] "natural or mixed?"                                      "world heritage site?"                                  
+#[5] "unesco-mab biosphere reserve?"                          "barcelona convention?"                                 
+#[7] "specially protected areas of mediterranean importance?" "habitats directive?"                                   
+#[9] "sites of community importance?"                         "special areas of conservation?"                        
+#[11] "birds directive?"                                       "special protection area?"                              
+#[13] "helcom?"                                                "baltic sea protected area?"                            
+#[15] "ospar?"                                                 "marine protected area?"                                
+#[17] "cartagena convention?"                                  "specially protected area?"
+
+search_terms.mpas <- c(unique(mpa.DES.key1$search.term))
+# remove "natural or mixed?"  
+search_terms.mpas <- search_terms.mpas[-3]
+testing.s <- search_terms.mpas[1:2]
+
+resource.types <- c("DIR","REG", "DEC",
+                    "RECO","OPIN")
+
+
+
+#mpaCELEX.list.mpaterms<-list(all.names = TRUE)
+mpaCELEX.list.mpaterms <- structure(vector("list", 5), names=resource.types)
+
+for (i in 1:length(resource.types)) {  
+  
+  for (j in 1:length(testing.s)) {
+   
+     mpaCELEX.list.mpaterms[[i]][[j]] <- 
+      
+      freetext_eurlex(testing.s[j], 
+                      act=resource.types[i],
+                      lang="en",
+                      exactly=FALSE)
+    
+     mpaCELEX.list.mpaterms[[j]]  <- structure(mpaCELEX.list.mpaterms[[j]], names=testing.s[j])
+     
+  }
+  
+}
+
+
+#for (i in 1:length(resource.types)) {  
+#  for (j in 1:length(testing.s)) {
+#    mpaCELEX.list.mpaterms <- 
+#      freetext_eurlex(testing.s[j], 
+#                      act=resource.types[i],
+#                      lang="en",
+#                      exactly=FALSE)
+#  }
+#  
+#}
+
 
 # Save files ---------------------------------------------------------------------
 
@@ -346,7 +439,7 @@ write.csv(x = mpa.policy.df,
           file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv", row.names=FALSE)
 
 # Large df as a Celex-data key:
-write.csv(x = SPARQL.CELEX.df,
+write.csv(x = SPARQL.CELEX.df, #date sep19th this is "marine protected"
           file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv", row.names=FALSE)
 
 # MPA EU document text data:
