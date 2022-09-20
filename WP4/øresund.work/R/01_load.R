@@ -38,11 +38,24 @@ retsinformation.df <- read_delim(retsinformation.file.list,
                                 delim = ";",
                                 locale = locale(encoding="ISO-8859-1"))
 
-
 retsinformation.df <-
   retsinformation.df %>%
   mutate(search.term = str_extract_all(search.term,"\\w+\\."),
          search.term = str_replace_all(search.term,"[:punct:]+",""))
        
+# Lets try to get this data from the url...
+URLs <- retsinformation.df[,30]
+vec.URLs <- as.vector(URLs)
+extract_text("http://www.retsinformation.dk/eli/retsinfo/2007/20064", encoding = "ISO-8859-1") 
 
 
+# this didnt work...
+library(rvest)
+
+test <- read_html("http://www.retsinformation.dk/eli/retsinfo/2007/20064")
+test %>%
+  html_nodes("h1")
+
+test %>%
+  html_nodes("h1") %>%
+  html_text()
