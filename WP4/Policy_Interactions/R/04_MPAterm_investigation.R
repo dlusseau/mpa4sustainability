@@ -4,15 +4,167 @@ rm(list = ls())
 
 # Load libraries ----------------------------------------------------------
 
+library(igraph)
+
 # Define functions --------------------------------------------------------
 
 # Load data ---------------------------------------------------------------
 
 EU.mpa.char<- read.csv(file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
+# EU mpa directives search: 
+EU.mpa.termsearch<- read.csv(file = "WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
+
+
+document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+
+
 # Exploring MPA designation types referenced in EU text --------------------
 
+# lets join the new mpa search documents to their associated document data
+EU.mpa.termsearch.data <-
+  EU.mpa.termsearch %>%
+  left_join(., document.key.df, by = c("CELEX"="celex", "resource.type")) %>%
+  select(-work,-type) # we dont need this info anymore
 
+# check
+n_distinct(EU.mpa.termsearch$CELEX)
+#[1] 180
+n_distinct(EU.mpa.termsearch.data$CELEX)
+#[1] 180
+# The check looks good but remember the dim are now larger due to some documents having multiple terms-labels etc. 
+
+# how many unique label terms?
+n_distinct(EU.mpa.termsearch.data$labels)
+# 403
+# how many unique thems?
+n_distinct(EU.mpa.termsearch.data$MT)
+# 80
+unique(EU.mpa.termsearch.data$MT)
+
+
+# ok citation network for these documents -----------------------------------
+# this citation network code is the same as 03 Rscript just different data. 
+
+MPA.citations <-
+  EU.mpa.termsearch.data %>%
+  distinct(CELEX,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
+  filter(!is.na(citationcelex)) 
+
+n_distinct(MPA.citations$CELEX)
+# [1] 95 documents cited somthing
+n_distinct(MPA.citations$citationcelex)
+# [1] 515 total number of citation documents
+
+
+leg.citation_info <- 
+  document.key.df %>%
+  filter(celex %in% MPA.citations$citationcelex) %>% 
+  distinct(celex, .keep_all = TRUE) %>%
+  select(resource.type,celex,date,force) %>%
+  rename(CELEX = celex) %>%
+  mutate(pulled.from = "reference")
+#317 documents cited are legislation
+
+nonleg.citation_info <- 
+  MPA.citations %>%
+  distinct(citationcelex) %>%
+  anti_join(.,leg.citation_info, by=c("citationcelex" = "CELEX"))%>% # joining those that are non-leg
+  mutate(date = NA,
+         force = NA,
+         resource.type = "OTHER", 
+         pulled.from = "reference")%>%
+  rename(CELEX = citationcelex)  %>%
+  select(resource.type,CELEX,date,force,pulled.from)
+#198 documents cited are non.leg
+
+citation.info <-  rbind(nonleg.citation_info,leg.citation_info) #combine non.leg with the leg data 
+
+network.attributes <-
+  EU.mpa.termsearch.data %>%
+  filter(CELEX %in% MPA.citations$CELEX) %>% 
+  select(resource.type,CELEX,date,force) %>%
+  distinct(CELEX,.keep_all = TRUE) %>%
+  mutate(pulled.from = "eurlex.web") %>%
+  rbind(.,citation.info) # %>%
+
+both.pulls <-
+  network.attributes %>%
+  group_by(CELEX) %>%
+  summarise(n=n()) %>%
+  filter(n>1) 
+# documents pulled as an MPA leg and cited within others
+
+network.attributes.both <- network.attributes[network.attributes$CELEX %in% both.pulls$CELEX,]
+
+network.attributes.both <- 
+  network.attributes.both %>%
+  distinct(CELEX,.keep_all = TRUE) %>%
+  mutate(pulled.from= "both")
+
+network.attributes.notboth <- network.attributes[!network.attributes$CELEX %in% both.pulls$CELEX,]
+
+network.attributes.final <-
+  rbind(network.attributes.both,network.attributes.notboth)
+
+
+network.attributes.final <-
+  network.attributes.final %>%
+  select(CELEX,resource.type,date,force,pulled.from) %>%
+  mutate(color = 
+           case_when(
+             pulled.from == "eurlex.web" ~ "#0cb702",
+             pulled.from == "both" ~ "#f8766d",
+             pulled.from == "reference" ~ "#00a9ff" )) %>%
+  mutate(shape = 
+           case_when(
+             resource.type == "DIR" ~ "circle",
+             resource.type == "REG" ~ "circle",
+             resource.type == "DEC" ~ "circle",
+             resource.type == "RECO" ~ "circle",
+             resource.type == "OPIN" ~ "circle",
+             resource.type == "OTHER" ~ "square"  ))
+
+n_distinct(network.attributes.final$CELEX)
+
+
+MPA.citations <-
+  MPA.citations %>%
+  rename("to"="CELEX",
+         "from"="citationcelex")
+
+network <- graph_from_data_frame(d=MPA.citations, directed = TRUE, vertices = network.attributes.final)
+print(network, e=TRUE, v=TRUE)
+
+
+l <- layout.fruchterman.reingold(network)
+l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
+plot(network,
+     edge.width=.5,
+     vertex.size=3,
+     vertex.label=NA,
+     vertex.label.cex=1,
+     edge.arrow.size=.5,
+     edge.arrow.width=.5,
+      rescale=F,
+      layout=l*1.2, # trying this layout based on pdf above...
+)
+# blue are documents referenced within text
+# green are those pulled from out MPA eurlex search
+# red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
+
+
+
+
+
+
+
+
+
+
+
+## Archival for now ==============================================================
 
 # First lets search for the specific documents in mention:
 
