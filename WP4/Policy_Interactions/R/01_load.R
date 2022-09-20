@@ -375,7 +375,9 @@ mpa.DES.key1 <-
   ) %>% 
   select(mpa,term) %>%
   mutate(term = str_trim(term, side = "both"))%>%
-  mutate(search.term = paste0(.$term,"?")) # add a ? at the end 
+  mutate(search.term = paste0(.$term,"*?")) # add a ? at the end 
+# ALSO NEED TO ADD AN *. only a ? it looks for the non plural... i.e. barcelona conventions only comes up for ? but barcelona convention comes up for *?
+
 
 unique(mpa.DES.key1$search.term)
 #18 search terms here bc still inclusing "marine protected area"
@@ -416,7 +418,7 @@ for (i in seq_along(resource.types)) {
 
 mpaCELEX.list.mpaterms.1 <- mpaCELEX.list.mpaterms
 
-# issues with Directives and 
+# issues with Directives and Recomendations
 names(mpaCELEX.list.mpaterms.1$DIR) <- search_terms.mpas[1:16]
 names(mpaCELEX.list.mpaterms.1$RECO) <- search_terms.mpas[1:16]
 names(mpaCELEX.list.mpaterms.1$REG) <- search_terms.mpas
@@ -424,16 +426,17 @@ names(mpaCELEX.list.mpaterms.1$DEC) <- search_terms.mpas
 names(mpaCELEX.list.mpaterms.1$OPIN) <- search_terms.mpas
 
 # lets make it into a df to use.
-mpaCELEX.list.mpaterms.11 <- tibble(x=mpaCELEX.list.mpaterms.1)
 mpaCELEX.list.mpaterms.2 <- as.data.frame(cbind(mpaCELEX.list.mpaterms.1))
 mpaCELEX.list.mpaterms.2 <- mpaCELEX.list.mpaterms.2 %>% rownames_to_column()
 
-mpaCELEX.list.mpaterms.3 <- 
+mpaCELEX.list.mpaterms.DF <- 
   tibble(mpaCELEX.list.mpaterms.2) %>% 
   unnest_longer(mpaCELEX.list.mpaterms.1) %>% 
   unnest_longer(mpaCELEX.list.mpaterms.1) %>%
-  filter(!is.na(mpaCELEX.list.mpaterms.1))
-
+  filter(!is.na(mpaCELEX.list.mpaterms.1)) %>%
+  rename("search.term" = "mpaCELEX.list.mpaterms.1_id",
+         "CELEX" = "mpaCELEX.list.mpaterms.1",
+         "resource.type" = "rowname")
 
 
 # Save files ---------------------------------------------------------------------
@@ -453,3 +456,8 @@ write.csv(x = CELEXmpa.text.data1,
 # EU mpa characteristics: 
 write.csv(x = EU.mpa.char.edit,
           file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv", row.names=FALSE)
+
+# EU mpa directives search: 
+write.csv(x = mpaCELEX.list.mpaterms.DF,
+          file = "WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv", row.names=FALSE)
+
