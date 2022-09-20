@@ -4,7 +4,8 @@ rm(list = ls())
 
 # Load libraries ----------------------------------------------------------
 
-library(igraph)
+library("igraph")
+library("widyr")
 
 # Define functions --------------------------------------------------------
 
@@ -146,21 +147,92 @@ plot(network,
      vertex.label=NA,
      vertex.label.cex=1,
      edge.arrow.size=.5,
-     edge.arrow.width=.5,
-      rescale=F,
-      layout=l*1.2, # trying this layout based on pdf above...
+     edge.arrow.width=1,
+     rescale=F,
+     layout=l*1.2, # trying this layout based on pdf above...
 )
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
 
+# Exploring Eurovoc terms -----------------------------------------------
+
+# Eurovoc Term Co-occurrences: 
+cleaned.labels <-
+  EU.mpa.termsearch.data %>%
+  distinct(CELEX,labels, .keep_all = TRUE)
+
+term.table <- as.data.frame(table(cleaned.labels$CELEX,cleaned.labels$labels))
+
+term.table <- 
+  term.table %>%
+  rename(CELEX = Var1,
+         label = Var2)
+
+head(mpa.policy.notext.df.cleaned)
+
+label.pairs <- 
+  cleaned.labels %>%
+  pairwise_count(labels,CELEX, sort=TRUE)
+
+#david's code help
+label.pairs$all<-apply(apply(cbind(as.character(label.pairs$item1),as.character(label.pairs$item2)),1,sort),2,function(x) paste(x,collapse="."))
+#this should be the four columns in alphabetical order collapsed and separated by a dot
+
+#duplicated should work on this
+label.pairs.sub<-label.pairs[!duplicated(label.pairs$all),]
+
+#maybe a network plot is a better visualization for this data:
+term.pairs_matrix <-
+  label.pairs.sub  %>%
+  select(-all) %>%
+  pivot_wider(
+    names_from = item1,
+    values_from = n)%>%
+  column_to_rownames(.,var = "item2")
+
+term.pairs_matrix[is.na(term.pairs_matrix)] <- 0
+term.pairs_matrix <- as.matrix(term.pairs_matrix)
 
 
+term.pairs<- 
+  label.pairs.sub %>%
+  select(-all)
 
+attributes1<- 
+  label.pairs.sub %>%
+  select(-all) %>%
+  group_by(item1) %>%
+  summarise(sum1 = sum(n)) %>%
+  mutate(sum1 = replace_na(sum1,0))
 
+attributes2<- 
+  label.pairs.sub %>%
+  select(-all) %>%
+  group_by(item2) %>%
+  summarise(sum2 = sum(n)) %>%
+  mutate(sum2 = replace_na(sum2,0))
 
+#Which labels have more than one theme?
+more.themes <- 
+  EU.mpa.termsearch.data %>%
+  distinct(labels,MT) %>%
+  group_by(labels) %>%
+  mutate(themes = n_distinct(MT)) %>%
+  filter(themes > 1)
 
-
+#STOPPED HERE
+# for now I will just keep the location theme since it is the most straight forward 
+# will discuss with David. 
+remove <- 
+  mpa.policy.notext.df %>%
+  distinct(labels,MT) %>%
+  group_by(labels) %>%
+  mutate(themes = n_distinct(MT)) %>%
+  filter(themes > 1) %>%
+  filter(MT!= "7221 Africa"&
+         MT!= "7206 Europe") %>%
+  select(-themes)
 
 
 
