@@ -389,47 +389,51 @@ unique(mpa.DES.key1$search.term)
 #[15] "ospar?"                                                 "marine protected area?"                                
 #[17] "cartagena convention?"                                  "specially protected area?"
 
-search_terms.mpas <- c(unique(mpa.DES.key1$search.term))
-# remove "natural or mixed?"  
-search_terms.mpas <- search_terms.mpas[-3]
-testing.s <- search_terms.mpas[1:2]
-
 resource.types <- c("DIR","REG", "DEC",
                     "RECO","OPIN")
 
+search_terms.mpas <- c(unique(mpa.DES.key1$search.term))
+# remove "natural or mixed?"  
+search_terms.mpas <- search_terms.mpas[-3]
 
-
-#mpaCELEX.list.mpaterms<-list(all.names = TRUE)
 mpaCELEX.list.mpaterms <- structure(vector("list", 5), names=resource.types)
 
-for (i in 1:length(resource.types)) {  
-  
-  for (j in 1:length(testing.s)) {
-   
-     mpaCELEX.list.mpaterms[[i]][[j]] <- 
-      
-      freetext_eurlex(testing.s[j], 
+for (i in seq_along(resource.types)) { 
+ 
+  for (j in seq_along(search_terms.mpas)) {
+    
+    mpaCELEX.list.mpaterms[[i]][[j]] <- structure(mpaCELEX.list.mpaterms)
+    
+    mpaCELEX.list.mpaterms[[i]][[j]] <-
+      freetext_eurlex(search_terms.mpas[j], 
                       act=resource.types[i],
                       lang="en",
-                      exactly=FALSE)
+                      exactly=TRUE)
     
-     mpaCELEX.list.mpaterms[[j]]  <- structure(mpaCELEX.list.mpaterms[[j]], names=testing.s[j])
-     
   }
   
 }
 
+mpaCELEX.list.mpaterms.1 <- mpaCELEX.list.mpaterms
 
-#for (i in 1:length(resource.types)) {  
-#  for (j in 1:length(testing.s)) {
-#    mpaCELEX.list.mpaterms <- 
-#      freetext_eurlex(testing.s[j], 
-#                      act=resource.types[i],
-#                      lang="en",
-#                      exactly=FALSE)
-#  }
-#  
-#}
+# issues with Directives and 
+names(mpaCELEX.list.mpaterms.1$DIR) <- search_terms.mpas[1:16]
+names(mpaCELEX.list.mpaterms.1$RECO) <- search_terms.mpas[1:16]
+names(mpaCELEX.list.mpaterms.1$REG) <- search_terms.mpas
+names(mpaCELEX.list.mpaterms.1$DEC) <- search_terms.mpas
+names(mpaCELEX.list.mpaterms.1$OPIN) <- search_terms.mpas
+
+# lets make it into a df to use.
+mpaCELEX.list.mpaterms.11 <- tibble(x=mpaCELEX.list.mpaterms.1)
+mpaCELEX.list.mpaterms.2 <- as.data.frame(cbind(mpaCELEX.list.mpaterms.1))
+mpaCELEX.list.mpaterms.2 <- mpaCELEX.list.mpaterms.2 %>% rownames_to_column()
+
+mpaCELEX.list.mpaterms.3 <- 
+  tibble(mpaCELEX.list.mpaterms.2) %>% 
+  unnest_longer(mpaCELEX.list.mpaterms.1) %>% 
+  unnest_longer(mpaCELEX.list.mpaterms.1) %>%
+  filter(!is.na(mpaCELEX.list.mpaterms.1))
+
 
 
 # Save files ---------------------------------------------------------------------
