@@ -152,8 +152,6 @@ plot(network,
      vertex.label.cex=1,
      edge.arrow.size=.5,
      edge.arrow.width=.5,
-    # rescale=F,
-    # layout=l*1.1, # trying this layout based on pdf above...
      )
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
@@ -168,6 +166,9 @@ plot(network,
 # Second order citations ---------------------------------------------------------------------------
 
 # lets find out what do the citations cite?
+
+
+
 
 
 # Archival code ---------------------------------------
