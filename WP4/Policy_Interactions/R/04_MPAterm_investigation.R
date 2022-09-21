@@ -149,7 +149,8 @@ plot(network,
      edge.arrow.size=.5,
      edge.arrow.width=1,
      rescale=F,
-     layout=l*1.2, # trying this layout based on pdf above...
+     layout=l*1.2,# trying this layout based on pdf above...
+   #  edge.curved=.1
 )
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
@@ -194,7 +195,6 @@ term.pairs_matrix <-
 term.pairs_matrix[is.na(term.pairs_matrix)] <- 0
 term.pairs_matrix <- as.matrix(term.pairs_matrix)
 
-
 term.pairs<- 
   label.pairs.sub %>%
   select(-all)
@@ -225,7 +225,7 @@ more.themes <-
 # for now I will just keep the location theme since it is the most straight forward 
 # will discuss with David. 
 remove <- 
-  mpa.policy.notext.df %>%
+  EU.mpa.termsearch.data %>%
   distinct(labels,MT) %>%
   group_by(labels) %>%
   mutate(themes = n_distinct(MT)) %>%
@@ -234,6 +234,61 @@ remove <-
          MT!= "7206 Europe") %>%
   select(-themes)
 
+attributes3 <-
+  EU.mpa.termsearch.data %>%
+  distinct(labels,MT) %>%
+  anti_join(.,remove, by = c("labels","MT")) %>%
+  mutate(MT=gsub("\\d","",.$MT))
+
+
+final.attributes <- 
+  full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
+  mutate(sum2 = replace_na(sum2,0)) %>%
+  mutate(sum1 = replace_na(sum1,0)) %>%
+  mutate(total.count=sum1+sum2) %>%
+  select(-c("sum1","sum2")) %>%
+  left_join(.,attributes3, by = c("item1"="labels"))
+
+
+n <-label.pairs.sub$n*1.15
+
+network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes1, directed = FALSE)
+
+#very helpful document for network vizualizations 
+#http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
+
+V(network)$color <- V(network)$color
+
+l <- layout.fruchterman.reingold(network)
+l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
+plot(network,
+     edge.width=n,
+     edge.color="grey",
+     vertex.size=1,
+     vertex.label.cex=V(network)$total.count*.02,
+     vertex.label.color=V(network)$color,
+     vertex.shape="none",
+     rescale = TRUE,
+     ylim=c(-1,1),xlim=c(-1,1)
+     # trying this layout based on pdf above...
+)
+
+
+summary(final.attributes$total.count)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1.00    6.00    9.50   19.41   21.00  383.00 
+
+final.attributes1 <-
+  final.attributes %>%
+  mutate(count.grps = 
+           case_when(
+             total.count == 1 ~ .1,
+             total.count <= 6 ~ .6,
+             total.count <= 19.41 ~ 1.1,
+             total.count <= 21 ~ 1.6,
+             total.count < 383 ~ 2.1.25,
+             total.count == 383 ~ 4))
 
 
 ## Archival for now ==============================================================
