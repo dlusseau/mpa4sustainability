@@ -51,6 +51,45 @@ extract_text("http://www.retsinformation.dk/eli/retsinfo/2007/20064", encoding =
 
 # this didnt work...
 library(rvest)
+"https://www.retsinformation.dk/eli/lta/2021/2584"
+
+xx<-  read_html("https://www.retsinformation.dk/eli/lta/2021/2584") 
+nodes<-html_nodes(xx,"[id='restylingRoot']")
+flat<-unlist(strsplit(html_element(nodes,"[class='document-content']")%>%html_text2(),"\n"))
+y <- xx %>% html_nodes("*") 
+print(y, n=40)
+xx %>% html_elements(".document-content")
+
+xx%>%
+  html_element("body") %>%
+  html_text2() %>%
+  cat()
+
+xx%>%
+  html_nodes("div.document-content") %>%
+  html_text()
+
+xx %>%
+  html_nodes(xpath = '//*[@class="document-content "]') %>%
+  html_text2()
+
+xx %>%
+  html_nodes(xpath = '//*[@class="Titel2"]') %>%
+  html_text2()
+
+xx %>%
+  html_nodes(xpath = '//*[@id="restylingRoot"]') %>%
+  html_text2()
+
+html_text(y)
+
+str(y[39])
+
+xx <- 
+  read_html("https://www.retsinformation.dk/eli/lta/2021/2584") %>%
+  html_node(xpath = '//*[@class="document-content"]') %>%
+  html_text()
+
 
 test <- read_html("http://www.retsinformation.dk/eli/retsinfo/2007/20064")
 test %>%
@@ -59,3 +98,25 @@ test %>%
 test %>%
   html_nodes("h1") %>%
   html_text()
+
+
+remDr <- rsDriver(browser='chrome', port=4444L)
+browser <- remDr$client
+browser$open()
+browser$navigate("url")
+
+
+
+library("RSelenium")
+
+remDr <- rsDriver(browser='chrome', port=4444L)
+browser <- remDr$client
+browser$open()
+browser$navigate("url")
+
+
+
+
+
+
+
