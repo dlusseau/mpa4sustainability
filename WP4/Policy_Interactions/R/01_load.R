@@ -385,11 +385,13 @@ unique(mpa.DES.key1$search.term)
 #[3] "natural or mixed?"                                      "world heritage site?"                                  
 #[5] "unesco-mab biosphere reserve?"                          "barcelona convention?"                                 
 #[7] "specially protected areas of mediterranean importance?" "habitats directive?"                                   
-#[9] "sites of community importance?"                         "special areas of conservation?"                        
+#[9] "site of community importance?"                         "special areas of conservation?"                        
 #[11] "birds directive?"                                       "special protection area?"                              
 #[13] "helcom?"                                                "baltic sea protected area?"                            
 #[15] "ospar?"                                                 "marine protected area?"                                
 #[17] "cartagena convention?"                                  "specially protected area?"
+
+# NUMBER 9 make two for site and sites.
 
 resource.types <- c("DIR","REG", "DEC",
                     "RECO","OPIN")
@@ -397,24 +399,32 @@ resource.types <- c("DIR","REG", "DEC",
 search_terms.mpas <- c(unique(mpa.DES.key1$search.term))
 # remove "natural or mixed?"  
 search_terms.mpas <- search_terms.mpas[-3]
+search_terms.mpas <- search_terms.mpas[1:3]
 
 mpaCELEX.list.mpaterms <- structure(vector("list", 5), names=resource.types)
 
-for (i in seq_along(resource.types)) { 
- 
+# this is the for loop that semi works...
+for (i in seq_along(resource.types)) {
+  
   for (j in seq_along(search_terms.mpas)) {
     
     mpaCELEX.list.mpaterms[[i]][[j]] <- structure(mpaCELEX.list.mpaterms)
+
+ #   mpaCELEX.list.mpaterms[[i]][[j]] <- structure(mpaCELEX.list.mpaterms)
     
-    mpaCELEX.list.mpaterms[[i]][[j]] <-
-      freetext_eurlex(search_terms.mpas[j], 
+      x <- freetext_eurlex(search_terms.mpas[j], 
                       act=resource.types[i],
                       lang="en",
-                      exactly=TRUE)
-    
-  }
+                      exactly=TRUE)    
+      
+      if(is.null(x)==TRUE ) { mpaCELEX.list.mpaterms[[i]][[j]] <- NA } 
+      else { mpaCELEX.list.mpaterms[[i]][[j]] <- x}
+
+      }
   
 }
+
+
 
 mpaCELEX.list.mpaterms.1 <- mpaCELEX.list.mpaterms
 
@@ -437,6 +447,31 @@ mpaCELEX.list.mpaterms.DF <-
   rename("search.term" = "mpaCELEX.list.mpaterms.1_id",
          "CELEX" = "mpaCELEX.list.mpaterms.1",
          "resource.type" = "rowname")
+
+# trying somthing out still didnt work... 
+search_terms.mpas <- search_terms.mpas[1:3]
+x <- structure(vector("list", 3), names=search_terms.mpas)
+
+mpaCELEX.list.mpaterms <- c(list(x),list(x=x),list(x=x),list(x),list(x))
+
+mpaCELEX.list.mpaterms <- structure(mpaCELEX.list.mpaterms, names=resource.types)
+
+for (i in seq_along(resource.types)) {
+  
+  for (j in seq_along(search_terms.mpas)) {
+    
+    mpaCELEX.list.mpaterms[[i]][[j]] <- structure(mpaCELEX.list.mpaterms)
+    
+    #   mpaCELEX.list.mpaterms[[i]][[j]] <- structure(mpaCELEX.list.mpaterms)
+    
+    mpaCELEX.list.mpaterms[[i]][[j]] <- 
+      freetext_eurlex(search_terms.mpas[j], 
+                      act=resource.types[i],
+                      lang="en",
+                      exactly=TRUE)
+  }
+  
+}
 
 
 # Save files ---------------------------------------------------------------------
