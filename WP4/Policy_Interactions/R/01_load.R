@@ -413,7 +413,7 @@ mpaterms.text.data <-
 
 # Save files ---------------------------------------------------------------------
 
-# All these data were pulled from query and "cleaned" and saved in this script on 22nd Sep, 2022
+# All these data were pulled from query, "cleaned", and saved in this script on Sep 22nd, 2022
 
 # "marine protected" term  search results:
 write.csv(x = mpa.policy.df,
