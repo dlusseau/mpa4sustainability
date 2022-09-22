@@ -6,6 +6,7 @@ rm(list = ls())
 
 library("igraph")
 library("widyr")
+library("dplyr")
 
 # Define functions --------------------------------------------------------
 
@@ -19,8 +20,12 @@ EU.mpa.termsearch<- read.csv(file = "WP4/Policy_Interactions/data/01_EUmpa.searc
 
 document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
+#---------------------------------------------------------------------------
+#------------- This is the analysis on the second search query  ------------
+#----------------------- 18 terms all diff types of ------------------------
+#-------------------------- MPA Designation names --------------------------
+#---------------------------------------------------------------------------
 
-# Exploring MPA designation types referenced in EU text --------------------
 
 # lets join the new mpa search documents to their associated document data
 EU.mpa.termsearch.data <-
@@ -38,13 +43,14 @@ n_distinct(EU.mpa.termsearch.data$CELEX)
 # how many unique label terms?
 n_distinct(EU.mpa.termsearch.data$labels)
 # 403
+
 # how many unique thems?
 n_distinct(EU.mpa.termsearch.data$MT)
 # 80
-unique(EU.mpa.termsearch.data$MT)
+unique(EU.mpa.termsearch.data$MT) #curious about looking at them:
 
+# Exploring document citations ---------------------------------------------
 
-# ok citation network for these documents -----------------------------------
 # this citation network code is the same as 03 Rscript just different data. 
 
 MPA.citations <-
@@ -67,19 +73,12 @@ leg.citation_info <-
   mutate(pulled.from = "reference")
 #317 documents cited are legislation
 
-nonleg.citation_info <- 
+#filtering out citation that are not with legislation:
+MPA.citations <- 
   MPA.citations %>%
-  distinct(citationcelex) %>%
-  anti_join(.,leg.citation_info, by=c("citationcelex" = "CELEX"))%>% # joining those that are non-leg
-  mutate(date = NA,
-         force = NA,
-         resource.type = "OTHER", 
-         pulled.from = "reference")%>%
-  rename(CELEX = citationcelex)  %>%
-  select(resource.type,CELEX,date,force,pulled.from)
-#198 documents cited are non.leg
+  filter(citationcelex %in% leg.citation_info$CELEX) 
 
-citation.info <-  rbind(nonleg.citation_info,leg.citation_info) #combine non.leg with the leg data 
+citation.info <-  rbind(leg.citation_info) #combine non.leg with the leg data 
 
 network.attributes <-
   EU.mpa.termsearch.data %>%
@@ -127,7 +126,7 @@ network.attributes.final <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final$CELEX)
-
+# 387
 
 MPA.citations <-
   MPA.citations %>%
@@ -149,12 +148,45 @@ plot(network,
      edge.arrow.size=.5,
      edge.arrow.width=1,
      rescale=F,
-     layout=l*1.2,# trying this layout based on pdf above...
+     layout=l,# trying this layout based on pdf above...
    #  edge.curved=.1
 )
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
+
+# Second order citations ---------------------------------------------------------------------------
+
+indir.citation_info <- 
+  MPA.citations %>%
+  select(from) %>%
+  left_join(.,document.key.df, by = c("from" = "celex"))
+
+n_distinct(MPA.citations$from)
+n_distinct(indir.citation_info$from)
+
+Doc.citations.2 <-
+  indir.citation_info %>%
+  distinct(from,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
+  filter(!is.na(citationcelex)) %>%
+  rename("to" = "from",
+         "from" = "citationcelex")
+
+#now make sure they are only legislation documents 
+
+leg.citation_info2 <- 
+  document.key.df %>%
+  filter(celex %in% Doc.citations.2$from) %>% 
+  distinct(celex, .keep_all = TRUE) %>%
+  select(resource.type,celex,date,force) %>%
+  rename(CELEX = celex) %>%
+  mutate(pulled.from = "reference2")
+
+Doc.citations.2 <- 
+  Doc.citations.2 %>%
+  filter(from %in% leg.citation_info2$CELEX) 
+
+citation.info2 <-  leg.citation_info2
 
 # Exploring Eurovoc terms -----------------------------------------------
 
