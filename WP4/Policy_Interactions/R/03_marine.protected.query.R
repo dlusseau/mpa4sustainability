@@ -19,6 +19,7 @@ library("igraph")
 
 mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
 
+# Our document-data key
 document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 #MPA.textdata<- read.csv(file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
@@ -28,7 +29,7 @@ document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.d
 #----------------------- "marine protected " -------------------------------
 #---------------------------------------------------------------------------
 
-# Exploring document citations ------------------------------------------
+# Exploring document citations ---------------------------------------------
 
 # Document 32021R0092 is No longer in force: This act has been changed. Current consolidated version: 16/04/2022 
 # the new version is not categories as one of the five legeslation types 
