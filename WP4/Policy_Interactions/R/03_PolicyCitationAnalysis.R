@@ -13,6 +13,8 @@ library("igraph")
 
 # Define functions --------------------------------------------------------
 
+# No defined function for this script
+
 # Load data ---------------------------------------------------------------
 
 mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
@@ -21,10 +23,22 @@ document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.d
 
 #MPA.textdata<- read.csv(file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
 
+#---------------------------------------------------------------------------
+#------------- This is the analysis on the first search query  -------------
+#----------------------- "marine protected " -------------------------------
+#---------------------------------------------------------------------------
 
 # Exploring document citations ------------------------------------------
 
-# (1) We want a matrix of the MPA documents (rows) v.s. documents they cite (columns)
+# Document 32021R0092 is No longer in force: This act has been changed. Current consolidated version: 16/04/2022 
+# the new version is not categories as one of the five legeslation types 
+# so we will remove this instead of replace with the current version
+mpa.policy.notext.df <-
+  mpa.policy.notext.df %>%
+  filter(CELEX != "32021R0092")
+
+n_distinct(mpa.policy.notext.df$CELEX)
+# 24
 
 Doc.citations <-
   mpa.policy.notext.df %>%
@@ -32,17 +46,16 @@ Doc.citations <-
   filter(!is.na(citationcelex)) 
 
 n_distinct(Doc.citations$CELEX)
-# [1] 933
+# 19 document cite another document 
 n_distinct(Doc.citations$citationcelex)
-# [1] 3222
+# 208 documents are cited
 
 
 #Eurlex data/attributes about the citations
 
-# NOTE: there is a total of 3,223 unique citation documents but only 1959 have eurolex data associated... this is bc our key is only leg. documents...
-# so depending on if we only are interested in legislative documents or not we should or shouldnt remove them
-# for now keeping all of the citations regardless of the type of document 
-# I will add them into this DF but will put resource.type as non-leg and NA for other fields. 
+# NOTE: there is a total of 208 unique citation documents but only 134 have eurolex data associated... 
+# this is bc our key is only leg. documents...
+# Since we are only interested in legislative documents we will only keep citations that are legislation categorized 
 
 leg.citation_info <- 
   document.key.df %>%
@@ -52,20 +65,14 @@ leg.citation_info <-
   rename(CELEX = celex) %>%
   mutate(pulled.from = "reference")
 
-
-nonleg.citation_info <- 
+Doc.citations <- 
   Doc.citations %>%
-  distinct(citationcelex) %>%
-  anti_join(.,leg.citation_info, by=c("citationcelex" = "CELEX"))%>% # joining those that are non-leg
-   mutate(date = NA,
-         force = NA,
-         resource.type = "OTHER", 
-         pulled.from = "reference")%>%
-  rename(CELEX = citationcelex)  %>%
-  select(resource.type,CELEX,date,force,pulled.from)
+  filter(citationcelex %in% leg.citation_info$CELEX) 
+  
+citation.info <-  leg.citation_info
 
-
-citation.info <-  rbind(nonleg.citation_info,leg.citation_info) #combine non.leg with the leg data 
+n_distinct(Doc.citations$CELEX)
+# 2 documents cited but they were non-leg so they are now filtered out :)
 
 network.attributes <-
   mpa.policy.notext.df %>%
@@ -80,7 +87,11 @@ both.pulls <-
   group_by(CELEX) %>%
   summarise(n=n()) %>%
   filter(n>1) 
-# documents pulled as an MPA leg and cited within others
+# 3 documents pulled as an MPA leg are also cited by other legislation 
+# These are:
+# 32008L0056 --> Marine Strategy Framework Directive
+#	32013R1380 --> CFP, amending CRs
+#	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
 
 network.attributes.both <- network.attributes[network.attributes$CELEX %in% both.pulls$CELEX,]
 
@@ -112,7 +123,8 @@ network.attributes.final <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final$CELEX)
-
+#148
+#dimentions add up bc 19+134=153, 153-8+4=149
 
 Doc.citations <-
   Doc.citations %>%
@@ -120,11 +132,11 @@ Doc.citations <-
          "from"="citationcelex")
 
 n_distinct(Doc.citations$to)
-# 933 
+# 17
 n_distinct(Doc.citations$from)
-# 3,222  
-933+3222
-#4155
+#  134
+17+208
+#225
 docs <- unique(Doc.citations$to)
 cit <-  unique(Doc.citations$from)
 xx <- as.data.frame(c(docs,cit))
@@ -136,13 +148,18 @@ print(network, e=TRUE, v=TRUE)
 l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-#labels <- network.attributes.final[1:4,1]
-#labels <- c("Marine Strategy Framework Dir.","Reg. on European Maritime and Fisheries Fund",
-#"Reg. on the CFP", "Opinion on an integrated EU policy for the Arctic")
+labels <- network.attributes.final[1:3,1]
+labels <- c("Marine Strategy Framework Dir.",
+            "Reg. on CFP, amending CRs",
+            "Reg. European Maritime and Fisheries Fund & repealing CRs")
 
-#labels2 <- rep(NA,time=224)
-#labels3 <- c(labels,labels2)
-#V(network)$label <- labels3 
+# 32008L0056 --> Marine Strategy Framework Directive
+#	32013R1380 --> CFP, amending CRs
+#	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
+
+labels2 <- rep(NA,time=222)
+labels3 <- c(labels,labels2)
+V(network)$label <- labels3 
 
 
 plot(network,
@@ -151,25 +168,151 @@ plot(network,
      vertex.label=NA,
      vertex.label.cex=1,
      edge.arrow.size=.5,
-     edge.arrow.width=.5,
+     edge.arrow.width=2,
      )
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
-  # Marine Strategy Framework Directive (32008L0056) 
-  # Regulation on European Maritime and Fisheries Fund and repealing Council Regulations (32014R0508)
-  # Regulation on the Common Fisheries Policy, amending Council Regulations (32013R1380)
-  # Opinion on An integrated European Union policy for the Arctic (52016AE4426)
-
-# total 25 documents were pulled from eurlex web 
 
 # Second order citations ---------------------------------------------------------------------------
 
 # lets find out what do the citations cite?
+# OK to have a indirect citation network we need to make the edge list 
+# We will need to make a new to|from df and then rbind them this will add the third layer
+
+# Doc.citations what we will rbind to
+
+indir.citation_info <- 
+  Doc.citations %>%
+  select(from) %>%
+  left_join(.,document.key.df, by = c("from" = "celex"))
+
+n_distinct(Doc.citations$from)
+n_distinct(indir.citation_info$from)
+# no changes :)
+
+Doc.citations.2 <-
+  indir.citation_info %>%
+  distinct(from,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
+  filter(!is.na(citationcelex)) %>%
+  rename("to" = "from",
+         "from" = "citationcelex")
+
+#now make sure they are only legislation documents 
+
+leg.citation_info2 <- 
+  document.key.df %>%
+  filter(celex %in% Doc.citations.2$from) %>% 
+  distinct(celex, .keep_all = TRUE) %>%
+  select(resource.type,celex,date,force) %>%
+  rename(CELEX = celex) %>%
+  mutate(pulled.from = "reference2")
+
+Doc.citations.2 <- 
+  Doc.citations.2 %>%
+  filter(from %in% leg.citation_info2$CELEX) 
+
+citation.info2 <-  leg.citation_info2
+
+#network.attributes2 <-
+#  mpa.policy.notext.df %>%
+#  filter(CELEX %in% Doc.citations.2$to) %>% 
+#  select(resource.type,CELEX,date,force) %>%
+#  distinct(CELEX,.keep_all = TRUE) %>%
+#  mutate(pulled.from = "eurlex.web") %>%
+#  rbind(.,citation.info2) # %>%
+
+#both.pulls2 <-
+ # network.attributes2 %>%
+ # group_by(CELEX) %>%
+ # summarise(n=n()) %>%
+ # filter(n>1) 
+# 3 documents pulled as an MPA leg are also cited by other legislation 
+# These are the same as last time...
+# 32008L0056 --> Marine Strategy Framework Directive
+#	32013R1380 --> CFP, amending CRs
+#	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
+
+#network.attributes.both2 <- network.attributes2[network.attributes2$CELEX %in% both.pulls2$CELEX,]
+
+#network.attributes.both2 <- 
+ # network.attributes.both2 %>%
+ # distinct(CELEX,.keep_all = TRUE) %>%
+ # mutate(pulled.from= "both")
+
+#network.attributes.notboth2 <- network.attributes2[!network.attributes2$CELEX %in% both.pulls2$CELEX,]
+
+#network.attributes.final2 <-
+#  rbind(network.attributes.both2,network.attributes.notboth2)
+
+network.attributes.final2 <-
+  citation.info2 %>%
+  select(CELEX,resource.type,date,force,pulled.from) %>%
+  mutate(color = 
+           case_when(
+             pulled.from == "reference2" ~ "purple" )) %>%
+  mutate(shape = 
+           case_when(
+             resource.type == "DIR" ~ "circle",
+             resource.type == "REG" ~ "circle",
+             resource.type == "DEC" ~ "circle",
+             resource.type == "RECO" ~ "circle",
+             resource.type == "OPIN" ~ "circle",
+             resource.type == "OTHER" ~ "square"  ))
+
+n_distinct(network.attributes.final2$CELEX)
+#515
 
 
 
 
+Doc.citations3 <- rbind(Doc.citations,Doc.citations.2)
+
+network.attributes.final3 <- rbind(network.attributes.final,network.attributes.final2)
+
+network.attributes.final3 <- 
+  network.attributes.final3 %>%
+  distinct(CELEX, .keep_all = TRUE)
+
+n_distinct(Doc.citations3$to)
+# 118
+n_distinct(Doc.citations3$from)
+#  570
+118+570
+#688
+docs <- unique(Doc.citations3$to)
+cit <-  unique(Doc.citations3$from)
+xx <- as.data.frame(c(docs,cit))
+xx <- distinct(xx)
+
+network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final3)
+print(network, e=TRUE, v=TRUE)
+
+l <- layout.fruchterman.reingold(network)
+l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
+labels <- network.attributes.final3[1:3,1]
+labels <- c("Marine Strategy Framework Dir.",
+            "Reg. on CFP, amending CRs",
+            "Reg. European Maritime and Fisheries Fund & repealing CRs")
+
+# 32008L0056 --> Marine Strategy Framework Directive
+#	32013R1380 --> CFP, amending CRs
+#	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
+
+labels2 <- rep(NA,time=688)
+labels3 <- c(labels,labels2)
+V(network)$label <- labels3 
+
+plot(network,
+     edge.width=.5,
+     vertex.size=2,
+     vertex.label=NA,
+     vertex.label.cex=1,
+     edge.arrow.size=.5,
+     edge.arrow.width=1,
+     layout=l
+)
 
 # Archival code ---------------------------------------
 
