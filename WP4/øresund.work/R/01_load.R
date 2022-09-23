@@ -4,20 +4,19 @@ rm(list = ls())
 
 # Load libraries ----------------------------------------------------------
 
-library("readr")
-library("stringr")
-library("dplyr")
-library("rJava")
-library("remotes")
-remotes::install_github(c("ropensci/tabulizerjars", "ropensci/tabulizer"), INSTALL_opts = "--no-multiarch")
-library("tabulizer")
-
+library('RSelenium') 
+library("rvest")
+library('readr') 
+library('stringr') 
+library('tibble') 
+library("netstat")
 
 # Define functions --------------------------------------------------------
 
 
 # Load data ---------------------------------------------------------------
 
+# Downloaded from retsinformation.dk using the search terms given
 setwd("C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
 
 retsinformation.file.list <- list.files(pattern='*.csv')
@@ -27,10 +26,16 @@ retsinformation.file.list <- list.files(pattern='*.csv')
 # https://readr.tidyverse.org/articles/locales.html
 x <- "PopulærTitel" # --> one of the df column names
 Encoding(x) #"latin1"
-guess_encoding("C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy/fiskeri.csv")
+html_encoding_guess("C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy/fiskeri.csv")
 #encoding   confidence
-#<chr>           <dbl>
-# ISO-8859-1       0.45
+# ISO-8859-1       pt       0.25
+# ISO-8859-2       ro       0.12
+# ISO-8859-9       tr       0.12
+#   UTF-16BE                0.10
+#   UTF-16LE                0.10
+#  Shift_JIS       ja       0.10
+#    GB18030       zh       0.10
+#       Big5       zh       0.10
 # ISO-8859-1 is another name for latin1
 
 retsinformation.df <- read_delim(retsinformation.file.list, 
@@ -43,76 +48,74 @@ retsinformation.df <-
   mutate(search.term = str_extract_all(search.term,"\\w+\\."),
          search.term = str_replace_all(search.term,"[:punct:]+",""))
        
-# Lets try to get this data from the url...
-URLs <- retsinformation.df[,30]
-vec.URLs <- as.vector(URLs)
-extract_text("http://www.retsinformation.dk/eli/retsinfo/2007/20064", encoding = "ISO-8859-1") 
 
 
-# this didnt work...
-library(rvest)
-"https://www.retsinformation.dk/eli/lta/2021/2584"
+# How to get the text for one URL -----------------------------------------
 
-xx<-  read_html("https://www.retsinformation.dk/eli/lta/2021/2584") 
-nodes<-html_nodes(xx,"[id='restylingRoot']")
-flat<-unlist(strsplit(html_element(nodes,"[class='document-content']")%>%html_text2(),"\n"))
-y <- xx %>% html_nodes("*") 
-print(y, n=40)
-xx %>% html_elements(".document-content")
+binman::list_versions("chromedriver")
+# $win32
+# [1] "105.0.5195.19" "105.0.5195.52" "106.0.5249.21"
 
-xx%>%
-  html_element("body") %>%
-  html_text2() %>%
-  cat()
+remDr <- rsDriver(browser='chrome', port=4444L,check = FALSE, 
+                  chromever="105.0.5195.19")
 
-xx%>%
-  html_nodes("div.document-content") %>%
-  html_text()
+browser <- remDr$client
 
-xx %>%
+browser$open()
+
+browser$navigate("https://www.retsinformation.dk/eli/lta/2021/2584")
+
+pagesource <- browser$getPageSource()
+
+html <- read_html(pagesource[[1]])
+
+text <-
+  html%>%
   html_nodes(xpath = '//*[@class="document-content "]') %>%
   html_text2()
 
-xx %>%
-  html_nodes(xpath = '//*[@class="Titel2"]') %>%
+# A loop to get text data for all URLs -------------------------------------
+
+search.term <- deframe(retsinformation.df[,1])
+search.term
+
+DK.text.list <- structure(vector("list", 30))
+
+# Lets try to get this data from the url...
+URLs <- deframe(retsinformation.df[,30])
+URLs
+
+URLs <- URLs[1:30]
+
+for (i in seq(URLs)) {
+  
+remDr <- rsDriver(browser='chrome', 
+                  port=free_port(random = TRUE),
+                  check = FALSE, 
+                  chromever="105.0.5195.19")
+  
+browser <- remDr$client
+  
+browser$open()
+
+browser$navigate(URLs[i])
+
+Sys.sleep(2)
+
+pagesource <- browser$getPageSource()
+
+html <- read_html(pagesource[[1]])
+
+DK.text.list[[i]] <-
+  html%>%
+  html_nodes(xpath = '//*[@class="document-content "]') %>%
   html_text2()
 
-xx %>%
-  html_nodes(xpath = '//*[@id="restylingRoot"]') %>%
-  html_text2()
+print(i)
 
-html_text(y)
-
-str(y[39])
-
-xx <- 
-  read_html("https://www.retsinformation.dk/eli/lta/2021/2584") %>%
-  html_node(xpath = '//*[@class="document-content"]') %>%
-  html_text()
+}
 
 
-test <- read_html("http://www.retsinformation.dk/eli/retsinfo/2007/20064")
-test %>%
-  html_nodes("h1")
-
-test %>%
-  html_nodes("h1") %>%
-  html_text()
-
-
-remDr <- rsDriver(browser='chrome', port=4444L)
-browser <- remDr$client
-browser$open()
-browser$navigate("url")
-
-
-
-library("RSelenium")
-
-remDr <- rsDriver(browser='chrome', port=4444L)
-browser <- remDr$client
-browser$open()
-browser$navigate("url")
 
 
 
