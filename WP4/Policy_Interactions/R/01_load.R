@@ -336,7 +336,6 @@ search_terms.mpas <- c(unique(mpa.DES.key1$search.term))
 
 mpaCELEX.list.mpaterms <- structure(vector("list", 5), names=resource.types)
 
-# this is the for loop that semi works...
 for (i in seq_along(resource.types)) {
   
   for (j in seq_along(search_terms.mpas)) {
