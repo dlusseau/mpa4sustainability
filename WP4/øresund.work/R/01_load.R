@@ -79,13 +79,13 @@ text <-
 search.term <- deframe(retsinformation.df[,1])
 search.term
 
-DK.text.list <- structure(vector("list", 30))
+DK.text.list <- structure(vector("list", 5))
 
 # Lets try to get this data from the url...
 URLs <- deframe(retsinformation.df[,30])
 URLs
 
-URLs <- URLs[1:30]
+URLs <- URLs[1:5]
 
 for (i in seq(URLs)) {
   
@@ -112,6 +112,8 @@ DK.text.list[[i]] <-
   html_text2()
 
 print(i)
+
+browser$close()
 
 }
 
