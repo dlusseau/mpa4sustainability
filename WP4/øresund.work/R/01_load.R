@@ -16,7 +16,6 @@ library("tidyr")
 
 # Define functions --------------------------------------------------------
 
-
 # Load data ---------------------------------------------------------------
 
 # Downloaded from retsinformation.dk using the search terms given
@@ -51,50 +50,24 @@ retsinformation.df <-
   mutate(search.term = str_extract_all(search.term,"\\w+\\."),
          search.term = str_replace_all(search.term,"[:punct:]+",""))
        
-
-
-# How to get the text for one URL -----------------------------------------
-
-binman::list_versions("chromedriver")
-# $win32
-# [1] "105.0.5195.19" "105.0.5195.52" "106.0.5249.21"
-
-remDr <- rsDriver(browser='chrome', port=4444L,check = FALSE, 
-                  chromever="105.0.5195.19")
-
-browser <- remDr$client
-
-browser$open()
-
-browser$navigate("https://www.retsinformation.dk/eli/lta/2021/2584")
-
-pagesource <- browser$getPageSource()
-
-html <- read_html(pagesource[[1]])
-
-text <-
-  html%>%
-  html_nodes(xpath = '//*[@class="document-content "]') %>%
-  html_text2()
-
 # A loop to get text data for all URLs -------------------------------------
 
 search.term <- deframe(retsinformation.df[,1])
 search.term
 
-DK.text.list <- structure(vector("list", 5)) #, names=search.term)
+DK.text.list <- structure(vector("list", 1367), names=search.term)
 
 # Lets try to get this data from the url...
 URLs <- deframe(retsinformation.df[,30])
 URLs
 
-URLs <- URLs[1:5]
-port <- seq(1:5)
+URLs <- URLs[1:1367]
+port <- seq(1:1367)
 
 for (i in seq(URLs)) {
   
   remDr <- rsDriver(browser='chrome', 
-                    #port= free_port(random = TRUE),
+                    #port= free_port(random = TRUE), # this didnt work eventually got a port in use error
                     port = port[i],
                     check = FALSE, 
                     chromever="105.0.5195.19")
@@ -131,8 +104,8 @@ for (i in seq(URLs)) {
   
   }
 
-
-# semi working loop below ---------------------------------
+# archival for now -----------------------------------------
+# semi working loop below --
 
 search.term <- deframe(retsinformation.df[,1])
 search.term
@@ -206,5 +179,27 @@ write.csv(x = DK.text.list.2,
 
 
 
+# How to get the text for one URL --
 
+binman::list_versions("chromedriver")
+# $win32
+# [1] "105.0.5195.19" "105.0.5195.52" "106.0.5249.21"
+
+remDr <- rsDriver(browser='chrome', port=4444L,check = FALSE, 
+                  chromever="105.0.5195.19")
+
+browser <- remDr$client
+
+browser$open()
+
+browser$navigate("https://www.retsinformation.dk/eli/lta/2021/2584")
+
+pagesource <- browser$getPageSource()
+
+html <- read_html(pagesource[[1]])
+
+text <-
+  html%>%
+  html_nodes(xpath = '//*[@class="document-content "]') %>%
+  html_text2()
 
