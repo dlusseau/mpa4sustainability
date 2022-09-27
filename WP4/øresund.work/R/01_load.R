@@ -53,7 +53,7 @@ retsinformation.df <-
 # A loop to get text data for all URLs -------------------------------------
 
 search.term <- deframe(retsinformation.df[,1])
-search.term
+search.term <- search.term[1:1367]
 
 DK.text.list <- structure(vector("list", 1367), names=search.term)
 
@@ -104,13 +104,37 @@ for (i in seq(URLs)) {
   
   }
 
+DK.text.list.1 <- DK.text.list
+
+
+# lets make it into a df to use.
+DK.text.list.1.2 <- as.data.frame(cbind(DK.text.list.1))
+#DK.text.list.1.2 <- as.data.frame(unlist(DK.text.list.1))
+
+DK.text.list.2 <- 
+  DK.text.list.1.2 %>% 
+  rownames_to_column(., var = "search.term") %>%
+  rename("text" = "DK.text.list.1") %>%
+  mutate(search.term = str_replace_all(search.term,"\\.[:graph:]+",""),
+         country = "DK",
+         ID = row_number()) %>%
+  as_tibble() %>%
+  unnest(text)
+
+str(DK.text.list.2)
+
+write.csv(x = DK.text.list.2,
+          file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/01_DK.textDF.csv", row.names=FALSE)
+
+
+
 # archival for now -----------------------------------------
 # semi working loop below --
 
 search.term <- deframe(retsinformation.df[,1])
-search.term
+search.term <- search.term[1:10]
 
-DK.text.list <- structure(vector("list", 10)) #, names=search.term)
+DK.text.list <- structure(vector("list", 10), names=search.term)
 
 # Lets try to get this data from the url...
 URLs <- deframe(retsinformation.df[,30])
