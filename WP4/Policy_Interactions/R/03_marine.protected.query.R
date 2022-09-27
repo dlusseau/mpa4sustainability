@@ -301,10 +301,6 @@ labels <- c("Marine Strategy Framework Dir.",
 #	32013R1380 --> CFP, amending CRs
 #	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
 
-labels2 <- rep(NA,time=688)
-labels3 <- c(labels,labels2)
-V(network)$label <- labels3 
-
 plot(network,
      edge.width=.5,
      vertex.size=2,
@@ -313,5 +309,176 @@ plot(network,
      edge.arrow.size=.5,
      edge.arrow.width=1,
      layout=l
+)
+
+# Exploring Eurovoc terms -----------------------------------------------
+
+# Eurovoc Term Co-occurrences: 
+cleaned.labels <-
+  mpa.policy.notext.df %>%
+  distinct(CELEX,labels, .keep_all = TRUE)
+
+n_distinct(cleaned.labels$MT)
+# 29 themes 
+
+label.pairs <- 
+  cleaned.labels %>%
+  pairwise_count(labels,CELEX, sort=TRUE)
+
+#david's code help
+label.pairs$all<-apply(apply(cbind(as.character(label.pairs$item1),as.character(label.pairs$item2)),1,sort),2,function(x) paste(x,collapse="."))
+#this should be the four columns in alphabetical order collapsed and separated by a dot
+
+#duplicated should work on this
+label.pairs.sub<-label.pairs[!duplicated(label.pairs$all),]
+
+term.pairs<- 
+  label.pairs.sub %>%
+  select(-all) 
+
+attributes1<- 
+  label.pairs.sub %>%
+  select(-all) %>%
+  group_by(item1) %>%
+  summarise(sum1 = sum(n)) %>%
+  mutate(sum1 = replace_na(sum1,0))
+
+attributes2<- 
+  label.pairs.sub %>%
+  select(-all) %>%
+  group_by(item2) %>%
+  summarise(sum2 = sum(n)) %>%
+  mutate(sum2 = replace_na(sum2,0))
+
+
+#Which labels have more than one theme?
+more.themes <- 
+  mpa.policy.notext.df %>%
+  distinct(labels,MT) %>%
+  group_by(labels) %>%
+  mutate(themes = n_distinct(MT)) %>%
+  filter(themes > 1)
+
+#STOPPED HERE
+# for now I will just keep the location theme since it is the most straight forward 
+# will discuss with David. 
+remove <- 
+  mpa.policy.notext.df %>%
+  distinct(labels,MT) %>%
+  group_by(labels) %>%
+  mutate(themes = n_distinct(MT)) %>%
+  filter(themes > 1) %>%
+  filter(MT!= "7221 Africa"&
+           MT!= "7206 Europe") %>%
+  select(-themes)
+
+attributes3 <-
+  mpa.policy.notext.df %>%
+  distinct(labels,MT) %>%
+  anti_join(.,remove, by = c("labels","MT")) %>%
+  mutate(MT=gsub("\\d","",.$MT))
+
+
+final.attributes <- 
+  full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
+  mutate(sum2 = replace_na(sum2,0)) %>%
+  mutate(sum1 = replace_na(sum1,0)) %>%
+  mutate(total.count=sum1+sum2) %>%
+  select(-c("sum1","sum2")) %>%
+  left_join(.,attributes3, by = c("item1"="labels"))
+
+n_distinct(final.attributes$MT)
+
+network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
+class(network)
+
+
+l <- layout.fruchterman.reingold(network)
+l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
+degree(network)
+n_distinct(V(network)$MT)
+
+library("viridis")   
+
+colors <- inferno(29)
+#colors <- colors[-1:-5]
+V(network)$color <- colors[as.numeric(as.factor(V(network)$MT))]
+
+dist <- rep(c(0.18, -0.18), length.out = 103)
+#try to jitter the labels a little to avoid overlap 
+V(network)$dist <- dist[as.numeric(as.factor(V(network)$name))]
+
+
+plot(network,
+     #edge.width=V(network),
+     edge.color=adjustcolor("gray", alpha.f = .25),
+     vertex.size=2,
+     vertex.label.cex=(degree(network)/sum(degree(network))*100),
+     vertex.label.color=V(network)$color,
+     vertex.shape="none",
+     rescale = TRUE,
+     layout = l,
+     vertex.label.dist = V(network)$dist,
+     vertex.label.family = "sans"
+     
+)
+
+
+# O.K. so the network viz is more legable 
+# I will only plot those that are the median or above edges
+
+I1 <-
+  term.pairs %>%
+  group_by(item1) %>%
+  summarise(n=n())
+I2 <-
+  term.pairs %>%
+  group_by(item2) %>%
+  summarise(n=n())
+
+I3 <- full_join(I1,I2, by=c("item1"="item2")) %>%
+  mutate(n.x = replace_na(n.x,0),
+         n.y = replace_na(n.y,0))%>%
+  mutate(edge.number = n.x+n.y )
+
+summary(I3$edge.number)
+#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 2.00    7.00    9.00   11.79   14.50   47.00 
+
+edges.remove <- V(network)[degree(network)<9]
+degree(network)
+graphNetwork <-  igraph::delete.vertices(network,edges.remove) 
+degree(graphNetwork)
+
+n_distinct(V(graphNetwork)$MT)
+#17 themes 
+
+library("viridis")   
+
+colors <- inferno(17)
+#colors <- colors[-1]
+V(graphNetwork)$color <- colors[as.numeric(as.factor(V(graphNetwork)$MT))]
+
+#dist <- seq(-.025,0.25, by=.0024)
+dist <- rep(c(0.25, -0.25), length.out = 54)
+#try to jitter the labels a little to avoid overlap 
+V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
+
+
+l2 <- layout.fruchterman.reingold(graphNetwork)
+
+plot(graphNetwork,
+     edge.width=V(graphNetwork)$n,
+     edge.color=adjustcolor("gray", alpha.f = .25),
+     vertex.size=2,
+     vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*75), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.color=V(graphNetwork)$color,
+     vertex.shape="none",
+     rescale = TRUE,
+     layout = l2,
+     vertex.label.family = "sans",
+     vertex.label.dist = V(graphNetwork)$dist
+     # trying this layout based on pdf above...
 )
 
