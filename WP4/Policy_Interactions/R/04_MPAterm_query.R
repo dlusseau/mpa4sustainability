@@ -369,23 +369,25 @@ summary(I3$edge.number)
 #this tutorial was helpful for this vizualization
 #https://tm4ss.github.io/docs/Tutorial_5_Co-occurrence.html#4_Visualization_of_co-occurrence
 #https://kateto.net/wp-content/uploads/2016/06/Polnet%202016%20R%20Network%20Visualization%20Workshop.pdf
-edges.remove <- V(network)[degree(network)<13]
+edges.remove <- V(network)[degree(network)<9]
 degree(network)
 graphNetwork <-  igraph::delete.vertices(network,edges.remove) 
 degree(graphNetwork)
 
+n_distinct(V(graphNetwork)$MT)
 
 library("viridis")   
 
-colors <- inferno(34)
-colors <- colors[-1:-5]
+colors <- inferno(54)
+#colors <- colors[-1:-5]
 V(graphNetwork)$color <- colors[as.numeric(as.factor(V(graphNetwork)$MT))]
 
 dist <- seq(-.025,0.25, by=.0024)
-dist <- rep(c(0.175, -0.175), length.out = 113)
+dist <- rep(c(0.18, -0.18), length.out = 226)
 #try to jitter the labels a little to avoid overlap 
 V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
 
+n <-label.pairs.sub$n*1.15
 
 l2 <- layout.fruchterman.reingold(graphNetwork)
 
@@ -393,11 +395,11 @@ plot(graphNetwork,
      edge.width=V(graphNetwork)$n,
      edge.color=adjustcolor("gray", alpha.f = .25),
      vertex.size=2,
-     vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*100), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*125), # label size is equiv. to percent of edges associated to the word out of total edges
      vertex.label.color=V(graphNetwork)$color,
      vertex.shape="none",
      rescale = TRUE,
-     ylim=c(-.8,.85),xlim=c(-.85,.9),
+     ylim=c(-.8,.85),xlim=c(-.9,.9),
      layout = l2,
      vertex.label.family = "sans",
      vertex.label.dist = V(graphNetwork)$dist
