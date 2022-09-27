@@ -25,6 +25,7 @@ DKtext.df <- read_csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/ør
 
 # Cleaning & Pre-processing the text data --------------------------------------
 
+# lets mak it into the good df format
 DKtext.df <- 
   DKtext.df %>%
   as.data.frame(.) %>% 
@@ -34,15 +35,15 @@ DKtext.df <-
          country = as.factor(country)) %>%
   select(doc_id,text,search.term,country)
 
-# cleaning and pre-processing of text data using corpus package
-
+# cleaning and pre-processing text data 
 DKtext.df.clean <-
   DKtext.df %>%
-  mutate(clean.text = tolower(text),                                 # convert all to lower case
-         clean.text = str_replace_all(clean.text,"[:punct:]",""),    # remove punctuation
-         clean.text = str_replace_all(clean.text,"[:digit:]",""),    # remove numbers
-         clean.text = removeWords(clean.text,stopwords("da"))) %>%   # remove danish stop words
-  mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>% # stemming words
+  mutate(clean.text = tolower(text),                                   # convert all to lower case
+         clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
+         clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
+         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
+         clean.text = removeWords(clean.text,stopwords("da"))) %>%     # remove danish stop words
+  mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%   # stemming words
   unnest(clean.text) %>%
   group_by(doc_id) %>%
   mutate(clean.text = paste(clean.text, collapse = " ")) %>%
@@ -96,40 +97,4 @@ tdm <- TermDocumentMatrix(DK.corpus)
 inspect(tdm)
 
 
-# Archival for now -------------------------------------------------------------
-data("crude")
-inspect(crude[[1]])
-# stm package can pre-process Danish and Swedish language bc using tm package :)
 
-da.processed <- textProcessor(documents=mpa.policy.notext.df$text,
-                             metadata=mpa.policy.notext.df,
-                             language = "da")
-
-vocab <- da.processed$vocab
-
-converted <- convertCorpus(da.processed$documents, 
-                           da.processed$vocab, 
-                           type = c("slam"))
-
-
-
-# convert to a corpus object: 
-x <- corpus(mpa.policy.notext.df,
-            text_field = "text",
-            meta = list(data.frame(mpa.policy.notext.df[1:2]))
-)
-
-docvars(x) # looks correct
-ndoc(x)    # looks correct
-str(x)
-summary(x) # overview of our corpus
-
-
-xx <- as_corpus_text(mpa.policy.notext.df$text,
-                     names = mpa.policy.notext.df$ID,
-                     language = "da")
-
-mpa.policy.notext.df <- 
-  as.data.frame(mpa.policy.notext.df) %>% 
-  select(ID,text,search.term,country,text) %>%
-  rename("doc_id" = "ID")
