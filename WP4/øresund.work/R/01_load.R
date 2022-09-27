@@ -10,6 +10,9 @@ library('readr')
 library('stringr') 
 library('tibble') 
 library("netstat")
+library("dplyr")
+library("stringr")
+library("tidyr")
 
 # Define functions --------------------------------------------------------
 
@@ -79,30 +82,85 @@ text <-
 search.term <- deframe(retsinformation.df[,1])
 search.term
 
-DK.text.list <- structure(vector("list", 5))
+DK.text.list <- structure(vector("list", 5)) #, names=search.term)
 
 # Lets try to get this data from the url...
 URLs <- deframe(retsinformation.df[,30])
 URLs
 
 URLs <- URLs[1:5]
+port <- seq(1:5)
+
+for (i in seq(URLs)) {
+  
+  remDr <- rsDriver(browser='chrome', 
+                    #port= free_port(random = TRUE),
+                    port = port[i],
+                    check = FALSE, 
+                    chromever="105.0.5195.19")
+  
+  browser <- remDr$client
+  
+  browser$open() # Open the remote browser
+  
+  browser$navigate(URLs[i]) # navigate to the URL 
+  
+  Sys.sleep(2) # Stop for 2 second because takes a couple secs for the pg. to load
+  
+  pagesource <- browser$getPageSource() # retrieve html page source code
+  
+  html <- read_html(pagesource[[1]])
+  
+  DK.text.list[[i]] <-
+    html%>%
+    html_nodes(xpath = '//*[@class="document-content "]') %>%
+    html_text2()
+  
+  print(URLs[i]) # Print what iteration we are on for URLs
+  print(port[i]) # Print what iteration we are on for ports
+  
+  Sys.sleep(1) 
+  
+  browser$quit() # Close the browser session
+
+  rm(remDr) # Remove this obj.
+  rm(browser) # Remove this obj.
+  
+  # so we dont have port use issues we need to kill the java instances found on this thread: https://github.com/ropensci/RSelenium/issues/228 
+  system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
+  
+  }
+
+
+# semi working loop below ---------------------------------
+
+search.term <- deframe(retsinformation.df[,1])
+search.term
+
+DK.text.list <- structure(vector("list", 10)) #, names=search.term)
+
+# Lets try to get this data from the url...
+URLs <- deframe(retsinformation.df[,30])
+URLs
+
+URLs <- URLs[1:10]
 
 for (i in seq(URLs)) {
   
 remDr <- rsDriver(browser='chrome', 
-                  port=free_port(random = TRUE),
+                  port= free_port(random = TRUE),
                   check = FALSE, 
                   chromever="105.0.5195.19")
   
 browser <- remDr$client
   
-browser$open()
+browser$open() # Open the remote browser
 
-browser$navigate(URLs[i])
+browser$navigate(URLs[i]) # navigate to the URL 
 
-Sys.sleep(2)
+Sys.sleep(2) # Stop for 2 second because takes a couple secs for the pg. to load
 
-pagesource <- browser$getPageSource()
+pagesource <- browser$getPageSource() # retrieve html page source code
 
 html <- read_html(pagesource[[1]])
 
@@ -111,15 +169,40 @@ DK.text.list[[i]] <-
   html_nodes(xpath = '//*[@class="document-content "]') %>%
   html_text2()
 
-print(i)
+print(i) # Print what iteration we are on
 
-browser$close()
+browser$close() # Close the browser
+rm(remDr) # Remove this obj.
+# so we dont have port use issues we need to kill the java instances found on this thread: https://github.com/ropensci/RSelenium/issues/228 
+system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
 
-}
+Sys.sleep(1) 
+
+  }
+
+# this loop works until there was like 500 and then we had another port in use issue
+
+DK.text.list.1 <- DK.text.list
 
 
+# lets make it into a df to use.
+DK.text.list.1.2 <- as.data.frame(cbind(DK.text.list.1))
+#DK.text.list.1.2 <- as.data.frame(unlist(DK.text.list.1))
 
+DK.text.list.2 <- 
+  DK.text.list.1.2 %>% 
+  rownames_to_column(., var = "search.term") %>%
+  rename("text" = "DK.text.list.1") %>%
+  mutate(search.term = str_replace_all(search.term,"\\.[:graph:]+",""),
+         country = "DK",
+         ID = row_number()) %>%
+  as_tibble() %>%
+  unnest(text)
 
+str(DK.text.list.2)
+
+write.csv(x = DK.text.list.2,
+          file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/01_DK.textDF.csv", row.names=FALSE)
 
 
 
