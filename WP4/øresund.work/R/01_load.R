@@ -64,6 +64,9 @@ URLs
 URLs <- URLs[1:5]
 port <- seq(1:5)
 
+# make sure nothing is open before we start the loop
+system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
+
 for (i in seq(URLs)) {
   
   remDr <- rsDriver(browser='chrome',
