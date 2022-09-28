@@ -53,22 +53,22 @@ retsinformation.df <-
 # A loop to get text data for all URLs -------------------------------------
 
 search.term <- deframe(retsinformation.df[,1])
-search.term <- search.term[1:1367]
+search.term <- search.term[1:5]
 
-DK.text.list <- structure(vector("list", 1367), names=search.term)
+DK.text.list <- structure(vector("list", 5), names=search.term)
 
 # Lets try to get this data from the url...
 URLs <- deframe(retsinformation.df[,30])
 URLs
 
-URLs <- URLs[1:1367]
-port <- seq(1:1367)
+URLs <- URLs[1:5]
+port <- seq(1:5)
 
 for (i in seq(URLs)) {
   
-  remDr <- rsDriver(browser='chrome', 
-                    #port= free_port(random = TRUE), # this didnt work eventually got a port in use error
-                    port = port[i],
+  remDr <- rsDriver(browser='chrome',
+                    port= netstat::free_port(), # this didnt work eventually got a port in use error
+                    #port = port[i], # this also didnt work I got a port error issue....
                     check = FALSE, 
                     chromever="105.0.5195.19")
   
@@ -89,10 +89,8 @@ for (i in seq(URLs)) {
     html_nodes(xpath = '//*[@class="document-content "]') %>%
     html_text2()
   
-  print(URLs[i]) # Print what iteration we are on for URLs
-  print(port[i]) # Print what iteration we are on for ports
-  
-  Sys.sleep(1) 
+  print(URLs[i]) # Print the URL we are on
+  print(i)       # Print what iteration we are on
   
   browser$quit() # Close the browser session
 
@@ -101,6 +99,9 @@ for (i in seq(URLs)) {
   
   # so we dont have port use issues we need to kill the java instances found on this thread: https://github.com/ropensci/RSelenium/issues/228 
   system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
+  
+  gc() # free up some RAM for the large loop
+  
   
   }
 
