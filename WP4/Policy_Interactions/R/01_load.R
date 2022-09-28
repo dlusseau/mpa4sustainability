@@ -399,7 +399,7 @@ n_distinct(mpaCELEX.list.mpaterms.DF2$CELEX)
 mpaterms.text.data <- 
   mpaCELEX.list.mpaterms.DF2 %>%
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>%
-  distinct(CELEX,.keep_all=TRUE ) %>%
+  distinct(CELEX,.keep_all=TRUE ) %>% 
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
   as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
@@ -407,8 +407,16 @@ mpaterms.text.data <-
 
 mpaterms.text.data <- 
   mpaterms.text.data %>%
-  mutate(total.text = paste0(.$title,.$text))
+  mutate(total.text = paste0(.$title,.$text)) %>%
+  select(resource.type, CELEX, force, url,title,text,total.text)
 
+# bc some document name mulitple mpa designations
+mpaterms.text.data1 <- 
+  mpaCELEX.list.mpaterms.DF2 %>%
+  distinct(CELEX,search.term) %>%
+  left_join(.,mpaterms.text.data, by = c("CELEX"))
+
+n_distinct(mpaterms.text.data1$CELEX)
 
 # Save files ---------------------------------------------------------------------
 
@@ -434,6 +442,14 @@ write.csv(x = EU.mpa.char.edit,
 write.csv(x = mpaCELEX.list.mpaterms.DF,
           file = "WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv", row.names=FALSE)
 
+# EU mpa designation term search results w/ associated data 
+write.csv(x = mpaCELEX.list.mpaterms.DF2,
+          file = "WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX2.csv", row.names=FALSE)
+
+
 # EU mpa designation term associated text data: 
 write.csv(x = mpaterms.text.data,
           file = "WP4/Policy_Interactions/data/01_mpaterms.text.data.csv", row.names=FALSE)
+
+
+
