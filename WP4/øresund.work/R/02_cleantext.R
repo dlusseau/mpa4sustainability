@@ -35,15 +35,23 @@ DKtext.df <-
          country = as.factor(country)) %>%
   select(doc_id,text,search.term,country)
 
+#looking for the other forms of hunting and fishing
+#  DKtext.df.terms <-
+#    DKtext.df %>%
+#    mutate(sæl = str_extract_all(text, "sæl"),
+#           fugle = str_extract_all(text, "fugle"),
+#           harpun = str_extract_all(text, "harpun"))
+
+
 # cleaning and pre-processing text data 
 DKtext.df.clean <-
   DKtext.df %>%
-  mutate(clean.text = tolower(text),                                   # convert all to lower case
-         clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
-         clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
-         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
-         clean.text = removeWords(clean.text,stopwords("da"))) %>%     # remove danish stop words
-  mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%   # stemming words
+  mutate(clean.text = tolower(text),                                  # convert all to lower case
+         clean.text = str_replace_all(clean.text,"[:punct:]",""),     # remove punctuation
+         clean.text = str_replace_all(clean.text,"[:digit:]",""),     # remove numbers
+         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),# remove all special characters
+         clean.text = removeWords(clean.text,stopwords("da"))) %>%    # remove danish stop words
+  mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%  # stemming words
   unnest(clean.text) %>%
   group_by(doc_id) %>%
   mutate(clean.text = paste(clean.text, collapse = " ")) %>%
