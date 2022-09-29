@@ -10,6 +10,7 @@ library("lubridate")
 library("tidyr")
 library("stringr")
 library("igraph")
+library("widyr")
 
 # Define functions --------------------------------------------------------
 
@@ -285,14 +286,6 @@ both.cit2 <-
   distinct()%>%
   select(-n)
 
-#network.attributes2 <-
-#  mpa.policy.notext.df %>%
-#  filter(CELEX %in% Doc.citations.2$to) %>% 
-#  select(resource.type,CELEX,date,force) %>%
-#  distinct(CELEX,.keep_all = TRUE) %>%
-#  mutate(pulled.from = "eurlex.web") %>%
-#  rbind(.,citation.info2) # %>%
-
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
 # 663-76-76 = 551 math check add up :)
 
@@ -388,6 +381,10 @@ cleaned.labels <-
   mpa.policy.notext.df %>%
   distinct(CELEX,labels, .keep_all = TRUE)
 
+n_distinct(cleaned.labels$CELEX)
+# 24
+n_distinct(cleaned.labels$labels)
+# 103 label terms
 n_distinct(cleaned.labels$MT)
 # 29 themes 
 
@@ -406,6 +403,9 @@ term.pairs<-
   label.pairs.sub %>%
   select(-all) 
 
+summary(term.pairs)
+
+# for the left label column find the number of times a label is linked to another label.
 attributes1<- 
   label.pairs.sub %>%
   select(-all) %>%
@@ -413,6 +413,7 @@ attributes1<-
   summarise(sum1 = sum(n)) %>%
   mutate(sum1 = replace_na(sum1,0))
 
+# for the right label column find the number of times a label is linked to another label.
 attributes2<- 
   label.pairs.sub %>%
   select(-all) %>%
@@ -445,15 +446,15 @@ remove <-
 attributes3 <-
   mpa.policy.notext.df %>%
   distinct(labels,MT) %>%
-  anti_join(.,remove, by = c("labels","MT")) %>%
-  mutate(MT=gsub("\\d","",.$MT))
+  anti_join(.,remove, by = c("labels","MT")) %>% # remove the unwanted themes
+  mutate(MT=gsub("\\d","",.$MT)) # remove the theme number code
 
 
 final.attributes <- 
   full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
-  mutate(sum2 = replace_na(sum2,0)) %>%
-  mutate(sum1 = replace_na(sum1,0)) %>%
-  mutate(total.count=sum1+sum2) %>%
+  mutate(sum2 = replace_na(sum2,0)) %>% # make NAs 0
+  mutate(sum1 = replace_na(sum1,0)) %>% # make NAs 0
+  mutate(total.count=sum1+sum2) %>% # get the total number of edges
   select(-c("sum1","sum2")) %>%
   left_join(.,attributes3, by = c("item1"="labels"))
 
@@ -494,6 +495,21 @@ plot(network,
      
 )
 
+legend(x=-.1,y=1.2,unique(V(network)$MT), 
+       pch=21,
+       col="#777777", 
+       pt.bg=unique(V(network)$color), 
+       pt.cex=2, 
+       cex=1, 
+       bty="n", # no box around the legen 
+       ncol=2)
+
+
+
+edges <- degree(network)
+sum(edges)
+
+V(network)
 
 # O.K. so the network viz is more legable 
 # I will only plot those that are the median or above edges
@@ -551,4 +567,21 @@ plot(graphNetwork,
      vertex.label.dist = V(graphNetwork)$dist
      # trying this layout based on pdf above...
 )
+
+legend(x=-.1,y=-.7,unique(V(graphNetwork)$MT), 
+       pch=21,
+       col="#777777", 
+       pt.bg=unique(V(graphNetwork)$color), 
+       pt.cex=2, 
+       cex=1, 
+       bty="n", # no box around the legen 
+       ncol=2)
+
+
+
+edges <- degree(graphNetwork)
+sum(edges)
+
+V(graphNetwork)
+
 
