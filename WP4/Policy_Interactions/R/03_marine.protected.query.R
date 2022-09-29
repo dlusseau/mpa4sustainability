@@ -22,7 +22,6 @@ mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApoli
 # Our document-data key
 document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
-#MPA.textdata<- read.csv(file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
 
 #---------------------------------------------------------------------------
 #------------- This is the analysis on the first search query  -------------
@@ -50,6 +49,17 @@ n_distinct(Doc.citations$CELEX)
 # 19 document cite another document 
 n_distinct(Doc.citations$citationcelex)
 # 208 documents are cited
+
+mpa.policy.notext.df %>%
+  distinct(CELEX, .keep_all = TRUE) %>%
+  group_by(resource.type) %>%
+  summarise(n=n_distinct(CELEX))
+
+# DEC               6
+# DIR               2
+# OPIN              8
+# RECO              1
+# REG               7
 
 
 #Eurlex data/attributes about the citations
@@ -125,7 +135,7 @@ network.attributes.final <-
 
 n_distinct(network.attributes.final$CELEX)
 #148
-#dimentions add up bc 19+134=153, 153-8+4=149
+#dimentions add up bc 17(docs)+134(citations)-3(remove the dup.bc within both) = 148
 
 Doc.citations <-
   Doc.citations %>%
@@ -136,23 +146,24 @@ n_distinct(Doc.citations$to)
 # 17
 n_distinct(Doc.citations$from)
 #  134
-17+208
-#225
+17+134-3
+#148
 docs <- unique(Doc.citations$to)
 cit <-  unique(Doc.citations$from)
 xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx)
+# 148 observations
+
+# ok so both the document citataion df and the network attributes df have the same dimentions 
 
 network <- graph_from_data_frame(d=Doc.citations, directed = TRUE, vertices = network.attributes.final)
 print(network, e=TRUE, v=TRUE)
 
-l <- layout.fruchterman.reingold(network)
-l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+# <- layout.fruchterman.reingold(network)
+#l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+
 
 labels <- network.attributes.final[1:3,1]
-labels <- c("Marine Strategy Framework Dir.",
-            "Reg. on CFP, amending CRs",
-            "Reg. European Maritime and Fisheries Fund & repealing CRs")
 
 # 32008L0056 --> Marine Strategy Framework Directive
 #	32013R1380 --> CFP, amending CRs
@@ -162,18 +173,36 @@ labels2 <- rep(NA,time=222)
 labels3 <- c(labels,labels2)
 V(network)$label <- labels3 
 
-
 plot(network,
      edge.width=.5,
-     vertex.size=3,
-     vertex.label=NA,
-     vertex.label.cex=1,
-     edge.arrow.size=.5,
+     vertex.size=5,
+  #  vertex.label=NA,
+     vertex.label.family = "sans",
+     vertex.label.cex=.75,
+     edge.arrow.size=.25,
      edge.arrow.width=2,
+#    layout = l
      )
+legend(x=-1,y=-1.,c("2008L0056: Marine Strategy Framework Directive",
+                   "32013R1380: CFP, amending CRs",
+                   "32014R0508:European Maritime and Fisheries Fund & repealing CRs"),
+       cex=1 )
+legend(x=-1,y=-.85,c("Both (result & citation)",
+                   "Search result",
+                    "Citation"), 
+       pch=21,
+       col="#777777", 
+       pt.bg=unique(V(network)$color), 
+       pt.cex=2, cex=1, bty="n", ncol=1)
+
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
+
+edges <- degree(network)
+sum(edges)
+
+V(network)
 
 # Second order citations ---------------------------------------------------------------------------
 
@@ -185,9 +214,10 @@ plot(network,
 
 indir.citation_info <- 
   Doc.citations %>%
-  select(from) %>%
-  left_join(.,document.key.df, by = c("from" = "celex"))
+  select(from) %>% #citations
+  left_join(.,document.key.df, by = c("from" = "celex")) 
 
+#check
 n_distinct(Doc.citations$from)
 n_distinct(indir.citation_info$from)
 # no changes :)
@@ -195,12 +225,11 @@ n_distinct(indir.citation_info$from)
 Doc.citations.2 <-
   indir.citation_info %>%
   distinct(from,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
-  filter(!is.na(citationcelex)) %>%
+  filter(!is.na(citationcelex)) %>% # remove those that have no citations
   rename("to" = "from",
          "from" = "citationcelex")
 
 #now make sure they are only legislation documents 
-
 leg.citation_info2 <- 
   document.key.df %>%
   filter(celex %in% Doc.citations.2$from) %>% 
@@ -212,39 +241,10 @@ leg.citation_info2 <-
 Doc.citations.2 <- 
   Doc.citations.2 %>%
   filter(from %in% leg.citation_info2$CELEX) 
+n_distinct(Doc.citations.2$to)
+#104 citations cite another document 
 
 citation.info2 <-  leg.citation_info2
-
-#network.attributes2 <-
-#  mpa.policy.notext.df %>%
-#  filter(CELEX %in% Doc.citations.2$to) %>% 
-#  select(resource.type,CELEX,date,force) %>%
-#  distinct(CELEX,.keep_all = TRUE) %>%
-#  mutate(pulled.from = "eurlex.web") %>%
-#  rbind(.,citation.info2) # %>%
-
-#both.pulls2 <-
- # network.attributes2 %>%
- # group_by(CELEX) %>%
- # summarise(n=n()) %>%
- # filter(n>1) 
-# 3 documents pulled as an MPA leg are also cited by other legislation 
-# These are the same as last time...
-# 32008L0056 --> Marine Strategy Framework Directive
-#	32013R1380 --> CFP, amending CRs
-#	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
-
-#network.attributes.both2 <- network.attributes2[network.attributes2$CELEX %in% both.pulls2$CELEX,]
-
-#network.attributes.both2 <- 
- # network.attributes.both2 %>%
- # distinct(CELEX,.keep_all = TRUE) %>%
- # mutate(pulled.from= "both")
-
-#network.attributes.notboth2 <- network.attributes2[!network.attributes2$CELEX %in% both.pulls2$CELEX,]
-
-#network.attributes.final2 <-
-#  rbind(network.attributes.both2,network.attributes.notboth2)
 
 network.attributes.final2 <-
   citation.info2 %>%
@@ -264,52 +264,122 @@ network.attributes.final2 <-
 n_distinct(network.attributes.final2$CELEX)
 #515
 
-
-
-
 Doc.citations3 <- rbind(Doc.citations,Doc.citations.2)
 
 network.attributes.final3 <- rbind(network.attributes.final,network.attributes.final2)
 
-network.attributes.final3 <- 
-  network.attributes.final3 %>%
-  distinct(CELEX, .keep_all = TRUE)
+# some of the citations are both second and first order ciatations so lets make a new label... (color is orange and the name is reference 3)
+both.cit2 <-
+ network.attributes.final3 %>%
+ group_by(CELEX) %>%
+ mutate(n=n()) %>%
+ filter(n>1) %>%
+  filter(CELEX != "32008L0056" &
+         CELEX != "32013R1380" &
+         CELEX != "32014R0508" &
+         CELEX != "32013D1386") %>% # this last one is now a both
+  mutate(pulled.from = "reference3") %>%
+  mutate(color = 
+           case_when(
+             pulled.from == "reference3" ~ "orange" )) %>%
+  distinct()%>%
+  select(-n)
+
+#network.attributes2 <-
+#  mpa.policy.notext.df %>%
+#  filter(CELEX %in% Doc.citations.2$to) %>% 
+#  select(resource.type,CELEX,date,force) %>%
+#  distinct(CELEX,.keep_all = TRUE) %>%
+#  mutate(pulled.from = "eurlex.web") %>%
+#  rbind(.,citation.info2) # %>%
+
+network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
+# 663-76-76 = 551 math check add up :)
+
+network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
+# 551+76 = 587 
+	
+network.attributes.final4 <- 
+  network.attributes.final4 %>%
+  mutate(pulled.from = case_when(CELEX == "32013D1386" ~ "both", # change this one to both since it is second order referenced. 
+                                 TRUE ~ pulled.from)) %>%
+  mutate(color = case_when(CELEX == "32013D1386" ~ "#f8766d", 
+                                 TRUE ~ color)) %>%
+  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove", # 
+                            CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
+                            CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
+                            TRUE ~ "keep")) %>%
+  filter(remove == "keep") %>%
+  distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
+
+# 587 - 4 = 583
 
 n_distinct(Doc.citations3$to)
-# 118
+# 118 
+
 n_distinct(Doc.citations3$from)
-#  570
-118+570
-#688
+#  570 (134+515-76-4)
+
 docs <- unique(Doc.citations3$to)
 cit <-  unique(Doc.citations3$from)
 xx <- as.data.frame(c(docs,cit))
-xx <- distinct(xx)
+xx <- distinct(xx) #583 documents
+# ok so both the document citataion df and the network attributes df have the same dimentions 
 
-network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final3)
+identical(Doc.citations3$to,Doc.citations3$from)
+
+network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network, e=TRUE, v=TRUE)
 
 l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-labels <- network.attributes.final3[1:3,1]
-labels <- c("Marine Strategy Framework Dir.",
-            "Reg. on CFP, amending CRs",
-            "Reg. European Maritime and Fisheries Fund & repealing CRs")
 
-# 32008L0056 --> Marine Strategy Framework Directive
-#	32013R1380 --> CFP, amending CRs
-#	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
+labels <- network.attributes.final[1:3,1]
+labels2 <- network.attributes.final[10,1]
+
+labels3 <- rep(NA,time=579)
+labels4 <- c(labels,labels3)
+labels4 <- append(labels4,labels2, after = 9)
+
+V(network)$label <- labels4
 
 plot(network,
      edge.width=.5,
-     vertex.size=2,
-     vertex.label=NA,
-     vertex.label.cex=1,
+     edge.color=adjustcolor("gray", alpha.f = .5),
+     vertex.size=3,
+  #  vertex.label=NA,
+     vertex.label.cex=.65,
+     vertex.label.family = "sans",
      edge.arrow.size=.5,
      edge.arrow.width=1,
      layout=l
 )
+
+legend(x=-1.3,y=-1.05,c("32008L0056: Marine Strategy Framework Directive",
+                        "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
+                        "32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
+                        "32013D1386: Decision on a General Union Environment Action Programme to 2020 ‘Living well, within the limits of our planet’"),
+       cex=1 )
+legend(x=-1.3,y=-.82,c("Both (result & citation)",
+                       "Search result",
+                       "Only first order citation",
+                       "Only second order citation",
+                       "First and second order citation"), 
+       pch=21,
+       col="#777777", 
+       pt.bg=unique(V(network)$color), 
+       pt.cex=2, 
+       cex=1, 
+       bty="n", 
+       ncol=1)
+
+#32016R1624 does cite itself... double checked on EUR-Lex... 
+
+edges <- degree(network)
+sum(edges)
+
+V(network)
 
 # Exploring Eurovoc terms -----------------------------------------------
 
