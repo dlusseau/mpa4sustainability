@@ -53,16 +53,16 @@ retsinformation.df <-
 # A loop to get text data for all URLs -------------------------------------
 
 search.term <- deframe(retsinformation.df[,1])
-search.term <- search.term[1:5]
+search.term <- search.term[1:1367]
 
-DK.text.list <- structure(vector("list", 5), names=search.term)
+DK.text.list <- structure(vector("list", 1367), names=search.term)
 
 # Lets try to get this data from the url...
 URLs <- deframe(retsinformation.df[,30])
 URLs
 
-URLs <- URLs[1:5]
-port <- seq(1:5)
+URLs <- URLs[1:1367]
+port <- seq(1:1367)
 
 # make sure nothing is open before we start the loop
 system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
