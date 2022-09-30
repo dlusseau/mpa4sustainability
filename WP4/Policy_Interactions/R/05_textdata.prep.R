@@ -10,6 +10,8 @@ library("tm")
 library("corpus")
 library("tidyr")
 library("lubridate")
+library("rvest")
+library("readr")
 
 # Define functions ---------------------------------------------------------
 
@@ -18,13 +20,18 @@ library("lubridate")
 # Load data ----------------------------------------------------------------
 
 # Our document-data key
-document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 # EU mpa designation term associated text data: 
-MPA.DESG.text <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_mpaterms.text.data.dup.csv")
+MPA.DESG.text <- read.csv(file = "WP4/Policy_Interactions/data/01_mpaterms.text.data.dup.csv")
 
 # "marine protected" associated text data:
-mar.protected.text <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
+html_encoding_guess("WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
+
+mar.protected.text <- read_csv(file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv",
+                      locale = locale(encoding = "ISO-8859-1"),
+                      show_col_types = FALSE)
+
 
 # EU mpa characteristics: 
 EU.mpachar <- read.csv(file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv")
@@ -47,7 +54,12 @@ EU.mpachar %>%
 
 EU.mpachar %>%
   group_by(DESIG_ENG) %>%
-  summarise(n.mpas = n_distinct(PARENT_ISO))
+  summarise(n.countries = n_distinct(PARENT_ISO))
+
+EU.mpachar %>%
+  filter(DESIG_ENG == "sites of community importance (habitats directive)" |
+         DESIG_ENG == "special areas of conservation (habitats directive)") %>%
+  summarise( n = n_distinct(PARENT_ISO))
 
 #----------------------------------------------------------------------------
 #----------------- This is the the first search query  ----------------------
@@ -61,6 +73,7 @@ n_distinct(mar.protected.text$CELEX)
 
 mar.protected.text.df <- 
   mar.protected.text %>%
+  filter(CELEX != "32021R0092") %>% # same filter out as in 03 Rscript
   select(resource.type,CELEX,url,total.text) %>%
   mutate(resource.type = as.factor(resource.type),
          doc_id = as.factor(CELEX),
@@ -109,12 +122,26 @@ mar.protected.text.df.clean <-
 #possibly add force, date/year and theme so we have it in the meta-data of the corpus
 mar.protected.text.df.clean <-
   mar.protected.text.df.clean %>%
-  left_join(. , smaller.key.df, by= c("doc_id" = "celex"))%>%
-  filter(doc_id != "32021R0092")
+  left_join(. , smaller.key.df, by= c("doc_id" = "celex"))
 
 # lets make it into a corpus object
 mar.protected.corpus <- DataframeSource(mar.protected.text.df.clean)
 mar.protected.corpus <- SimpleCorpus(mar.protected.corpus, control = list(language = "en"))
+
+meta(mar.protected.corpus)
+
+# OK so now we have a cleaned corpus: 
+
+  # convert corpus to a document-term matrix
+  # document term matrix: lists word occurances within a document 
+  dtm.Q1 <- DocumentTermMatrix(mar.protected.corpus)
+  inspect(dtm.Q1)
+  
+  # convert corpus to a term-document matrix
+  # document term matrix: lists word occurances within a document 
+  tdm.Q1 <- TermDocumentMatrix(mar.protected.corpus)
+  inspect(tdm.Q1)
+  
 
 #---------------------------------------------------------------------------
 #--------------------- This is the second search query  --------------------
@@ -178,6 +205,21 @@ MPA.DESG.text.df.clean <-
 # lets make it into a corpus object
 MPA.DESG.corpus <- DataframeSource(MPA.DESG.text.df.clean)
 MPA.DESG.corpus <- SimpleCorpus(MPA.DESG.corpus, control = list(language = "en"))
+
+meta(MPA.DESG.corpus)
+
+# OK so now we have a cleaned corpus: 
+
+# convert corpus to a document-term matrix
+# document term matrix: lists word occurances within a document 
+dtm.Q2 <- DocumentTermMatrix(MPA.DESG.corpus)
+inspect(dtm.Q2)
+
+# convert corpus to a term-document matrix
+# document term matrix: lists word occurances within a document 
+tdm.Q2 <- TermDocumentMatrix(MPA.DESG.corpus)
+inspect(tdm.Q2)
+
 
 
 # Lets do sentiment scores: 
