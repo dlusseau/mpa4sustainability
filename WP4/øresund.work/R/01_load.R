@@ -123,17 +123,28 @@ DK.text.list.2 <-
          country = "DK",
          ID = row_number()) %>%
   as_tibble() %>%
-  unnest(text)
+  unnest(text,keep_empty = TRUE)
 
 str(DK.text.list.2)
+
+DK.text.list.2 <- DK.text.list.2[1:929,1:4]
+
 
 write.csv(x = DK.text.list.2,
           file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/01_DK.textDF.csv", row.names=FALSE)
 
 
+# ok one Thursday evening 29-09-2022 i ran the code but it only got text from URLs 1-927 
+# then an error Fejl i read_xml.raw(charToRaw(enc2utf8(x)), "UTF-8", ..., as_html = as_html,  : 
+# Excessive depth in document: 256 use XML_PARSE_HUGE option [1]
+# so I will try this url alone maybe something wrong with th link...
+# put the df with 928 data in the one drive for now. 
+
+# So the issue is this webpage : https://www.retsinformation.dk/eli/retsinfo/2000/20037 which was number 930 in the url vector 
+# cannot be read by selenium thus the error occured and the loop stopped...
 
 # archival for now -----------------------------------------
-# semi working loop below --
+# semi working loop below -----
 
 search.term <- deframe(retsinformation.df[,1])
 search.term <- search.term[1:10]
@@ -207,20 +218,23 @@ write.csv(x = DK.text.list.2,
 
 
 
-# How to get the text for one URL --
+# How to get the text for one URL ------
+
+URL <- URLs[686]
+
 
 binman::list_versions("chromedriver")
 # $win32
 # [1] "105.0.5195.19" "105.0.5195.52" "106.0.5249.21"
 
-remDr <- rsDriver(browser='chrome', port=4444L,check = FALSE, 
+remDr <- rsDriver(browser='chrome', port=9871L,check = FALSE, 
                   chromever="105.0.5195.19")
 
 browser <- remDr$client
 
 browser$open()
 
-browser$navigate("https://www.retsinformation.dk/eli/lta/2021/2584")
+browser$navigate(URL)
 
 pagesource <- browser$getPageSource()
 
