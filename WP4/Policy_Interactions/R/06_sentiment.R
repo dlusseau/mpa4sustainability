@@ -4,11 +4,9 @@ rm(list = ls())
 
 # Load libraries ----------------------------------------------------------
 
-library("igraph")
-library("widyr")
-library("dplyr")
-library("tibble")
-library("tidyr")
+library("sentimentr")
+library("tidyverse")
+library("magrittr")
 
 # Define functions --------------------------------------------------------
 
@@ -25,6 +23,29 @@ Q2.sent.text <- read.csv(file = "WP4/Policy_Interactions/data/05_Q2.cleansent.te
 #---------------------------------------------------------------------------
 
 
+Q1.sent.bytheme <- 
+  Q1.sent.text %>%
+  distinct(doc_id,MT, .keep_all = TRUE) %>%
+  mutate(sentences = get_sentences(text)) %$%
+  sentiment_by(sentences, list(MT))
+
+plot(sent.bytheme)
+
+Q1.sent.bydocument <- 
+  Q1.sent.text %>%
+  distinct(doc_id,MT, .keep_all = TRUE) %>%
+  group_by(MT) %>%
+  summarise(n = n_distinct(doc_id)) 
+
+# double check and compare these two outputs... 
+# the functions might not take ito account duplicates due to multiple theme associations
+
+
+Q1.sent.byresourcetype <- 
+  Q1.sent.text %>%
+  mutate(sentences = get_sentences(text)) %$%
+  sentiment_by(sentences, list(resource.type))
+
 
 
 #---------------------------------------------------------------------------
@@ -34,42 +55,17 @@ Q2.sent.text <- read.csv(file = "WP4/Policy_Interactions/data/05_Q2.cleansent.te
 #---------------------------------------------------------------------------
 
 
-## getting familiar with sentiment analysis again
-
-# Lets do sentiment scores: 
-library("sentimentr")
-library("tidyverse")
-library("magrittr")
-
-sent <- 
-  mar.protected.text.df.clean.SENT %>%
-  distinct(doc_id,MT, .keep_all = TRUE) %>%
-  mutate(sentences = get_sentences(text)) %$%
-  sentiment_by(sentences, list(MT))
-
-plot(sent)
-plot(uncombine(sent))
-
-x <- 
-  mar.protected.text.df.clean.SENT %>%
-  distinct(doc_id,MT, .keep_all = TRUE) %>%
-  group_by(MT) %>%
-  summarise(n = n_distinct(doc_id)) 
-
-
-sent.resource.type <- 
-  mar.protected.text.df.clean.SENT %>%
-  mutate(sentences = get_sentences(text)) %$%
-  sentiment_by(sentences, list(resource.type))
-
-sent2 <- 
-  MPA.DESG.text.df.SENT %>%
+Q2.sent.bydocument <- 
+  Q2.sent.text %>%
   mutate(sentences = get_sentences(text)) %$%
   sentiment_by(sentences, list(doc_id))
 
-sent2.resource.type <- 
-  MPA.DESG.text.df.SENT %>%
+Q2.sent2.resource.type <- 
+  Q2.sent.text %>%
   mutate(sentences = get_sentences(text)) %$%
   sentiment_by(sentences, list(resource.type))
+
+
+# Save files ---------------------------------------------------------------------
 
 
