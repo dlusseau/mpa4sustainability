@@ -268,8 +268,10 @@ Doc.citations.2 <-
   Doc.citations.2 %>%
   filter(from %in% leg.citation_info2$CELEX) 
 
-citation.info2 <-  leg.citation_info2
+n_distinct(Doc.citations.2$to)
+n_distinct(Doc.citations.2$from)
 
+citation.info2 <-  leg.citation_info2
 
 network.attributes.final2 <-
   citation.info2 %>%
@@ -293,8 +295,6 @@ Doc.citations3 <- rbind(MPA.citations,Doc.citations.2)
 
 network.attributes.final3 <- rbind(network.attributes.final,network.attributes.final2)
 
-# HERE IS WHERE YOU NEED TO INSERT THE NEW CODE RESOLVES THE THIRD REFERENCE ISSUE IT IS IN RSCRIPT 03.
-
 # some of the citations are both second and first order ciatations so lets make a new label... (color is orange and the name is reference 3)
 both.cit2 <-
   network.attributes.final3 %>%
@@ -304,13 +304,14 @@ both.cit2 <-
   filter(!CELEX %in% both.pulls$CELEX) %>% #380-32 = 348
   filter(CELEX != "32010D0631" &
            CELEX != "32013D1386" &
-           CELEX != "31998D2179") %>% # this three are now a both so in total there are 19 docs that will have duplicates later. 
+           CELEX != "31998D2179") %>% # this three are now a both so in total there are 24 docs that will have duplicates later. 
   mutate(pulled.from = "reference3") %>%
   mutate(color = 
            case_when(
              pulled.from == "reference3" ~ "orange" )) %>%
   distinct()%>%
   select(-n)
+
 
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
 # 1316-342 = 974 math check add up :)
@@ -319,23 +320,34 @@ network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
 # 974+171 = 1145 
 
 # stopped here: need to change all the celex info starting tomorrow
+
+both.cit.originaloverlap<-
+  network.attributes.final3 %>%
+  group_by(CELEX) %>%
+  mutate(n=n()) %>%
+  filter(n>1) %>%
+  filter(pulled.from == "both") %>%
+  as.data.frame()
+
+both.cit.originaloverlap <- as.character(both.cit.originaloverlap[1:16,1])
+
 network.attributes.final4 <- 
   network.attributes.final4 %>%
-  mutate(pulled.from = case_when(CELEX == "32013D1386" ~ "both", # change this one to both since it is second order referenced. 
+  mutate(pulled.from = case_when(CELEX == "32010D0631" ~ "both", # change this one to both since it is second order referenced. 
+                                 CELEX == "32013D1386" ~ "both",
+                                 CELEX == "31998D2179" ~ "both",
                                  TRUE ~ pulled.from)) %>%
-  mutate(color = case_when(CELEX == "32013D1386" ~ "#f8766d", 
+  mutate(color = case_when(CELEX == "32010D0631" ~ "#f8766d", 
+                           CELEX == "32013D1386" ~ "#f8766d", 
+                           CELEX == "31998D2179" ~ "#f8766d", 
                            TRUE ~ color)) %>%
-  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove", # 
-                            CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
-                            CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
+  mutate(remove = case_when(CELEX %in% both.cit.originaloverlap & pulled.from == "reference2" ~ "remove", # 
+                           # CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
+                           # CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
                             TRUE ~ "keep")) %>%
   filter(remove == "keep") %>%
   distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
-
-#--------
-network.attributes.final3 <- 
-  network.attributes.final3 %>%
-  distinct(CELEX, .keep_all = TRUE)
+# 1145 - 16 - 3 = 1126
 
 n_distinct(Doc.citations3$to)
 # 312
@@ -347,25 +359,42 @@ docs <- unique(Doc.citations3$to)
 cit <-  unique(Doc.citations3$from)
 xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx)
+# ok so both the document citataion df and the network attributes df have the same dimentions 
 
-network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final3)
+network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network, e=TRUE, v=TRUE)
 
 l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
+
 plot(network,
      edge.width=.5,
-     vertex.size=2,
+     edge.color=adjustcolor("gray", alpha.f = .5),
+     vertex.size=3,
      vertex.label=NA,
-     vertex.label.cex=1,
-     edge.arrow.size=.5,
+     vertex.label.cex=.65,
+     vertex.label.family = "sans",
+     edge.arrow.size=.05,
      edge.arrow.width=1,
-     layout=l*1.2,
-     edge.curved=.1,
-     vertex.label.dist = 0.5,
+    # layout=l
 )
+legend(x=-2,y=1.2,c("Both (result & citation)",
+                       "Search result",
+                       "Only first order citation",
+                       "Only second order citation",
+                       "First and second order citation"), 
+       pch=21,
+       col="#777777", 
+       pt.bg=unique(V(network)$color), 
+       pt.cex=1, 
+       cex=.5, 
+       bty="n", 
+       ncol=1)
+edges <- degree(network)
+sum(edges)
 
+V(network)
 
 # Exploring Eurovoc terms -----------------------------------------------
 
