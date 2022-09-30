@@ -220,42 +220,16 @@ inspect(dtm.Q2)
 tdm.Q2 <- TermDocumentMatrix(MPA.DESG.corpus)
 inspect(tdm.Q2)
 
+# Save files ---------------------------------------------------------------------
 
-## getting familiar with sentiment analysis again
+# Q1 cleaned corpus:
+saveRDS(mar.protected.corpus, file = "WP4/Policy_Interactions/data/05_Q1corpus")
+saveRDS(dtm.Q1, file = "WP4/Policy_Interactions/data/05_dtm.Q1")
+saveRDS(tdm.Q1, file = "WP4/Policy_Interactions/data/05_tdm.Q1")
 
-# Lets do sentiment scores: 
-library("sentimentr")
-library("tidyverse")
-library("magrittr")
+# Q1 cleaned corpus:
+saveRDS(MPA.DESG.corpus, file = "WP4/Policy_Interactions/data/05_Q2corpus")
+saveRDS(dtm.Q2, file = "WP4/Policy_Interactions/data/05_dtm.Q2")
+saveRDS(tdm.Q2, file = "WP4/Policy_Interactions/data/05_tdm.Q2")
 
-sent <- 
-  mar.protected.text.df.clean.SENT %>%
-  distinct(doc_id,MT, .keep_all = TRUE) %>%
-  mutate(sentences = get_sentences(text)) %$%
-  sentiment_by(sentences, list(MT))
-
-plot(sent)
-plot(uncombine(sent))
-
-x <- 
-  mar.protected.text.df.clean.SENT %>%
-  distinct(doc_id,MT, .keep_all = TRUE) %>%
-  group_by(MT) %>%
-  summarise(n = n_distinct(doc_id)) 
-
-
-sent.resource.type <- 
-  mar.protected.text.df.clean.SENT %>%
-  mutate(sentences = get_sentences(text)) %$%
-  sentiment_by(sentences, list(resource.type))
-
-sent2 <- 
-  MPA.DESG.text.df.SENT %>%
-  mutate(sentences = get_sentences(text)) %$%
-  sentiment_by(sentences, list(doc_id))
-
-sent2.resource.type <- 
-  MPA.DESG.text.df.SENT %>%
-  mutate(sentences = get_sentences(text)) %$%
-  sentiment_by(sentences, list(resource.type))
 
