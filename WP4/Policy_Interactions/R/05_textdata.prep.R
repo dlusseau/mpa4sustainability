@@ -226,10 +226,17 @@ inspect(tdm.Q2)
 saveRDS(mar.protected.corpus, file = "WP4/Policy_Interactions/data/05_Q1corpus")
 saveRDS(dtm.Q1, file = "WP4/Policy_Interactions/data/05_dtm.Q1")
 saveRDS(tdm.Q1, file = "WP4/Policy_Interactions/data/05_tdm.Q1")
+write.csv(x = mar.protected.text.df.clean.SENT,
+          file = "WP4/Policy_Interactions/data/05_Q1.cleansent.text.csv", row.names=FALSE)
 
 # Q1 cleaned corpus:
 saveRDS(MPA.DESG.corpus, file = "WP4/Policy_Interactions/data/05_Q2corpus")
 saveRDS(dtm.Q2, file = "WP4/Policy_Interactions/data/05_dtm.Q2")
 saveRDS(tdm.Q2, file = "WP4/Policy_Interactions/data/05_tdm.Q2")
+write.csv(x = MPA.DESG.text.df.SENT,
+          file = "WP4/Policy_Interactions/data/05_Q2.cleansent.text.csv", row.names=FALSE)
+
+
+
 
 
