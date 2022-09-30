@@ -221,6 +221,7 @@ tdm.Q2 <- TermDocumentMatrix(MPA.DESG.corpus)
 inspect(tdm.Q2)
 
 
+## getting familiar with sentiment analysis again
 
 # Lets do sentiment scores: 
 library("sentimentr")
