@@ -28,13 +28,30 @@ document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.d
 #-------------------------- MPA Designation names --------------------------
 #---------------------------------------------------------------------------
 
-
 # lets join the new mpa search documents to their associated document data
 EU.mpa.termsearch.data <-
   EU.mpa.termsearch %>%
   filter(CELEX != "32021R0092") %>% #removing this celex for the same reasoning as in 03 Rscript
   left_join(., document.key.df, by = c("CELEX"="celex", "resource.type")) %>%
   select(-work,-type) # we dont need this info anymore
+
+EU.mpa.termsearch.data %>%
+  distinct(CELEX, .keep_all = TRUE) %>% 
+  group_by(search.term) %>%
+  summarise(n= n_distinct(CELEX))
+
+#    search.term                      n
+# barcelona convention*?             37
+# birds directive*?                   6
+# habitats directive*?               56
+# helcom*?                           12
+# marine protected area*?            18
+# ospar*?                            19
+# ramsar site*?                       1
+# sites of community importance*?     5
+# special areas of conservation*?    16
+# special protection area*?           7
+# world heritage site*?               2
 
 
 n_distinct(EU.mpa.termsearch.data$CELEX)
@@ -379,7 +396,7 @@ plot(network,
      edge.arrow.width=1,
     # layout=l
 )
-legend(x=-2,y=1.2,c("Both (result & citation)",
+legend(x=-1.2,y=1.2,c("Both (result & citation)",
                        "Search result",
                        "Only first order citation",
                        "Only second order citation",
