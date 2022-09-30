@@ -319,8 +319,6 @@ xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx) #583 documents
 # ok so both the document citataion df and the network attributes df have the same dimentions 
 
-identical(Doc.citations3$to,Doc.citations3$from)
-
 network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network, e=TRUE, v=TRUE)
 
