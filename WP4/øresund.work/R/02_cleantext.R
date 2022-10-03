@@ -35,22 +35,30 @@ retsinformation.df <-
 
 DK.text <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1")
 
+DK.apped.text <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.apped.text")
+
 #  lets make it into a df to use -----------------------------------------------
 
 DK.text.df <- as.data.frame(cbind(DK.text))
+
+DK.apped.text.df <- 
+  as.data.frame(cbind(DK.apped.text)) %>%
+  mutate(url = "https://www.retsinformation.dk/eli/retsinfo/2000/20071")%>%
+  rename("text" = "DK.apped.text")
 
 DK.text.df2 <- 
   DK.text.df %>% 
   rownames_to_column(., var = "url") %>%
   rename("text" = "DK.text") %>%
+  rbind(.,DK.apped.text.df) %>%
   left_join(.,retsinformation.df, by = c("url" = "EliUrl")) %>%
   mutate(country = "DK") %>%
   as_tibble() %>%
   unnest(text,keep_empty = TRUE)
 
 str(DK.text.df2)
-# ok so this df has 1363 obs. but the original has 1367, this is because the two problem URLS
-# they also have dup rows since they apprear in both the fiskeri and jagt search queries so 1363 obs. is correct since 1367-4=1364
+# ok so this df has 1365 obs. but the original has 1367, this is because the one problem URL
+# it has two rows since it appears in both the fiskeri and jagt search queries so 1365 obs. is correct
 
 #looking for the other forms of hunting and fishing (fulglejagt, sæljagt, harpunfiskeri)
 
@@ -64,21 +72,21 @@ DK.text.df3 %>%
   group_by(search.term) %>%
   summarise(n=n_distinct(url))
 
-# fiskeri      1010
-# jagt          345
+# fiskeri      1011
+# jagt          346
 # sotrafik        8
     
 DK.text.df3 %>%
-  filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1010 fisheries documents mention harpun
+  filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1011 fisheries documents mention harpun
 
 DK.text.df3 %>%
-  filter(search.term == "jagt" & sæl == "TRUE") # 138 out of 345 hunting documents mention seal
+  filter(search.term == "jagt" & sæl == "TRUE") # 139 out of 346 hunting documents mention seal
 
 DK.text.df3 %>%
-  filter(search.term == "jagt" & fugle == "TRUE") # 164 out of 345 hunting documents mention bird
+  filter(search.term == "jagt" & fugle == "TRUE") # 164 out of 346 hunting documents mention bird
 
 DK.text.df3 %>%
-  filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 35 out of 345 hunting documents both mention bird and seal
+  filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 35 out of 346 hunting documents both mention bird and seal
 
 
 # Cleaning & Pre-processing the text data --------------------------------------
