@@ -14,13 +14,13 @@ library("tidyr")
 
 # Load data ---------------------------------------------------------------
 
-EU.mpa.char<- read.csv(file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv")
+EU.mpa.char<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
 # EU mpa directives search: 
-EU.mpa.termsearch<- read.csv(file = "WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
+EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
 
 
-document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 #---------------------------------------------------------------------------
 #------------- This is the analysis on the second search query  ------------
@@ -505,7 +505,7 @@ l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 plot(network,
-     edge.width=n,
+     edge.width=E(network)$n*1,
      edge.color="grey",
      vertex.size=1,
      vertex.label.cex=V(network)$total.count*.02,
@@ -562,8 +562,8 @@ V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
 l2 <- layout.fruchterman.reingold(graphNetwork)
 
 plot(graphNetwork,
-     edge.width=V(graphNetwork)$n,
-     edge.color=adjustcolor("gray", alpha.f = .25),
+     edge.width=E(graphNetwork)$n,
+     edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
      vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*125), # label size is equiv. to percent of edges associated to the word out of total edges
      vertex.label.color=V(graphNetwork)$color,

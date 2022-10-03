@@ -18,10 +18,10 @@ library("widyr")
 
 # Load data ---------------------------------------------------------------
 
-mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
+mpa.policy.notext.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
 
 # Our document-data key
-document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 
 #---------------------------------------------------------------------------
@@ -480,8 +480,8 @@ V(network)$dist <- dist[as.numeric(as.factor(V(network)$name))]
 
 
 plot(network,
-     #edge.width=V(network),
-     edge.color=adjustcolor("gray", alpha.f = .25),
+     edge.width=E(network)$n*1,
+     edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
      vertex.label.cex=(degree(network)/sum(degree(network))*100),
      vertex.label.color=V(network)$color,
@@ -553,7 +553,7 @@ V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
 l2 <- layout.fruchterman.reingold(graphNetwork)
 
 plot(graphNetwork,
-     edge.width=V(graphNetwork)$n,
+     edge.width=E(graphNetwork)$n*1,
      edge.color=adjustcolor("gray", alpha.f = .25),
      vertex.size=2,
      vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*75), # label size is equiv. to percent of edges associated to the word out of total edges
