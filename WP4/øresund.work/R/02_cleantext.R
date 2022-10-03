@@ -5,12 +5,12 @@ rm(list = ls())
 # Load libraries ---------------------------------------------------------------
 
 library("readr")
-library("dplyr")
 library("tidyr")
-#library("tibble")
+library("tibble")
 library("tm")
 library("corpus")
 library("stringr")
+library("dplyr")
 
 # Define functions -------------------------------------------------------------
 
@@ -18,12 +18,90 @@ library("stringr")
 
 # Load data --------------------------------------------------------------------
 
-DKtext.df <- read_csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/01_DK.textDF.csv",
-                                 locale = locale(encoding = "ISO-8859-1"),
-                                 show_col_types = FALSE)
+setwd("C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
+
+retsinformation.file.list <- list.files(pattern='*.csv')
+
+retsinformation.df <- read_delim(retsinformation.file.list, 
+                                 id = "search.term",
+                                 delim = ";",
+                                 locale = locale(encoding="ISO-8859-1"))
+
+retsinformation.df <-
+  retsinformation.df %>%
+  mutate(search.term = str_extract_all(search.term,"\\w+\\."),
+         search.term = str_replace_all(search.term,"[:punct:]+",""))
+
+
+DK.text <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1")
+
+#  lets make it into a df to use -----------------------------------------------
+
+DK.text.df <- as.data.frame(cbind(DK.text))
+
+DK.text.df2 <- 
+  DK.text.df %>% 
+  rownames_to_column(., var = "url") %>%
+  rename("text" = "DK.text") %>%
+  left_join(.,retsinformation.df, by = c("url" = "EliUrl")) %>%
+  mutate(country = "DK") %>%
+  as_tibble() %>%
+  unnest(text,keep_empty = TRUE)
+
+str(DK.text.df2)
+# ok so this df has 1363 obs. but the original has 1367, this is because the two problem URLS
+# they also have dup rows since they apprear in both the fiskeri and jagt search queries so 1363 obs. is correct since 1367-4=1364
+
+#looking for the other forms of hunting and fishing (fulglejagt, sæljagt, harpunfiskeri)
+
+DK.text.df3 <-
+  DK.text.df2 %>%
+    mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun")),
+           sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl")),
+           fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle")))
+
+DK.text.df3 %>%
+  group_by(search.term) %>%
+  summarise(n=n_distinct(url))
+
+# fiskeri      1010
+# jagt          345
+# sotrafik        8
+    
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1010 fisheries documents mention harpun
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl == "TRUE") # 138 out of 345 hunting documents mention seal
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & fugle == "TRUE") # 164 out of 345 hunting documents mention bird
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 35 out of 345 hunting documents both mention bird and seal
 
 
 # Cleaning & Pre-processing the text data --------------------------------------
+
+# cleaning and pre-processing text data 
+DKtext.df.clean <-
+  DK.text.df3 %>%
+  mutate(clean.text = tolower(text),                                  # convert all to lower case
+         clean.text = str_replace_all(clean.text,"[:punct:]",""),     # remove punctuation
+         clean.text = str_replace_all(clean.text,"[:digit:]",""),     # remove numbers
+         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),# remove all special characters
+         clean.text = removeWords(clean.text,stopwords("da"))) %>%    # remove danish stop words
+  mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%  # stemming words
+  unnest(clean.text) %>%
+  group_by(url,search.term) %>%
+  mutate(clean.text = paste(clean.text, collapse = " ")) %>%
+  distinct(doc_id, .keep_all=TRUE) %>%
+  select(doc_id,clean.text,search.term,country) %>%
+  rename("text" = "clean.text") %>%
+  ungroup() %>%
+  as.data.frame()
+
+str(DKtext.df.clean)
 
 # lets mak it into the good df format
 DKtext.df <- 
@@ -35,33 +113,6 @@ DKtext.df <-
          country = as.factor(country)) %>%
   select(doc_id,text,search.term,country)
 
-#looking for the other forms of hunting and fishing
-#  DKtext.df.terms <-
-#    DKtext.df %>%
-#    mutate(sæl = str_extract_all(text, "sæl"),
-#           fugle = str_extract_all(text, "fugle"),
-#           harpun = str_extract_all(text, "harpun"))
-
-
-# cleaning and pre-processing text data 
-DKtext.df.clean <-
-  DKtext.df %>%
-  mutate(clean.text = tolower(text),                                  # convert all to lower case
-         clean.text = str_replace_all(clean.text,"[:punct:]",""),     # remove punctuation
-         clean.text = str_replace_all(clean.text,"[:digit:]",""),     # remove numbers
-         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),# remove all special characters
-         clean.text = removeWords(clean.text,stopwords("da"))) %>%    # remove danish stop words
-  mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%  # stemming words
-  unnest(clean.text) %>%
-  group_by(doc_id) %>%
-  mutate(clean.text = paste(clean.text, collapse = " ")) %>%
-  distinct(doc_id, .keep_all=TRUE) %>%
-  select(doc_id,clean.text,search.term,country) %>%
-  rename("text" = "clean.text") %>%
-  ungroup() %>%
-  as.data.frame()
-
-str(DKtext.df.clean)
 
 # lets make it into a corpus object
 DK.corpus <- DataframeSource(DKtext.df.clean)
