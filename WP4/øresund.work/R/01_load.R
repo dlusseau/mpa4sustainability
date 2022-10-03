@@ -56,11 +56,16 @@ retsinformation.df <-
 non.dups <- retsinformation.df[!duplicated(retsinformation.df$EliUrl), ]
 
 
-# problem urls
+# problem urls (from trying to run the loop previously)
 #URLs2[39]
 # "https://www.retsinformation.dk/eli/retsinfo/2000/20072"
 # URLs2[410]
 # "https://www.retsinformation.dk/eli/retsinfo/2000/20071"
+prob.urls <-
+  retsinformation.df %>%
+  filter(EliUrl == "https://www.retsinformation.dk/eli/retsinfo/2000/20072" |
+         EliUrl == "https://www.retsinformation.dk/eli/retsinfo/2000/20071"  ) # this link now works today 3-10-22 but last friday 30-9-22 the link was down...
+# they also have dup pulls since they apprear in both the fiskeri and jagt search queries...
 
 non.dups <-
   non.dups %>%
@@ -122,28 +127,10 @@ for (i in seq(URLs)) {
 
 DK.text.list.1 <- DK.text.list
 
+saveRDS(DK.text.list.1, file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1" )
 
-# lets make it into a df to use.
-DK.text.list.1.2 <- as.data.frame(cbind(DK.text.list.1))
-#DK.text.list.1.2 <- as.data.frame(unlist(DK.text.list.1))
-
-DK.text.list.2 <- 
-  DK.text.list.1.2 %>% 
-  rownames_to_column(., var = "search.term") %>%
-  rename("text" = "DK.text.list.1") %>%
-  mutate(search.term = str_replace_all(search.term,"\\.[:graph:]+",""),
-         country = "DK",
-         ID = row_number()) %>%
-  as_tibble() %>%
-  unnest(text,keep_empty = TRUE)
-
-str(DK.text.list.2)
-
-DK.text.list.2 <- DK.text.list.2[1:929,1:4]
-
-
-write.csv(x = DK.text.list.2,
-          file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/01_DK.textDF.csv", row.names=FALSE)
+#write.csv(x = DK.text.list.2,
+#          file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/01_DK.textDF.csv", row.names=FALSE)
 
 
 # ok one Thursday evening 29-09-2022 i ran the code but it only got text from URLs 1-927 
@@ -155,68 +142,8 @@ write.csv(x = DK.text.list.2,
 # So the issue is this webpage : https://www.retsinformation.dk/eli/retsinfo/2000/20037 which was number 930 in the url vector 
 # cannot be read by selenium thus the error occured and the loop stopped...
 
-## get the rest of the data past 930:
 
-search.term2 <- deframe(retsinformation.df[,1])
-search.term2 <- search.term2[930:1367]
-search.term2 <- search.term2[-39]
-
-DK.text.list2 <- structure(vector("list", 437), names=search.term2)
-
-# Lets try to get this data from the url...
-URLs2 <- deframe(retsinformation.df[,30])
-
-URLs2 <- URLs2[930:1367]
-# also need to remove number 38... webpage has an error loading in general
-URLs2 <- URLs2[-39]
-
-
-# make sure nothing is open before we start the loop
-system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
-
-for (i in seq(URLs2)) {
-  
-  remDr <- rsDriver(browser='chrome',
-                    port= netstat::free_port(), # this didnt work eventually got a port in use error
-                    #port = port[i], # this also didnt work I got a port error issue....
-                    check = FALSE, 
-                    chromever="105.0.5195.19")
-  
-  browser <- remDr$client
-  
-  browser$open() # Open the remote browser
-  
-  browser$navigate(URLs2[i]) # navigate to the URL 
-  
-  Sys.sleep(2) # Stop for 2 second because takes a couple secs for the pg. to load
-  
-  pagesource <- browser$getPageSource() # retrieve html page source code
-  
-  html <- read_html(pagesource[[1]],options = "HUGE")
-  
-  DK.text.list2[[i]] <-
-    html%>%
-    html_nodes(xpath = '//*[@class="document-content "]') %>%
-    html_text2()
-  
-  print(URLs2[i]) # Print the URL we are on
-  print(i)       # Print what iteration we are on
-  
-  browser$quit() # Close the browser session
-  
-  rm(remDr) # Remove this obj.
-  rm(browser) # Remove this obj.
-  
-  # so we dont have port use issues we need to kill the java instances found on this thread: https://github.com/ropensci/RSelenium/issues/228 
-  system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
-  
-  gc() # free up some RAM for the large loop
-  
-  
-}
-
-DK.text.list.21 <- DK.text.list2
-DK.text.list.1.22 <- as.data.frame(cbind(DK.text.list.21))
+# A loop to get the EURLEX referenced data for all URLs -------------------------------------
 
 
 # archival for now -----------------------------------------
@@ -304,21 +231,23 @@ binman::list_versions("chromedriver")
 # $win32
 # [1] "105.0.5195.19" "105.0.5195.52" "106.0.5249.21"
 
-remDr <- rsDriver(browser='chrome', port=9889L,check = FALSE, 
+remDr <- rsDriver(browser='chrome', port=9887L,check = FALSE, 
                   chromever="105.0.5195.19")
 
 browser <- remDr$client
 
 browser$open()
 
-browser$navigate(URL)
+browser$navigate("https://www.retsinformation.dk/eli/retsinfo/2000/20071")
 
 pagesource <- browser$getPageSource()
 
 html <- read_html(pagesource[[1]],options = "HUGE")
-
+ 
 text <-
   html%>%
   html_nodes(xpath = '//*[@class="document-content "]') %>%
   html_text2()
+
+# "mb-0 py-0 pr-0" --> node for the EU reference
 
