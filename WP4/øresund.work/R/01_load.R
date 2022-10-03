@@ -64,7 +64,8 @@ non.dups <- retsinformation.df[!duplicated(retsinformation.df$EliUrl), ]
 prob.urls <-
   retsinformation.df %>%
   filter(EliUrl == "https://www.retsinformation.dk/eli/retsinfo/2000/20072" |
-         EliUrl == "https://www.retsinformation.dk/eli/retsinfo/2000/20071"  ) # this link now works today 3-10-22 but last friday 30-9-22 the link was down...
+         EliUrl == "https://www.retsinformation.dk/eli/retsinfo/2000/20071"  ) # this link now works today 3-10-22 but last friday 30-9-22 the link was down... 
+# on line 132-151 I got the text to it and I will merge it to the df in the 02 Rscript 
 # they also have dup pulls since they apprear in both the fiskeri and jagt search queries...
 
 non.dups <-
@@ -129,21 +130,84 @@ DK.text.list.1 <- DK.text.list
 
 saveRDS(DK.text.list.1, file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1" )
 
-#write.csv(x = DK.text.list.2,
-#          file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/01_DK.textDF.csv", row.names=FALSE)
+# re-doing link that now is running after I ran the initial loop on Fri. Sep 30th 2022
+remDr <- rsDriver(browser='chrome', port=9887L,check = FALSE, 
+                  chromever="105.0.5195.19")
 
+browser <- remDr$client
 
-# ok one Thursday evening 29-09-2022 i ran the code but it only got text from URLs 1-927 
-# then an error Fejl i read_xml.raw(charToRaw(enc2utf8(x)), "UTF-8", ..., as_html = as_html,  : 
-# Excessive depth in document: 256 use XML_PARSE_HUGE option [1]
-# so I will try this url alone maybe something wrong with th link...
-# put the df with 928 data in the one drive for now. 
+browser$open()
 
-# So the issue is this webpage : https://www.retsinformation.dk/eli/retsinfo/2000/20037 which was number 930 in the url vector 
-# cannot be read by selenium thus the error occured and the loop stopped...
+browser$navigate("https://www.retsinformation.dk/eli/retsinfo/2000/20071")
+
+pagesource <- browser$getPageSource()
+
+html <- read_html(pagesource[[1]],options = "HUGE")
+
+apped.text <-
+  html%>%
+  html_nodes(xpath = '//*[@class="document-content "]') %>%
+  html_text2()
+
+saveRDS(apped.text, file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.apped.text" )
 
 
 # A loop to get the EURLEX referenced data for all URLs -------------------------------------
+
+url.id <- deframe(non.dups[,30])
+
+DK.textREF.list <- structure(vector("list", 1211), names=url.id)
+
+# Lets try to get this data from the url...
+URLs <- deframe(non.dups[,30])
+
+# make sure nothing is open before we start the loop and clean up some space via garbage collection
+system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
+gc()
+
+for (i in seq(URLs)) {
+  
+  remDr <- rsDriver(browser='chrome',
+                    port= netstat::free_port(), # this didnt work eventually got a port in use error
+                    check = FALSE, 
+                    chromever="105.0.5195.19")
+  
+  browser <- remDr$client
+  
+  browser$open() # Open the remote browser
+  
+  browser$navigate(URLs[i]) # navigate to the URL 
+  
+  Sys.sleep(2) # Stop for 2 second because takes a couple secs for the pg. to load
+  
+  pagesource <- browser$getPageSource() # retrieve html page source code
+  
+  html <- read_html(pagesource[[1]],options = "HUGE")
+  
+  DK.textREF.list[[i]] <-
+    html%>%
+    html_nodes(xpath = '//*[@class="mb-0 py-0 pr-0"]') %>%
+    html_text2()
+  
+  print(URLs[i]) # Print the URL we are on
+  print(i)       # Print what iteration we are on
+  
+  browser$quit() # Close the browser session
+  
+  rm(remDr) # Remove this obj.
+  rm(browser) # Remove this obj.
+  
+  # so we dont have port use issues we need to kill the java instances found on this thread: https://github.com/ropensci/RSelenium/issues/228 
+  system("taskkill /im java.exe /f", intern=FALSE, ignore.stdout=FALSE) 
+  
+  gc() # free up some RAM for the large loop
+  
+  
+}
+
+DK.textREF.list.1 <- DK.textREF.list
+
+saveRDS(DK.textREF.list.1, file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" )
 
 
 # archival for now -----------------------------------------
