@@ -37,6 +37,12 @@ DK.text <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresu
 
 DK.apped.text <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.apped.text")
 
+DK.text.ref <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" ) 
+
+# Our document-data key
+document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+
+
 #  lets make it into a df to use -----------------------------------------------
 
 DK.text.df <- as.data.frame(cbind(DK.text))
@@ -88,6 +94,30 @@ DK.text.df3 %>%
 DK.text.df3 %>%
   filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 35 out of 346 hunting documents both mention bird and seal
 
+# Getting Eurlex links ---------------------------------------------------------
+
+DK.ref.df <- as.data.frame(cbind(DK.text.ref)) 
+
+DK.EU.links <- 
+  DK.ref.df %>% 
+  rownames_to_column(., var = "retsinfo.url") %>%
+  rename("links" = "DK.text.ref") %>%
+  unnest(links) %>% # ,keep_empty = TRUE for when the full loop has been run through
+  mutate(EU.link.CELEX = str_extract_all(links, "[:digit:]+[:alpha:]+[:digit:]+\\(Note\\)")) %>%
+  unnest(EU.link.CELEX) %>%
+  select(retsinfo.url,EU.link.CELEX) %>%
+  mutate(EU.link.CELEX = str_replace_all(EU.link.CELEX, "\\(Note\\)", ""))
+
+n_distinct(DK.EU.links$retsinfo.url)
+n_distinct(DK.EU.links$EU.link.CELEX)
+
+DK.EU.links1 <-
+  DK.EU.links %>%
+  left_join(.,document.key.df, by = c("EU.link.CELEX" = "celex"))
+
+n_distinct(DK.EU.links1$retsinfo.url)
+n_distinct(DK.EU.links1$EU.link.CELEX)
+unique(DK.EU.links1$resource.type)
 
 # Cleaning & Pre-processing the text data --------------------------------------
 
