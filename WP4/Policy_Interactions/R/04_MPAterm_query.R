@@ -76,6 +76,50 @@ n_distinct(EU.mpa.termsearch.data$MT)
 # 80
 unique(EU.mpa.termsearch.data$MT) #curious about looking at them:
 
+
+EU.mpa.termsearch.data %>%
+  filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
+  mutate(date = as.Date(date)) %>%
+  mutate(year = year(date)) %>%
+  group_by(year,force) %>%
+  summarise(n=n_distinct(CELEX)) %>%
+  ggplot(aes(fill=force, x = year, y = n)) +
+  geom_bar(position="stack", stat="identity") +
+  ylab("Number of legislations") + 
+  xlab("Year")+
+  theme_minimal()+ 
+  theme(legend.position = "bottom")+
+  scale_fill_discrete(name = "Legislation enforced", labels = c("No", "Yes"))
+
+# Legislation numbers over times by resource/leg. type:
+EU.mpa.termsearch.data %>%
+  mutate(date = as.Date(date)) %>%
+  mutate(year = year(date)) %>%
+  group_by(year,resource.type) %>%
+  summarise(n=n_distinct(CELEX)) %>%
+  ggplot(aes(fill=resource.type, x = year, y = n)) +
+  geom_bar(position="stack", stat="identity") +
+  ylab("Number of legislations") + 
+  xlab("Year")+
+  theme_minimal()+ 
+  theme(legend.position = "bottom")+
+  scale_color_discrete(name = "Type of legislation")
+
+# Legislation numbers over times by resource/leg. type:
+EU.mpa.termsearch.data %>%
+  mutate(date = as.Date(date)) %>%
+  mutate(year = year(date)) %>%
+  group_by(year,resource.type) %>%
+  summarise(n=n_distinct(CELEX)) %>%
+  ggplot(aes(fill=resource.type, x = year, y = n)) +
+  geom_bar(position="stack", stat="identity") +
+  ylab("Number of legislations") + 
+  xlab("Year")+
+  theme_minimal()+ 
+  theme(legend.position = "bottom")+
+  scale_color_discrete(name = "Type of legislation")
+
+
 # Exploring document citations ---------------------------------------------
 
 # this citation network code is the same as 03 Rscript just different data. 
@@ -591,6 +635,14 @@ edges <- degree(graphNetwork)
 sum(edges)
 
 V(graphNetwork)
+
+
+# Save files ---------------------------------------------------------------------
+
+
+# first order citation data:
+# dfs
+
 
 
 
