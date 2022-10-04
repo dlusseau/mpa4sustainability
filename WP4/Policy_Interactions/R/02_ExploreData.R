@@ -27,6 +27,11 @@ mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApoli
 
 key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
+EU.mpa.char<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EU.mpachar.csv")
+
+# EU mpa directives search: 
+EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
+
 # Exploring document info over time --------------------------------------------------
 
 mpa.policy.notext.df %>%
