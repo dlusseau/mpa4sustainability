@@ -62,6 +62,19 @@ mpa.policy.notext.df %>%
 # RECO              1
 # REG               7
 
+mpa.policy.notext.df %>%
+  filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
+  mutate(date = as.Date(date)) %>%
+  mutate(year = year(date)) %>%
+  group_by(year,force) %>%
+  summarise(n=n_distinct(CELEX)) %>%
+  ggplot(aes(fill=force, x = year, y = n)) +
+  geom_bar(position="stack", stat="identity") +
+  ylab("Number of legislations") + 
+  xlab("Year")+
+  theme_minimal()+ 
+  theme(legend.position = "bottom")+
+  scale_fill_discrete(name = "Legislation enforced", labels = c("No", "Yes"))
 
 #Eurlex data/attributes about the citations
 
@@ -205,6 +218,15 @@ sum(edges)
 
 V(network)
 
+# Save files ---------------------------------------------------------------------
+
+
+# first order citation data:
+write.csv(Doc.citations, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q1firstordercit.network.csv")
+
+
 # Second order citations ---------------------------------------------------------------------------
 
 # lets find out what do the citations cite?
@@ -319,10 +341,10 @@ xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx) #583 documents
 # ok so both the document citataion df and the network attributes df have the same dimentions 
 
-network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
-print(network, e=TRUE, v=TRUE)
+network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
+print(network2, e=TRUE, v=TRUE)
 
-l <- layout.fruchterman.reingold(network)
+l <- layout.fruchterman.reingold(network2)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 
@@ -333,9 +355,9 @@ labels3 <- rep(NA,time=579)
 labels4 <- c(labels,labels3)
 labels4 <- append(labels4,labels2, after = 9)
 
-V(network)$label <- labels4
+V(network2)$label <- labels4
 
-plot(network,
+plot(network2,
      edge.width=.5,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=3,
@@ -367,10 +389,19 @@ legend(x=-1.3,y=-.82,c("Both (result & citation)",
 
 #32016R1624 does cite itself... double checked on EUR-Lex... 
 
-edges <- degree(network)
+edges <- degree(network2)
 sum(edges)
 
-V(network)
+V(network2)
+
+# Save files ---------------------------------------------------------------------
+
+
+# second order citation data:
+write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q2firstordercit.network.csv")
+
 
 # Exploring Eurovoc terms -----------------------------------------------
 
@@ -581,5 +612,6 @@ edges <- degree(graphNetwork)
 sum(edges)
 
 V(graphNetwork)
+
 
 
