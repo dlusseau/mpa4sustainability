@@ -32,40 +32,44 @@ document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/W
 EU.mpa.termsearch.data <-
   EU.mpa.termsearch %>%
   filter(CELEX != "32021R0092") %>% #removing this celex for the same reasoning as in 03 Rscript
+  filter(CELEX != "32006R1967R(01)") %>% #removing this celex bc it is a Corrigendum to a regulation that was already pulled and it is tech. not within the legal act types
   left_join(., document.key.df, by = c("CELEX"="celex", "resource.type")) %>%
   select(-work,-type) # we dont need this info anymore
 
 EU.mpa.termsearch.data %>%
-  distinct(CELEX, .keep_all = TRUE) %>% 
+  #distinct(CELEX, .keep_all = TRUE) %>% 
   group_by(search.term) %>%
   summarise(n= n_distinct(CELEX))
 
 #    search.term                      n
-# barcelona convention*?             37
-# birds directive*?                   6
-# habitats directive*?               56
-# helcom*?                           12
-# marine protected area*?            18
-# ospar*?                            19
+# barcelona convention*?             36
+# birds directive*?                  36
+# habitats directive*?               58
+# helcom*?                           14
+# marine protected area*?            24
+# ospar*?                            27
 # ramsar site*?                       1
-# sites of community importance*?     5
-# special areas of conservation*?    16
-# special protection area*?           7
+# site of community importance*?      4
+# sites of community importance*?    10
+# special areas of conservation*?    23
+# special protection area*?          29
+# specially protected area*?         10
 # world heritage site*?               2
 
 
 n_distinct(EU.mpa.termsearch.data$CELEX)
-#[1] 179
+#[1] 178
 # The remember the dim are now larger due to some documents having multiple terms-labels etc. 
 
 EU.mpa.termsearch.data %>%
   group_by(resource.type) %>%
-  summarise(n = n_distinct(CELEX))
+  summarise(n = n_distinct(CELEX)) %>%
+  summarise(total = sum(n))
 # DEC              41
 # DIR              16
 # OPIN             83
 # RECO              3
-# REG              36
+# REG              35
 
 # how many unique label terms?
 n_distinct(EU.mpa.termsearch.data$labels)
@@ -78,7 +82,7 @@ unique(EU.mpa.termsearch.data$MT) #curious about looking at them:
 
 
 EU.mpa.termsearch.data %>%
-  filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
+  #filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
   mutate(date = as.Date(date)) %>%
   mutate(year = year(date)) %>%
   group_by(year,force) %>%
@@ -89,7 +93,11 @@ EU.mpa.termsearch.data %>%
   xlab("Year")+
   theme_minimal()+ 
   theme(legend.position = "bottom")+
-  scale_fill_discrete(name = "Legislation enforced", labels = c("No", "Yes"))
+  scale_fill_discrete(name = "Legislation currently enforced", labels = c("No", "Yes", "N/A"))+ 
+  scale_x_continuous(breaks = seq(1976, 2024, by = 3)) +
+  scale_y_continuous(limits=c(0, 15),breaks = seq(0, 15, by = 3) ,expand = c(0,0)) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave("WP4/Policy_Interactions/Results/Q2.overtime.png")
 
 # Legislation numbers over times by resource/leg. type:
 EU.mpa.termsearch.data %>%
@@ -106,18 +114,65 @@ EU.mpa.termsearch.data %>%
   scale_color_discrete(name = "Type of legislation")
 
 # Legislation numbers over times by resource/leg. type:
-EU.mpa.termsearch.data %>%
+x <- EU.mpa.termsearch.data %>%
   mutate(date = as.Date(date)) %>%
   mutate(year = year(date)) %>%
-  group_by(year,resource.type) %>%
+  group_by(year,search.term) %>%
   summarise(n=n_distinct(CELEX)) %>%
-  ggplot(aes(fill=resource.type, x = year, y = n)) +
+  ggplot(aes(fill=search.term, x = year, y = n)) +
   geom_bar(position="stack", stat="identity") +
   ylab("Number of legislations") + 
   xlab("Year")+
   theme_minimal()+ 
   theme(legend.position = "bottom")+
   scale_color_discrete(name = "Type of legislation")
+
+EU.mpa.char %>%
+  group_by(DESIG_ENG) %>%
+  summarise(n=n_distinct(mpa))
+# DESIG_ENG                                                                        n
+# baltic sea protected area (helcom)                                             163
+# marine protected area (ospar)                                                  441
+# ramsar site, wetland of international importance                               237
+# sites of community importance (habitats directive)                             481
+# special areas of conservation (habitats directive)                            1388
+# special protection area (birds directive)                                      843
+# specially protected area (cartagena convention)                                  7
+# specially protected areas of mediterranean importance (barcelona convention)    24
+# unesco-mab biosphere reserve                                                    11
+# world heritage site (natural or mixed)                                           9
+
+EU.mpa.char %>%
+  filter(DESIG_ENG == "sites of community importance (habitats directive)" |
+         DESIG_ENG == "special areas of conservation (habitats directive)") %>%
+  summarise(n=n_distinct(mpa))
+
+
+EU.mpa.char %>%
+  group_by(DESIG_ENG) %>%
+  summarise(n=n_distinct(PARENT_ISO))
+
+# DESIG_ENG                                                                        n
+# baltic sea protected area (helcom)                                               8
+# marine protected area (ospar)                                                   10
+# ramsar site, wetland of international importance                                18
+# sites of community importance (habitats directive)                              18
+# special areas of conservation (habitats directive)                              19
+# special protection area (birds directive)                                       23
+# specially protected area (cartagena convention)                                  2
+# specially protected areas of mediterranean importance (barcelona convention)     4
+# unesco-mab biosphere reserve                                                     6
+# world heritage site (natural or mixed)                                           4
+
+EU.mpa.char %>%
+  filter(DESIG_ENG == "sites of community importance (habitats directive)" |
+           DESIG_ENG == "special areas of conservation (habitats directive)") %>%
+  summarise(n=n_distinct(PARENT_ISO))
+# 22
+
+EU.mpa.char %>%
+  summarise(n=n_distinct(mpa))
+
 
 
 # Exploring document citations ---------------------------------------------
@@ -160,11 +215,17 @@ network.attributes <-
   mutate(pulled.from = "eurlex.web") %>%
   rbind(.,citation.info) # %>%
 
+
 both.pulls <-
-  network.attributes %>%
-  group_by(CELEX) %>%
-  summarise(n=n()) %>%
-  filter(n>1) 
+  citation.info %>%
+  filter(CELEX %in% EU.mpa.termsearch.data$CELEX)
+#32
+
+#both.pulls2 <-
+#  network.attributes %>%
+#  group_by(CELEX) %>%
+#  summarise(n=n()) %>%
+#  filter(n>1) 
 # documents pulled as an MPA leg and cited within others
 
 network.attributes.both <- network.attributes[network.attributes$CELEX %in% both.pulls$CELEX,]
@@ -221,11 +282,14 @@ print(network, e=TRUE, v=TRUE)
 l <- layout.fruchterman.reingold(network)
 #l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-labels <- network.attributes.final[1:21,1]
+labels <- network.attributes.final[1:32,1]
 
-labels2 <- rep(NA,time=360)
+labels2 <- rep(NA,time=349)
 labels3 <- c(labels,labels2)
 V(network)$label <- labels3 
+
+png(file = "WP4/Policy_Interactions/Results/query2.1st.order.networkcitations.png",
+    width = 1000, height = 1000)
 
 
 plot(network,
@@ -241,45 +305,45 @@ plot(network,
      layout=l,# trying this layout based on pdf above...
      #edge.curved=.1
 )
-legend(x=-1.7,y=1.2,c("32008L0056: Marine Strategy Framework Directive",
-                        "32000L0060: Directive a framework for Community action in the field of water policy",
-                        "31992L0043: Habitats Directive" ,
-                        "32009L0147: Birds Directive" ,
-                        "32008L0099: Directive on the protection of the environment through criminal law"  ,
-                        "32011L0092: Directive on the assessment of the effects of certain public and private projects on the environment", 
-                        "32009L0031: Directive on the geological storage of carbon dioxide & amending CD 85/337/EEC, EP & CD 2000/60/EC, 2001/80/EC, 2004/35/EC, 2006/12/EC, 2008/1/EC & Reg. (EC) No 1013/2006",  
-                        "32006R1967: Reg. concerning management measures for the sustainable exploitation of fishery resources in the Mediterranean Sea, amending Reg. (EEC) No 2847/93 & repealing Reg. (EC) No 1626/94" ,
-                        "32004R0724: Reg. amending Reg. (EC) No 1406/2002 establishing a European Maritime Safety Agency" ,
-                        "32010R1089: Reg. implementing Directive 2007/2/EC of the European Parliament and of the Council as regards interoperability of spatial data sets and services", 
-                        "31997R0338: Reg. on the protection of species of wild fauna and flora by regulating trade therein"
-                       ),
-       cex=.65,
-       ncol=1,
-       col="#777777",
-       bty="n", # no box around the legen 
-       
-)
-legend(x=-1.7,y=-1,c("32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
-                      "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
-                      "31999D0800: Barcelona Convention" , 
-                      "31999D0801: Dec. accepting amendments to the Protocol for the protection of the Mediterranean Sea against pollution from land-based sources (Barcelona Convention)", 
-                      "32013D0005: Dec. on the accession of the EU to the Protocol for the Protection of the Mediterranean Sea against pollution resulting from exploration and exploitation of the continental shelf and the seabed and its subsoil",
-                      "32009D0089: Dec. on the signing of the Protocol on Integrated Coastal Zone Management in the Mediterranean to the Convention for the Protection of the Marine Environment and the Coastal Region of the Mediterranean ",  
-                      "32002D1600: Dec. laying down the Sixth Community Environment Action Programme",  
-                      "32000D0340: Dec. approval of the new Annex V to the Convention for the Protection of the Marine Environment of the North-East Atlantic on the protection and conservation of the ecosystems and biological diversity of the maritime area",
-                      "52018AE2960: Opin. of the European Economic and Social Committee on ‘Proposal for a Regulation of the European Parliament and of the Council on the alignment of reporting obligations in the field of environment policy",
-                      "52017AE2820: Opin. of the European Economic and Social Committee on Commission Notice on Access to Justice in Environmental Matters"
-),
-cex=.65,
-ncol=1,
-col="#777777", 
-bty="n", # no box around the legen 
+#legend(x=-1.7,y=1.2,c("32008L0056: Marine Strategy Framework Directive",
+#                        "32000L0060: Directive a framework for Community action in the field of water policy",
+#                        "31992L0043: Habitats Directive" ,
+#                        "32009L0147: Birds Directive" ,
+#                        "32008L0099: Directive on the protection of the environment through criminal law"  ,
+#                        "32011L0092: Directive on the assessment of the effects of certain public and private projects on the environment", 
+#                        "32009L0031: Directive on the geological storage of carbon dioxide & amending CD 85/337/EEC, EP & CD 2000/60/EC, 2001/80/EC, 2004/35/EC, 2006/12/EC, 2008/1/EC & Reg. (EC) No 1013/2006",  
+#                        "32006R1967: Reg. concerning management measures for the sustainable exploitation of fishery resources in the Mediterranean Sea, amending Reg. (EEC) No 2847/93 & repealing Reg. (EC) No 1626/94" ,
+#                        "32004R0724: Reg. amending Reg. (EC) No 1406/2002 establishing a European Maritime Safety Agency" ,
+#                        "32010R1089: Reg. implementing Directive 2007/2/EC of the European Parliament and of the Council as regards interoperability of spatial data sets and services", 
+#                        "31997R0338: Reg. on the protection of species of wild fauna and flora by regulating trade therein"
+ #                      ),
+#       cex=.65,
+#       ncol=1,
+#       col="#777777",
+#       bty="n", # no box around the legen 
+#       
+#)
+#legend(x=-1.7,y=-1,c("32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
+#                      "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
+#                      "31999D0800: Barcelona Convention" , 
+#                      "31999D0801: Dec. accepting amendments to the Protocol for the protection of the Mediterranean Sea against pollution from land-based sources (Barcelona Convention)", 
+#                      "32013D0005: Dec. on the accession of the EU to the Protocol for the Protection of the Mediterranean Sea against pollution resulting from exploration and exploitation of the continental shelf and the seabed and its subsoil",
+#                      "32009D0089: Dec. on the signing of the Protocol on Integrated Coastal Zone Management in the Mediterranean to the Convention for the Protection of the Marine Environment and the Coastal Region of the Mediterranean ",  
+#                      "32002D1600: Dec. laying down the Sixth Community Environment Action Programme",  
+#                      "32000D0340: Dec. approval of the new Annex V to the Convention for the Protection of the Marine Environment of the North-East Atlantic on the protection and conservation of the ecosystems and biological diversity of the maritime area",
+#                      "52018AE2960: Opin. of the European Economic and Social Committee on ‘Proposal for a Regulation of the European Parliament and of the Council on the alignment of reporting obligations in the field of environment policy",
+#                      "52017AE2820: Opin. of the European Economic and Social Committee on Commission Notice on Access to Justice in Environmental Matters"
+#),
+#cex=.65,
+#ncol=1,
+#col="#777777", 
+#bty="n", # no box around the legen #
 
-)
+#)
 
 
 
-legend(x=-1.6,y=-.8,c("Both (result & citation)",
+legend(x=-1,y=-1,c("Both (result & citation)",
                      "Search result",
                      "First order citation"),
        pch=21,
@@ -289,7 +353,7 @@ legend(x=-1.6,y=-.8,c("Both (result & citation)",
        cex=1, 
        bty="n", # no box around the legen 
        ncol=1)
-
+dev.off()
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
@@ -361,11 +425,11 @@ both.cit2 <-
   network.attributes.final3 %>%
   group_by(CELEX) %>%
   mutate(n=n()) %>%
-  filter(n>1) %>% 
-  filter(!CELEX %in% both.pulls$CELEX) %>% #380-32 = 348
+  filter(n>1) %>% # so these are either both or first & second order
+  filter(!CELEX %in% both.pulls$CELEX) %>% #380- (20 boths thus 40 rows as both and ref2) = 340
   filter(CELEX != "32010D0631" &
-           CELEX != "32013D1386" &
-           CELEX != "31998D2179") %>% # this three are now a both so in total there are 24 docs that will have duplicates later. 
+         CELEX != "32013D1386" &
+         CELEX != "31998D2179") %>% # this three are now a both so in total there are 35 docs that will have duplicates later. 
   mutate(pulled.from = "reference3") %>%
   mutate(color = 
            case_when(
@@ -375,12 +439,10 @@ both.cit2 <-
 
 
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
-# 1316-342 = 974 math check add up :)
+# 1316-334= 982 math check add up :)
 
 network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
-# 974+171 = 1145 
-
-# stopped here: need to change all the celex info starting tomorrow
+# 982+167 = 1149 
 
 both.cit.originaloverlap<-
   network.attributes.final3 %>%
@@ -390,7 +452,7 @@ both.cit.originaloverlap<-
   filter(pulled.from == "both") %>%
   as.data.frame()
 
-both.cit.originaloverlap <- as.character(both.cit.originaloverlap[1:16,1])
+both.cit.originaloverlap <- as.character(both.cit.originaloverlap[1:20,1])
 
 network.attributes.final4 <- 
   network.attributes.final4 %>%
@@ -408,7 +470,7 @@ network.attributes.final4 <-
                             TRUE ~ "keep")) %>%
   filter(remove == "keep") %>%
   distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
-# 1145 - 16 - 3 = 1126
+# 1149 - 20 - 3 = 1126
 
 n_distinct(Doc.citations3$to)
 # 312
@@ -428,6 +490,8 @@ print(network, e=TRUE, v=TRUE)
 l <- layout.fruchterman.reingold(network)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
+png(file = "WP4/Policy_Interactions/Results/query2.2nd.order.networkcitations.png",
+    width = 1000, height = 1000)
 
 plot(network,
      edge.width=.5,
@@ -439,7 +503,10 @@ plot(network,
      edge.arrow.size=.05,
      edge.arrow.width=1,
     # layout=l
+    
 )
+
+
 legend(x=-1.2,y=1.2,c("Both (result & citation)",
                        "Search result",
                        "Only first order citation",
@@ -449,9 +516,13 @@ legend(x=-1.2,y=1.2,c("Both (result & citation)",
        col="#777777", 
        pt.bg=unique(V(network)$color), 
        pt.cex=1, 
-       cex=.5, 
+       cex=1, 
        bty="n", 
        ncol=1)
+
+dev.off()
+
+
 edges <- degree(network)
 sum(edges)
 

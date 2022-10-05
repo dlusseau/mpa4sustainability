@@ -11,6 +11,7 @@ library("tidyr")
 library("stringr")
 library("igraph")
 library("widyr")
+library("ggplot2")
 
 # Define functions --------------------------------------------------------
 
@@ -63,7 +64,7 @@ mpa.policy.notext.df %>%
 # REG               7
 
 mpa.policy.notext.df %>%
-  filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
+  #filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
   mutate(date = as.Date(date)) %>%
   mutate(year = year(date)) %>%
   group_by(year,force) %>%
@@ -74,7 +75,12 @@ mpa.policy.notext.df %>%
   xlab("Year")+
   theme_minimal()+ 
   theme(legend.position = "bottom")+
-  scale_fill_discrete(name = "Legislation enforced", labels = c("No", "Yes"))
+  scale_fill_discrete(name = "Legislation currently enforced", labels = c("No", "Yes"))+ 
+  scale_x_continuous(breaks = seq(1980, 2024, by = 4)) +
+  scale_y_continuous(limits=c(0, 4.5), expand = c(0,0)) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave("WP4/Policy_Interactions/Results/Q1.overtime.png")
+
 
 #Eurlex data/attributes about the citations
 
@@ -97,7 +103,9 @@ Doc.citations <-
 citation.info <-  leg.citation_info
 
 n_distinct(Doc.citations$CELEX)
-# 2 documents cited but they were non-leg so they are now filtered out :)
+# when from 19 to 17 documents that cite since 2 only cited non-leg
+
+
 
 network.attributes <-
   mpa.policy.notext.df %>%
@@ -105,19 +113,20 @@ network.attributes <-
   select(resource.type,CELEX,date,force) %>%
   distinct(CELEX,.keep_all = TRUE) %>%
   mutate(pulled.from = "eurlex.web") %>%
-  rbind(.,citation.info) # %>%
+  rbind(.,citation.info) 
 
+
+# Which citations are from the eurlex search and references?
 both.pulls <-
-  network.attributes %>%
-  group_by(CELEX) %>%
-  summarise(n=n()) %>%
-  filter(n>1) 
+  citation.info %>%
+  filter(CELEX %in% mpa.policy.notext.df$CELEX)
+
 # 3 documents pulled as an MPA leg are also cited by other legislation 
 # These are:
 # 32008L0056 --> Marine Strategy Framework Directive
 #	32013R1380 --> CFP, amending CRs
 #	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
-
+# 52016AE4426
 network.attributes.both <- network.attributes[network.attributes$CELEX %in% both.pulls$CELEX,]
 
 network.attributes.both <- 
@@ -177,15 +186,20 @@ print(network, e=TRUE, v=TRUE)
 #l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 
-labels <- network.attributes.final[1:3,1]
+labels <- network.attributes.final[1:4,1]
 
 # 32008L0056 --> Marine Strategy Framework Directive
 #	32013R1380 --> CFP, amending CRs
 #	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
+# 52016AE4426 --> Opinion of the European Economic and Social Committee on ‘An integrated European Union policy for the Arctic’
 
-labels2 <- rep(NA,time=222)
+labels2 <- rep(NA,time=144)
 labels3 <- c(labels,labels2)
 V(network)$label <- labels3 
+
+png(file = "WP4/Policy_Interactions/Results/query1.1st.order.networkcitations.png",
+    width = 1000, height = 1000)
+
 
 plot(network,
      edge.width=.5,
@@ -197,18 +211,20 @@ plot(network,
      edge.arrow.width=2,
 #    layout = l
      )
-legend(x=-1,y=-1.,c("2008L0056: Marine Strategy Framework Directive",
-                   "32013R1380: CFP, amending CRs",
-                   "32014R0508:European Maritime and Fisheries Fund & repealing CRs"),
+legend(x=-1,y=-1.075,c("2008L0056: Marine Strategy Framework Directive",
+                       "32013R1380: CFP, amending CRs",
+                       "32014R0508: European Maritime and Fisheries Fund & repealing CRs",
+                       "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’"),
        cex=1 )
-legend(x=-1,y=-.85,c("Both (result & citation)",
-                   "Search result",
-                    "Citation"), 
+legend(x=-1,y=-.93,c("Both (result & citation)",
+                     "Search result",
+                     "Citation"), 
        pch=21,
        col="#777777", 
        pt.bg=unique(V(network)$color), 
        pt.cex=2, cex=1, bty="n", ncol=1)
 
+dev.off()
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
@@ -309,7 +325,7 @@ both.cit2 <-
   select(-n)
 
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
-# 663-76-76 = 551 math check add up :)
+# 663-76-76 = 511 math check add up :)
 
 network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
 # 551+76 = 587 
@@ -320,7 +336,7 @@ network.attributes.final4 <-
                                  TRUE ~ pulled.from)) %>%
   mutate(color = case_when(CELEX == "32013D1386" ~ "#f8766d", 
                                  TRUE ~ color)) %>%
-  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove", # 
+  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove", # 52016AE4426 doesnt need to be removed since it only has one row... (only a reference once)
                             CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
                             CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
                             TRUE ~ "keep")) %>%
@@ -348,18 +364,21 @@ l <- layout.fruchterman.reingold(network2)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 
-labels <- network.attributes.final[1:3,1]
-labels2 <- network.attributes.final[10,1]
+labels <- network.attributes.final[1:4,1]
+labels2 <- network.attributes.final[11,1]
 
-labels3 <- rep(NA,time=579)
+labels3 <- rep(NA,time=578)
 labels4 <- c(labels,labels3)
 labels4 <- append(labels4,labels2, after = 9)
 
 V(network2)$label <- labels4
 
+png(file = "WP4/Policy_Interactions/Results/query1.2nd.order.networkcitations.png",
+    width = 1100, height = 1100)
+
 plot(network2,
      edge.width=.5,
-     edge.color=adjustcolor("gray", alpha.f = .5),
+     edge.color=adjustcolor("gray", alpha.f = .65),
      vertex.size=3,
   #  vertex.label=NA,
      vertex.label.cex=.65,
@@ -369,30 +388,36 @@ plot(network2,
      layout=l
 )
 
-legend(x=-1.3,y=-1.05,c("32008L0056: Marine Strategy Framework Directive",
+legend(x=-1.25,y=-1.05,c("32008L0056: Marine Strategy Framework Directive",
                         "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
                         "32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
+                        "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’",
                         "32013D1386: Decision on a General Union Environment Action Programme to 2020 ‘Living well, within the limits of our planet’"),
        cex=1 )
-legend(x=-1.3,y=-.82,c("Both (result & citation)",
+legend(x=-1.25,y=-.82,c("Both (result & citation)",
                        "Search result",
                        "Only first order citation",
                        "Only second order citation",
                        "First and second order citation"), 
        pch=21,
        col="#777777", 
-       pt.bg=unique(V(network)$color), 
+       pt.bg=unique(V(network2)$color), 
        pt.cex=2, 
        cex=1, 
        bty="n", 
        ncol=1)
 
 #32016R1624 does cite itself... double checked on EUR-Lex... 
+dev.off()
 
 edges <- degree(network2)
 sum(edges)
 
 V(network2)
+
+network.attributes.final4 %>%
+  group_by(pulled.from) %>%
+  summarise(n=n_distinct(CELEX))
 
 # Save files ---------------------------------------------------------------------
 
