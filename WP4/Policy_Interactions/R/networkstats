@@ -1,0 +1,85 @@
+##############################################################
+#### R code network analysis of policy interaction network
+
+library(igraph)
+
+net1st<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/networkstats/03.Q1firstordercit.edgelist.csv")
+net1st.graph<-readRDS("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/networkstats/03.Q1firstordercit.network.csv.rds")
+net1st.meta<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/networkstats/03.Q1firstordercit.verticesmetadata.csv")
+
+graph1st<-graph_from_data_frame(net1st, directed = TRUE, vertices = net1st.meta)
+
+### this is a directed unweighted network
+
+### degree_in and degree_out
+graph1st.degree.in<-degree(graph1st,mode="in")
+graph1st.degree.out<-degree(graph1st,mode="out")
+
+
+##betweenness
+#graph1st.betweenness<-estimate_betweenness(graph1st,directed = TRUE,cutoff = -1)
+graph1st.betweenness<-betweenness(graph1st,directed = TRUE,normalized=FALSE)
+
+
+#module
+## as we have multiple components in the network we first need to identify components
+#first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
+
+graph1st.comp.weak<-components(graph1st,mode="weak")
+
+graph1st.df<-data.frame(name= V(graph1st)$name,degree.in=graph1st.degree.in,degree.out=graph1st.degree.out,betweenness=graph1st.betweenness,component=as.numeric(membership(graph1st.comp.weak)))
+
+
+#cluster_edge_betweenness because we deal with a directed network
+# graph1st.cluster<-cluster_edge_betweenness(
+  # SUBSET(graph1st),
+  # directed = TRUE)
+
+# membership(graph1st.cluster)
+
+
+net2nd<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/networkstats/03.Q1secondordercit.edgelist.csv")
+net2nd.graph<-readRDS("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/networkstats/03.Q1secondordercit.network.csv.rds")
+net2nd.meta<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/networkstats/03.Q1secondordercit.verticesmetadata.csv")
+
+graph2nd<-graph_from_data_frame(net2nd, directed = TRUE, vertices = net2nd.meta)
+
+### degree_in and degree_out
+graph2nd.degree.in<-degree(graph2nd,mode="in")
+graph2nd.degree.out<-degree(graph2nd,mode="out")
+
+
+##betweenness
+#graph1st.betweenness<-estimate_betweenness(graph1st,directed = TRUE,cutoff = -1)
+graph2nd.betweenness<-betweenness(graph2nd,directed = TRUE,normalized=TRUE)
+
+
+#module
+## as we have multiple components in the network we first need to identify components
+#first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
+
+graph2nd.comp.weak<-components(graph2nd,mode="weak")
+
+V(graph2nd)$component<-membership(graph2nd.comp.weak)
+
+graph2nd.giant<-subgraph(graph2nd,vids=V(graph2nd)[V(graph2nd)$component==1])
+
+graph2nd.giant.cluster<-cluster_edge_betweenness(graph2nd.giant, directed = TRUE)
+membership(graph2nd.giant.cluster)
+
+
+graph2nd.df<-data.frame(name= V(graph2nd)$name,degree.in=graph2nd.degree.in,degree.out=graph2nd.degree.out,betweenness=graph2nd.betweenness,component=as.numeric(membership(graph2nd.comp.weak)))
+
+plot(degree.in~degree.out,data=graph2nd.df)
+
+
+graph1st.df$degree.in.2nd<-graph2nd.df$degree.in[match(graph1st.df$name,graph2nd.df$name)]
+graph1st.df$degree.out.2nd<-graph2nd.df$degree.out[match(graph1st.df$name,graph2nd.df$name)]
+graph1st.df$betweenness.2nd<-graph2nd.df$betweenness[match(graph1st.df$name,graph2nd.df$name)]
+
+
+
+
+
+
+
