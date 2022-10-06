@@ -102,14 +102,14 @@ DK.EU.links <-
   DK.ref.df %>% 
   rownames_to_column(., var = "retsinfo.url") %>%
   rename("links" = "DK.text.ref") %>%
-  unnest(links) %>% # ,keep_empty = TRUE for when the full loop has been run through
+  unnest(links, keep_empty=TRUE) %>% # ,keep_empty = TRUE for when the full loop has been run through
   mutate(EU.link.CELEX = str_extract_all(links, "[:digit:]+[:alpha:]+[:digit:]+\\(Note\\)")) %>%
   unnest(EU.link.CELEX) %>%
   select(retsinfo.url,EU.link.CELEX) %>%
   mutate(EU.link.CELEX = str_replace_all(EU.link.CELEX, "\\(Note\\)", ""))
 
-n_distinct(DK.EU.links$retsinfo.url)
-n_distinct(DK.EU.links$EU.link.CELEX)
+n_distinct(DK.EU.links$retsinfo.url) # 450 DK documents link to EU legal acts
+n_distinct(DK.EU.links$EU.link.CELEX) # in total DK documents relates to 244 EU legal acts
 
 DK.EU.links1 <-
   DK.EU.links %>%

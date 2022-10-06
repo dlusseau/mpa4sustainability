@@ -207,6 +207,7 @@ for (i in seq(URLs)) {
 
 DK.textREF.list.1 <- DK.textREF.list
 
+#Ran it Wed. evening 05-10-2022
 saveRDS(DK.textREF.list.1, file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" )
 
 
