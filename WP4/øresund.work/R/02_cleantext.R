@@ -71,6 +71,10 @@ str(DK.text.df2)
 DK.text.df3 <-
   DK.text.df2 %>%
     mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun")),
+           kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk")),
+           erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk")),
+           erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfiskeri")),
+           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt")),
            sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl")),
            fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle")))
 
@@ -84,6 +88,15 @@ DK.text.df3 %>%
     
 DK.text.df3 %>%
   filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1011 fisheries documents mention harpun
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & kommercielt == "TRUE") # 47 out of 1011 fisheries documents mention kommercielt
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 47 out of 1011 fisheries documents mention kommercielt
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & rekreativt == "TRUE") # 25 out of 1011 fisheries documents mention rekreativt
 
 DK.text.df3 %>%
   filter(search.term == "jagt" & sæl == "TRUE") # 139 out of 346 hunting documents mention seal
