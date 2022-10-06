@@ -362,6 +362,16 @@ sum(edges)
 
 V(network)
 
+# Save files ---------------------------------------------------------------------
+
+
+# first order citation data:
+write.csv(MPA.citations, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q2firstordercit.network.csv")
+
+
+
 # Second order citations ---------------------------------------------------------------------------
 
 indir.citation_info <- 
@@ -484,16 +494,16 @@ xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx)
 # ok so both the document citataion df and the network attributes df have the same dimentions 
 
-network <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
-print(network, e=TRUE, v=TRUE)
+network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
+print(network2, e=TRUE, v=TRUE)
 
-l <- layout.fruchterman.reingold(network)
+l <- layout.fruchterman.reingold(network2)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 png(file = "WP4/Policy_Interactions/Results/query2.2nd.order.networkcitations.png",
     width = 1000, height = 1000)
 
-plot(network,
+plot(network2,
      edge.width=.5,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=3,
@@ -514,7 +524,7 @@ legend(x=-1.2,y=1.2,c("Both (result & citation)",
                        "First and second order citation"), 
        pch=21,
        col="#777777", 
-       pt.bg=unique(V(network)$color), 
+       pt.bg=unique(V(network2)$color), 
        pt.cex=1, 
        cex=1, 
        bty="n", 
@@ -523,10 +533,18 @@ legend(x=-1.2,y=1.2,c("Both (result & citation)",
 dev.off()
 
 
-edges <- degree(network)
+edges <- degree(network2)
 sum(edges)
 
-V(network)
+V(network2)
+
+# Save files ---------------------------------------------------------------------
+
+# second order citation data:
+write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q2secondordercit.network.csv")
+
 
 # Exploring Eurovoc terms -----------------------------------------------
 

@@ -240,7 +240,7 @@ V(network)
 # first order citation data:
 write.csv(Doc.citations, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv", row.names=FALSE)
 write.csv(network.attributes.final, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q1firstordercit.network.csv")
+saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q1firstordercit.network")
 
 
 # Second order citations ---------------------------------------------------------------------------
@@ -423,9 +423,9 @@ network.attributes.final4 %>%
 
 
 # second order citation data:
-write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv", row.names=FALSE)
-write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q2firstordercit.network.csv")
+write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q1secondordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q1secondordercit.network")
 
 
 # Exploring Eurovoc terms -----------------------------------------------
