@@ -210,6 +210,29 @@ DK.textREF.list.1 <- DK.textREF.list
 #Ran it Wed. evening 05-10-2022
 saveRDS(DK.textREF.list.1, file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" )
 
+# re-doing link that now is running after I ran the initial loop on Fri. Sep 30th 2022
+remDr <- rsDriver(browser='chrome', port=9887L,check = FALSE, 
+                  chromever="105.0.5195.19")
+
+browser <- remDr$client
+
+browser$open()
+
+browser$navigate("https://www.retsinformation.dk/eli/retsinfo/2000/20071")
+
+pagesource <- browser$getPageSource()
+
+html <- read_html(pagesource[[1]],options = "HUGE")
+
+apped.text <-
+  html%>%
+  html_nodes(xpath = '//*[@class="mb-0 py-0 pr-0"]') %>%
+  html_text2()
+
+#doesnt have any reference to EU policy so no need to save and join to the other list 
+
+
+
 
 # archival for now -----------------------------------------
 # semi working loop below -----
