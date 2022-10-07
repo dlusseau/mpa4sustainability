@@ -120,28 +120,34 @@ Q1.Citreg.titles1 <-
   select(-str.type) %>%
   mutate(resource.type = "REG")
 
-citation.titles <- rbind(Q1.Citdecision.titles1,
-                         Q1.Citdirective.titles1,
-                         Q1.Citreg.titles1) %>%
-  rename("citation.celex" = "CELEX")
 
-# recommendations and opinions I will deal with later...
-
-Q1.network.rec.titles <- 
+Q1.Citrec.titles <- 
   Q1.network.citationtitles %>%
   mutate(title2 = str_trunc(title,100,side = c("right"))) %>%
   mutate(rec = str_detect(title2, "Recommendation"))%>%
-  mutate(rec2 = str_detect(title2, "recommendation")) %>%
-  filter(rec == "TRUE" |
-           rec2 == "TRUE") %>%
- # mutate(title.Rec =  str_extract(title2, "Regulation[:blank:]\\(.+\\)[:blank:]No[:blank:][:digit:]+/[:digit:]+")) %>%
-#  mutate(title.Rec2 =  str_extract(title2, "Regulation[:blank:]\\(.+\\)[:blank:][:digit:]+/[:digit:]+"))
+  filter(rec == "TRUE") %>%
+  select(CELEX,title) %>%
+  mutate(title = "Recommendation 2002/413/EC",
+         resource.type = "REC") 
 
-Q1.network.opin.titles <- 
+
+citation.titles <- rbind(Q1.Citdecision.titles1,
+                         Q1.Citdirective.titles1,
+                         Q1.Citreg.titles1,
+                         Q1.Citrec.titles) %>%
+  rename("citation.celex" = "CELEX")
+
+
+# opinions I will deal with later...
+
+Q1.Citopin.titles <- 
   Q1.network.citationtitles %>%
   mutate(title2 = str_trunc(title,50,side = c("right"))) %>%
-  mutate(opin = str_detect(title2, "Opinion"))%>%
-  filter(opin == "TRUE" )
+  mutate(opin = str_detect(title, "Opinion")) %>%
+  filter(opin == "TRUE" ) %>%
+  select(CELEX,title) %>%
+  mutate(opin2 = str_extract_all(title, "\\‘.+\\’"))
+
 
 # we want to find the location sentence/paragraph of each citation for the network data
 
@@ -180,7 +186,8 @@ directives.key <-
   mutate(title = str_replace_all(title, "Directive","")) %>%
   mutate(title = str_replace_all(title, "\\(EU\\)","")) %>%
   mutate(title = str_trim(title, side = c("both"))) %>%
-  right_join(.,Q1.network.Dir.sentences, by = c("title" = "title"))
+  right_join(.,Q1.network.Dir.sentences, by = c("title" = "title"))%>%
+  select(CELEX,text,element_id,sentence_id,citation.celex,title,resource.type)
 
 
 # Regulation
@@ -209,7 +216,8 @@ regulation.key <-
   filter(resource.type == "REG") %>%
   mutate(title = str_extract_all(title, "[:digit:]+/[:digit:]+")) %>%
   mutate(title = str_trim(title, side = c("both"))) %>%
-  right_join(.,Q1.network.Reg.sentences, by = c("title" = "title"))
+  right_join(.,Q1.network.Reg.sentences, by = c("title" = "title"))%>%
+  select(CELEX,text,element_id,sentence_id,citation.celex,title,resource.type)
 
 Q1.network.Dec.sentences <- 
   Q1.network.text %>%
@@ -250,7 +258,8 @@ decisions.key <-
   mutate(title = str_replace_all(title, "\\:","")) %>%
   mutate(title = str_replace_all(title, "Commission","")) %>%
   mutate(title = str_trim(title, side = c("both"))) %>%
-  right_join(.,Q1.network.Dec.sentences, by = c("title" = "title"))
+  right_join(.,Q1.network.Dec.sentences, by = c("title" = "title"))%>%
+  select(CELEX,text,element_id,sentence_id,citation.celex,title,resource.type)
 
   
 
@@ -269,6 +278,39 @@ Q1.network.Opin.sentences <-
   get_sentences() %>%
   mutate(opin =  str_extract_all(text, "Opinion on")) %>%
   unnest(opin)
+
+
+
+
+
+
+# our reference to citation sentence key
+
+sent.key <-
+  rbind(regulation.key,decisions.key,directives.key) %>%
+  mutate(element_id = as.factor(element_id),
+         sentence_id = as.factor(sentence_id)) %>%
+  mutate(sentence.id = paste(element_id, sentence_id, sep = "_"))
+
+library(magrittr)
+
+sent.key1 <- 
+  sent.key  %$%
+  sentiment_by(text, by = sentence.id)
+
+sent.key2 <- 
+  sent.key%>%
+  left_join(.,sent.key1, by = c("sentence.id")) %>%
+  distinct() %>% # some times in the same reference it can be cited twice so there is a row for every time i will remove these to make it cleaner
+  group_by(CELEX,citation.celex) %>%
+  mutate(cit.avg.sent = mean(ave_sentiment))%>%
+  distinct(CELEX,citation.celex,cit.avg.sent)
+  
+plot(sent.key2$word_count ~ sent.key2$ave_sentiment)
+
+Q1.edgelist.sent <- 
+  Q1.edgelist %>%
+  left_join(., sent.key2, by = c("to"="CELEX","from"="citation.celex"))
 
 
 #---------------------------------------------------------------------------
