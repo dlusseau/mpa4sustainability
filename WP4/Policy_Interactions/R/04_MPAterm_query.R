@@ -368,7 +368,7 @@ V(network)
 # first order citation data:
 write.csv(MPA.citations, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv", row.names=FALSE)
 write.csv(network.attributes.final, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q2firstordercit.network.csv")
+saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q2firstordercit.network.rds")
 
 
 
@@ -543,7 +543,7 @@ V(network2)
 # second order citation data:
 write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv", row.names=FALSE)
 write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q2secondordercit.network.csv")
+saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q2secondordercit.network.rds")
 
 
 # Exploring Eurovoc terms -----------------------------------------------
@@ -627,22 +627,22 @@ final.attributes <-
 
 n_distinct(final.attributes$MT)
 
-network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
-class(network)
+network3 <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
+class(network3)
 
 #very helpful document for network vizualizations 
 #http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
 
 
-l <- layout.fruchterman.reingold(network)
+l <- layout.fruchterman.reingold(network3)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-plot(network,
-     edge.width=E(network)$n*1,
+plot(network3,
+     edge.width=E(network3)$n*1,
      edge.color="grey",
      vertex.size=1,
-     vertex.label.cex=V(network)$total.count*.02,
-     vertex.label.color=V(network)$color,
+     vertex.label.cex=V(network3)$total.count*.02,
+     vertex.label.color=V(network3)$color,
      vertex.shape="none",
      rescale = TRUE,
      ylim=c(-1,1),xlim=c(-1,1)
@@ -651,6 +651,17 @@ plot(network,
 
 # O.K. so the network viz is more legable 
 # I will only plot those that are the median or above edges
+
+# Save ------------------------------------------------------------------
+
+# term co-ocurances:
+write.csv(term.pairs, file = "WP4/Policy_Interactions/data/03.Q2term.edgelist.csv", row.names=FALSE)
+write.csv(final.attributes, file = "WP4/Policy_Interactions/data/03.Q2term.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network3, file =  "WP4/Policy_Interactions/data/03.Q2.termnetwork.rds")
+
+# ------------------------------------------------------------------------
+
+
 
 I1 <-
   term.pairs %>%
@@ -673,9 +684,9 @@ summary(I3$edge.number)
 #this tutorial was helpful for this vizualization
 #https://tm4ss.github.io/docs/Tutorial_5_Co-occurrence.html#4_Visualization_of_co-occurrence
 #https://kateto.net/wp-content/uploads/2016/06/Polnet%202016%20R%20Network%20Visualization%20Workshop.pdf
-edges.remove <- V(network)[degree(network)<9]
-degree(network)
-graphNetwork <-  igraph::delete.vertices(network,edges.remove) 
+edges.remove <- V(network3)[degree(network3)<9]
+degree(network3)
+graphNetwork <-  igraph::delete.vertices(network3,edges.remove) 
 degree(graphNetwork)
 
 n_distinct(V(graphNetwork)$MT)
@@ -725,12 +736,6 @@ sum(edges)
 
 V(graphNetwork)
 
-
-# Save files ---------------------------------------------------------------------
-
-
-# first order citation data:
-# dfs
 
 
 

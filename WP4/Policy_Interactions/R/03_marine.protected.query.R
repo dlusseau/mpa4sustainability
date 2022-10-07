@@ -240,7 +240,7 @@ V(network)
 # first order citation data:
 write.csv(Doc.citations, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv", row.names=FALSE)
 write.csv(network.attributes.final, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q1firstordercit.network")
+saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q1firstordercit.network.rds")
 
 
 # Second order citations ---------------------------------------------------------------------------
@@ -425,7 +425,7 @@ network.attributes.final4 %>%
 # second order citation data:
 write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q1secondordercit.edgelist.csv", row.names=FALSE)
 write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q1secondordercit.network")
+saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q1secondordercit.network.rds")
 
 
 # Exploring Eurovoc terms -----------------------------------------------
@@ -514,33 +514,33 @@ final.attributes <-
 
 n_distinct(final.attributes$MT)
 
-network <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
-class(network)
+network3 <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
+class(network3)
 
 
-l <- layout.fruchterman.reingold(network)
+l <- layout.fruchterman.reingold(network3)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-degree(network)
-n_distinct(V(network)$MT)
+degree(network3)
+n_distinct(V(network3)$MT)
 
 library("viridis")   
 
 colors <- inferno(29)
 #colors <- colors[-1:-5]
-V(network)$color <- colors[as.numeric(as.factor(V(network)$MT))]
+V(network3)$color <- colors[as.numeric(as.factor(V(network3)$MT))]
 
 dist <- rep(c(0.18, -0.18), length.out = 103)
 #try to jitter the labels a little to avoid overlap 
-V(network)$dist <- dist[as.numeric(as.factor(V(network)$name))]
+V(network3)$dist <- dist[as.numeric(as.factor(V(network3)$name))]
 
 
-plot(network,
-     edge.width=E(network)$n*1,
+plot(network3,
+     edge.width=E(network3)$n*1,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
-     vertex.label.cex=(degree(network)/sum(degree(network))*100),
-     vertex.label.color=V(network)$color,
+     vertex.label.cex=(degree(network3)/sum(degree(network3))*100),
+     vertex.label.color=V(network3)$color,
      vertex.shape="none",
      rescale = TRUE,
      layout = l,
@@ -549,10 +549,10 @@ plot(network,
      
 )
 
-legend(x=-.1,y=1.2,unique(V(network)$MT), 
+legend(x=-.1,y=1.2,unique(V(network3)$MT), 
        pch=21,
        col="#777777", 
-       pt.bg=unique(V(network)$color), 
+       pt.bg=unique(V(network3)$color), 
        pt.cex=2, 
        cex=1, 
        bty="n", # no box around the legen 
@@ -560,10 +560,19 @@ legend(x=-.1,y=1.2,unique(V(network)$MT),
 
 
 
-edges <- degree(network)
+edges <- degree(network3)
 sum(edges)
 
-V(network)
+V(network3)
+
+# Save ------------------------------------------------------------------
+
+# term co-ocurances:
+write.csv(term.pairs, file = "WP4/Policy_Interactions/data/03.Q1term.edgelist.csv", row.names=FALSE)
+write.csv(final.attributes, file = "WP4/Policy_Interactions/data/03.Q1term.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network3, file =  "WP4/Policy_Interactions/data/03.Q1.termnetwork.rds")
+
+# ------------------------------------------------------------------------
 
 # O.K. so the network viz is more legable 
 # I will only plot those that are the median or above edges
