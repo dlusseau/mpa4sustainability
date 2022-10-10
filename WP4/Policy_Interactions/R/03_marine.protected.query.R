@@ -204,25 +204,25 @@ png(file = "WP4/Policy_Interactions/Results/query1.1st.order.networkcitations.pn
 plot(network,
      edge.width=.5,
      vertex.size=5,
-  #  vertex.label=NA,
+     vertex.label=NA,
      vertex.label.family = "sans",
      vertex.label.cex=.75,
      edge.arrow.size=.25,
      edge.arrow.width=2,
 #    layout = l
      )
-legend(x=-1,y=-1.075,c("2008L0056: Marine Strategy Framework Directive",
-                       "32013R1380: CFP, amending CRs",
-                       "32014R0508: European Maritime and Fisheries Fund & repealing CRs",
-                       "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’"),
-       cex=1 )
-legend(x=-1,y=-.93,c("Both (result & citation)",
-                     "Search result",
-                     "Citation"), 
-       pch=21,
-       col="#777777", 
-       pt.bg=unique(V(network)$color), 
-       pt.cex=2, cex=1, bty="n", ncol=1)
+#legend(x=-1,y=-1.075,c("2008L0056: Marine Strategy Framework Directive",
+  #                     "32013R1380: CFP, amending CRs",
+ #                      "32014R0508: European Maritime and Fisheries Fund & repealing CRs",
+   #                    "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’"),
+    #   cex=1 )
+#legend(x=-1,y=-.93,c("Both (result & citation)",
+ #                    "Search result",
+#                     "Citation"), 
+#       pch=21,
+#       col="#777777", 
+#       pt.bg=unique(V(network)$color), 
+#       pt.cex=2, cex=1, bty="n", ncol=1)
 
 dev.off()
 # blue are documents referenced within text
@@ -380,7 +380,7 @@ plot(network2,
      edge.width=.5,
      edge.color=adjustcolor("gray", alpha.f = .65),
      vertex.size=3,
-  #  vertex.label=NA,
+     vertex.label=NA,
      vertex.label.cex=.65,
      vertex.label.family = "sans",
      edge.arrow.size=.5,
@@ -388,24 +388,24 @@ plot(network2,
      layout=l
 )
 
-legend(x=-1.25,y=-1.05,c("32008L0056: Marine Strategy Framework Directive",
-                        "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
-                        "32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
-                        "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’",
-                        "32013D1386: Decision on a General Union Environment Action Programme to 2020 ‘Living well, within the limits of our planet’"),
-       cex=1 )
-legend(x=-1.25,y=-.82,c("Both (result & citation)",
-                       "Search result",
-                       "Only first order citation",
-                       "Only second order citation",
-                       "First and second order citation"), 
-       pch=21,
-       col="#777777", 
-       pt.bg=unique(V(network2)$color), 
-       pt.cex=2, 
-       cex=1, 
-       bty="n", 
-       ncol=1)
+#legend(x=-1.3,y=-1.05,c("32008L0056: Marine Strategy Framework Directive",
+#                        "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
+#                        "32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
+#                        "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’",
+#                        "32013D1386: Decision on a General Union Environment Action Programme to 2020 ‘Living well, within the limits of our planet’"),
+#       cex=1.5 )
+#legend(x=-1.25,y=-.78,c("Both (result & citation)",
+#                       "Search result",
+ #                      "Only first order citation",
+#                       "Only second order citation",
+ #                      "First and second order citation"), 
+#       pch=21,
+#       col="#777777", 
+ #      pt.bg=unique(V(network2)$color), 
+ ##      pt.cex=2, 
+ #      cex=2.5, 
+ #      bty="n", 
+ #     ncol=1)
 
 #32016R1624 does cite itself... double checked on EUR-Lex... 
 dev.off()
@@ -562,7 +562,8 @@ legend(x=-.1,y=1.2,unique(V(network3)$MT),
 
 edges <- degree(network3)
 sum(edges)
-
+term.pairs%>%
+  summarise(total = sum(n))
 V(network3)
 
 # Save ------------------------------------------------------------------

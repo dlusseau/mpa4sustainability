@@ -296,7 +296,7 @@ plot(network,
      edge.width=.5,
      vertex.size=3.5,
      vertex.label.family = "sans",
- #  vertex.label=NA,
+      vertex.label=NA,
      vertex.label.cex=.765,
      vertex.label.color = "black",
      edge.arrow.size=.5,
@@ -343,16 +343,16 @@ plot(network,
 
 
 
-legend(x=-1,y=-1,c("Both (result & citation)",
-                     "Search result",
-                     "First order citation"),
-       pch=21,
-       col="#777777", 
-       pt.bg=unique(V(network)$color), 
-       pt.cex=2, 
-       cex=1, 
-       bty="n", # no box around the legen 
-       ncol=1)
+#legend(x=-1,y=-1,c("Both (result & citation)",
+ #                    "Search result",
+ #                    "First order citation"),
+ #      pch=21,
+ #      col="#777777", 
+ #      pt.bg=unique(V(network)$color), 
+  #     pt.cex=2, 
+ #      cex=1, 
+ #      bty="n", # no box around the legen 
+ #      ncol=1)
 dev.off()
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
@@ -501,7 +501,7 @@ l <- layout.fruchterman.reingold(network2)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 png(file = "WP4/Policy_Interactions/Results/query2.2nd.order.networkcitations.png",
-    width = 1000, height = 1000)
+    width = 1200, height = 1000)
 
 plot(network2,
      edge.width=.5,
@@ -517,7 +517,7 @@ plot(network2,
 )
 
 
-legend(x=-1.2,y=1.2,c("Both (result & citation)",
+legend(x=-1.5,y=1.2,c("Both (result & citation)",
                        "Search result",
                        "Only first order citation",
                        "Only second order citation",
@@ -525,8 +525,8 @@ legend(x=-1.2,y=1.2,c("Both (result & citation)",
        pch=21,
        col="#777777", 
        pt.bg=unique(V(network2)$color), 
-       pt.cex=1, 
-       cex=1, 
+       pt.cex=2.5, 
+       cex=2.5, 
        bty="n", 
        ncol=1)
 
@@ -651,6 +651,11 @@ plot(network3,
 
 # O.K. so the network viz is more legable 
 # I will only plot those that are the median or above edges
+
+edges <- degree(network3)
+sum(edges)
+
+V(network3)
 
 # Save ------------------------------------------------------------------
 
