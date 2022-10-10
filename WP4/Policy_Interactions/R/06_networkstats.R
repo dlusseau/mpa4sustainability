@@ -6,6 +6,7 @@ rm(list = ls())
 
 library("dplyr")
 library("igraph")
+library("tibble")
 
 # Define functions --------------------------------------------------------
 
@@ -138,6 +139,7 @@ Q1.1st.df$degree.in.2nd<-Q1.2nd.df$degree.in[match(Q1.1st.df$name,Q1.2nd.df$name
 Q1.1st.df$degree.out.2nd<-Q1.2nd.df$degree.out[match(Q1.1st.df$name,Q1.2nd.df$name)]
 Q1.1st.df$betweenness.2nd<-Q1.2nd.df$betweenness[match(Q1.1st.df$name,Q1.2nd.df$name)]
 
+summary(Q1.1st.df)
 
 # ------------------- eurovo terms -------------------
 
@@ -201,6 +203,65 @@ rownames(Q1.term.df) <- NULL
 
 head(Q1.term.df)
 
+Q2.term.df<-data.frame(name= V(Q2.terms.graph)$name,
+                       degree=Q2.term.degree,
+                       betweenness=Q2.term.betweenness,
+                       component=as.numeric(membership(Q2.termclusters)))
+
+rownames(Q2.term.df) <- NULL
+
+head(Q2.term.df)
+
+# to make the plot slightly more legable lets remove those that have edges >= 9 (the median)
+member.attributesQ1 <- as.data.frame(as.matrix(membership(Q1.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
+
+Q1.terms.meta2 <-
+    Q1.terms.meta %>%
+    left_join(.,member.attributesQ1, by = c("item1"="rowname"))
+
+
+Q1.network.updated <- graph_from_data_frame(d=Q1.terms, vertices = Q1.terms.meta2, directed = FALSE)
+
+
+Q1.network.updated1 <- delete_vertices(Q1.network.updated, V(Q1.network.updated)[degree(Q1.network.updated)<9])
+
+n_distinct(V(Q1.network.updated1)$membership)
+
+library(RColorBrewer)
+
+colors <- brewer.pal(n = 7, name = "Dark2")
+colors3 <- c(colors, colors2)
+
+V(Q1.network.updated1)$color <- colors3[as.numeric(as.factor(V(Q1.network.updated1)$membership))]
+
+l3 <- layout.fruchterman.reingold(Q1.network.updated1)
+
+dist <- seq(-.025,0.25, by=.0024)
+dist <- rep(c(0.18, -0.18), length.out = 54)
+#try to jitter the labels a little to avoid overlap 
+V(Q1.network.updated1)$dist <- dist[as.numeric(as.factor(V(Q1.network.updated1)$name))]
+
+
+png(file = "WP4/Policy_Interactions/Results/query1.eurovocterm.network.png",
+    width = 1700, height = 1700)
+
+
+plot(Q1.network.updated1,
+     edge.width=E(Q1.network.updated1)$n,
+     edge.color=adjustcolor("gray", alpha.f = .25),
+     vertex.size=2,
+     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.color=V(Q1.network.updated1)$color, #membership(Q2.termclusters),
+     vertex.shape="none",
+     layout = l3,
+     vertex.label.family = "sans",
+     ylim=c(-1.25,1.25),xlim=c(-1.25,1.25),
+     layout = l2,
+     vertex.label.family = "sans",
+     vertex.label.dist = V(Q1.network.updated1)$dist
+)
+
+dev.off()
 
 # Query 2 ---------------------------------------------------------
 
@@ -277,6 +338,7 @@ Q2.1st.df$degree.in.2nd<-Q2.2nd.df$degree.in[match(Q2.1st.df$name,Q2.2nd.df$name
 Q2.1st.df$degree.out.2nd<-Q2.2nd.df$degree.out[match(Q2.1st.df$name,Q2.2nd.df$name)]
 Q2.1st.df$betweenness.2nd<-Q2.2nd.df$betweenness[match(Q2.1st.df$name,Q2.2nd.df$name)]
 
+summary(Q2.1st.df)
 # ------------------- eurovo terms -------------------
 
 # degree 
@@ -308,10 +370,13 @@ plot(Q2.terms.graph,
      vertex.shape="none",
      # vertex.label.cex=V(Q1.terms.graph)$total.count*.05,
      edge.width=E(Q2.terms.graph)$n*1,
+     vertex.label.cex= 1 ,
      rescale = TRUE,
      #ylim=c(-.8,.85),xlim=c(-.9,.9),
      vertex.size=1,
-     layout = l)
+     layout = l,
+     ylim=c(-.85,.85),
+     xlim=c(-.8,.8))
 # very messy....
 
 
@@ -336,13 +401,14 @@ plot(Q2.terms.graph,
      edge.width=E(Q2.terms.graph)$n,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
-     vertex.label.cex= 1 ,
+     vertex.label.cex= V(Q2.terms.graph)$total.count*.015 ,
      vertex.label.color=V(Q2.terms.graph)$color, #membership(Q2.termclusters),
      vertex.shape="none",
-     rescale = TRUE,
-     ylim=c(-1,1),xlim=c(-1,1),
      layout = l3,
      vertex.label.family = "sans",
+    # rescale = TRUE,
+     ylim=c(-.85,.85),
+     xlim=c(-.87,.87)
      #vertex.label.dist = V(Q2.terms.graph)$dist
      # trying this layout based on pdf above...
 )
@@ -357,5 +423,56 @@ rownames(Q2.term.df) <- NULL
 
 head(Q2.term.df)
 
+# to make the plot slightly more legable lets remove those that have edges >= 9 (the median)
+member.attributes <- as.data.frame(as.matrix(membership(Q2.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
 
+Q2.terms.meta2 <-
+    Q2.terms.meta %>%
+    left_join(.,member.attributes, by = c("item1"="rowname"))
+    
+    
+network.updated <- graph_from_data_frame(d=Q2.terms, vertices = Q2.terms.meta2, directed = FALSE)
+class(network3)
+
+
+network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(network.updated)<9])
+
+n_distinct(V(network.updated1)$membership)
+
+library(RColorBrewer)
+
+colors <- brewer.pal(n = 8, name = "Dark2")
+colors2 <- brewer.pal(n = 8, name = "Set1")
+colors3 <- c(colors, colors2)
+
+V(network.updated1)$color <- colors3[as.numeric(as.factor(V(network.updated1)$membership))]
+
+l3 <- layout.fruchterman.reingold(network.updated1)
+
+dist <- seq(-.025,0.25, by=.0024)
+dist <- rep(c(0.18, -0.18), length.out = 226)
+#try to jitter the labels a little to avoid overlap 
+V(network.updated1)$dist <- dist[as.numeric(as.factor(V(network.updated1)$name))]
+
+
+png(file = "WP4/Policy_Interactions/Results/query2.eurovocterm.network.png",
+    width = 1500, height = 1500)
+
+
+plot(network.updated1,
+     edge.width=E(network.updated1)$n,
+     edge.color=adjustcolor("gray", alpha.f = .25),
+     vertex.size=2,
+     vertex.label.cex=(degree(network.updated1)/sum(degree(network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.color=V(network.updated1)$color, #membership(Q2.termclusters),
+     vertex.shape="none",
+     layout = l3,
+     vertex.label.family = "sans",
+     ylim=c(-.9,.9),xlim=c(-.9,.9),
+     layout = l2,
+     vertex.label.family = "sans",
+     vertex.label.dist = V(network.updated1)$dist
+)
+
+dev.off()
 
