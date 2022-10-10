@@ -237,7 +237,7 @@ V(Q1.network.updated1)$color <- colors3[as.numeric(as.factor(V(Q1.network.update
 l3 <- layout.fruchterman.reingold(Q1.network.updated1)
 
 dist <- seq(-.025,0.25, by=.0024)
-dist <- rep(c(0.18, -0.18), length.out = 54)
+dist <- rep(c(0.28, -0.28), length.out = 54)
 #try to jitter the labels a little to avoid overlap 
 V(Q1.network.updated1)$dist <- dist[as.numeric(as.factor(V(Q1.network.updated1)$name))]
 
@@ -250,7 +250,7 @@ plot(Q1.network.updated1,
      edge.width=E(Q1.network.updated1)$n,
      edge.color=adjustcolor("gray", alpha.f = .25),
      vertex.size=2,
-     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*100), # label size is equiv. to percent of edges associated to the word out of total edges
      vertex.label.color=V(Q1.network.updated1)$color, #membership(Q2.termclusters),
      vertex.shape="none",
      layout = l3,
