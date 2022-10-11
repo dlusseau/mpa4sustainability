@@ -81,68 +81,63 @@ mar.protected.text.df <-
   rename("text" = "total.text") %>%
   select(doc_id,text,resource.type,url)
 
-# cleaning and pre-processing text data for sentiment analysis
-sent.key <- 
-  document.key.df %>%
-  select(celex,date,force,labels,MT) %>% 
-  mutate(date = as.Date(date)) %>%
-  mutate(year = year(date)) %>%
-  distinct()
-
-mar.protected.text.df.clean.SENT <-
-  mar.protected.text.df %>%
-  mutate(clean.text = tolower(text),                                       # convert all to lower case
-         clean.text = str_replace_all(clean.text,"[:digit:]",""),          # remove numbers
-         clean.text = str_replace_all(clean.text, "[^[:graph:]]"," ")) %>% # remove all special characters
-  group_by(doc_id) %>%
-  distinct(doc_id, .keep_all=TRUE) %>%
-  select(doc_id,clean.text,resource.type,url) %>%
-  rename("text" = "clean.text") %>%
-  ungroup() %>%
-  left_join(.,sent.key, by = c("doc_id" = "celex"))
-
-# cleaning and pre-processing text data for a corpus for text mining models
-mar.protected.text.df.clean <-
-  mar.protected.text.df %>%
-  mutate(clean.text = tolower(text),                                   # convert all to lower case
-         clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
-         clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
-         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
-         clean.text = removeWords(clean.text,stopwords("en"))) %>%     # remove stop words
-  mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
-  unnest(clean.text) %>%
-  group_by(doc_id) %>%
-  mutate(clean.text = paste(clean.text, collapse = " ")) %>%
-  distinct(doc_id, .keep_all=TRUE) %>%
-  select(doc_id,clean.text,resource.type,url) %>%
-  rename("text" = "clean.text") %>%
-  ungroup() %>%
-  as.data.frame()
-
-#possibly add force, date/year and theme so we have it in the meta-data of the corpus
-mar.protected.text.df.clean <-
-  mar.protected.text.df.clean %>%
-  left_join(. , smaller.key.df, by= c("doc_id" = "celex"))
-
-# lets make it into a corpus object
-mar.protected.corpus <- DataframeSource(mar.protected.text.df.clean)
-mar.protected.corpus <- SimpleCorpus(mar.protected.corpus, control = list(language = "en"))
-
-meta(mar.protected.corpus)
-
 # OK so now we have a cleaned corpus: 
 
-  # convert corpus to a document-term matrix
-  # document term matrix: lists word occurances within a document 
-  dtm.Q1 <- DocumentTermMatrix(mar.protected.corpus)
-  inspect(dtm.Q1)
-  
-  # convert corpus to a term-document matrix
-  # document term matrix: lists word occurances within a document 
-  tdm.Q1 <- TermDocumentMatrix(mar.protected.corpus)
-  inspect(tdm.Q1)
-  
 
+  
+library("sentimentr")
+
+# cleaning and pre-processing whole text data for a corpus for topic models
+  mar.protected.text.df.clean <-
+    mar.protected.text.df %>%
+    get_sentences() %>%
+    mutate(clean.text = tolower(text),                                   # convert all to lower case
+           clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
+           clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
+           clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
+           clean.text = removeWords(clean.text,stopwords("en"))) %>%     # remove stop words --> tm package
+    mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words --> corpus package (tm stemming package did not work...was doing something strange)
+    unnest(clean.text) %>%                # sentences that become NAs aftere cleaning are removed...
+    group_by(element_id, sentence_id) %>%
+    mutate(clean.text = paste(clean.text, collapse = " ")) %>%
+    distinct(element_id, sentence_id, .keep_all=TRUE) %>%
+    ungroup() %>%
+    mutate(element_id = as.factor(element_id),
+           sentence_id = as.factor(sentence_id)) %>%
+    mutate(doc_id2 = paste(element_id, sentence_id, sep = "_")) %>%
+    select(doc_id2,clean.text,resource.type,url,doc_id) %>%
+    rename("text" = "clean.text",
+           "CELEX" = "doc_id",
+           "doc_id" = "doc_id2") %>%
+    as.data.frame()
+  
+  
+#possibly add force, date/year and theme so we have it in the meta-data of the corpus
+  mar.protected.text.df.clean <-
+    mar.protected.text.df.clean %>%
+    left_join(. , smaller.key.df, by= c("CELEX" = "celex"))
+  
+    
+# lets make it into a corpus object (tm package)
+mar.protected.corpus <- DataframeSource(mar.protected.text.df.clean)
+mar.protected.corpus <- SimpleCorpus(mar.protected.corpus, control = list(language = "en"))
+  
+mar.protected.corpus <- corpus(mar.protected.corpus) #should convert it to quanteda package formate since it is the only type I could get a successful conversion to stm
+meta(mar.protected.corpus)
+docvars(mar.protected.corpus)
+ndoc(mar.protected.corpus)
+
+mar.protected.dfm <- dfm(tokens(mar.protected.corpus)) # Create a document feature matrix
+Q1.textprocessed <- convert(mar.protected.dfm, to="stm") # convert dfm to stm format corpus
+ 
+docs  <- Q1.textprocessed$documents
+vocab <- Q1.textprocessed$vocab
+meta  <- Q1.textprocessed$meta
+  
+Q1.out <- prepDocuments(docs, vocab, meta)
+
+  
+  
 #---------------------------------------------------------------------------
 #--------------------- This is the second search query  --------------------
 #----------------------- 18 terms all diff types of ------------------------
@@ -163,80 +158,162 @@ mutate(resource.type = as.factor(resource.type),
   rename("text" = "total.text") %>%
   select(doc_id,text,resource.type,url,search.term,force)
 
-# cleaning and pre-processing text data for sentiment analysis
-MPA.DESG.text.df.SENT <-
-  MPA.DESG.text.df %>%
-  mutate(clean.text = tolower(text),                                       # convert all to lower case
-         clean.text = str_replace_all(clean.text,"[:digit:]",""),          # remove numbers
-         clean.text = str_replace_all(clean.text, "[^[:graph:]]"," ")) %>% # remove all special characters
-  group_by(doc_id) %>%
-  distinct(doc_id, .keep_all=TRUE) %>%
-  select(doc_id,clean.text,resource.type,url) %>%
-  rename("text" = "clean.text") %>%
-  ungroup()
-
-# cleaning and pre-processing text data 
+# cleaning and pre-processing whole text data for a corpus for topic models
 MPA.DESG.text.df.clean <-
   MPA.DESG.text.df %>%
+  get_sentences() %>%
   mutate(clean.text = tolower(text),                                   # convert all to lower case
          clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
          clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
          clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
          clean.text = removeWords(clean.text,stopwords("en"))) %>%     # remove stop words
   mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
-  unnest(clean.text) %>%
-  group_by(doc_id) %>%
+  unnest(clean.text) %>% # sentences that become NAs aftere cleaning are removed...
+  group_by(element_id, sentence_id) %>%
   mutate(clean.text = paste(clean.text, collapse = " ")) %>%
-  distinct(doc_id, .keep_all=TRUE) %>%
-  select(doc_id,clean.text,resource.type,url,search.term,force) %>%
-  rename("text" = "clean.text") %>%
+  distinct(element_id, sentence_id, .keep_all=TRUE) %>%
   ungroup() %>%
+  mutate(element_id = as.factor(element_id),
+         sentence_id = as.factor(sentence_id)) %>%
+  mutate(doc_id2 = paste(element_id, sentence_id, sep = "_")) %>%
+  select(doc_id2,clean.text,resource.type,url,doc_id,search.term,force) %>%
+  rename("text" = "clean.text",
+         "CELEX" = "doc_id",
+         "doc_id" = "doc_id2") %>%
   as.data.frame()
 
 #possibly add date and theme so we have it in the meta-data of the corpus
 MPA.DESG.text.df.clean <-
   smaller.key.df %>%
   select(-force) %>% # already has force info in df
-  right_join(. ,MPA.DESG.text.df.clean , by= c("celex" = "doc_id")) %>%
-  rename("doc_id" = "celex") %>% 
-  select(doc_id,text,resource.type,url,search.term,force, date, year)
-  
+  right_join(. ,MPA.DESG.text.df.clean , by= c("celex" = "CELEX")) %>%
+  select(doc_id,text,resource.type,url,search.term,force, celex, date, year)
 
-# lets make it into a corpus object
+# lets make it into a corpus object (tm package)
 MPA.DESG.corpus <- DataframeSource(MPA.DESG.text.df.clean)
 MPA.DESG.corpus <- SimpleCorpus(MPA.DESG.corpus, control = list(language = "en"))
 
+MPA.DESG.corpus <- corpus(MPA.DESG.corpus) #should convert it to quanteda package formate since it is the only type I could get a successful conversion to stm
 meta(MPA.DESG.corpus)
+docvars(MPA.DESG.corpus)
+ndoc(MPA.DESG.corpus)
 
-# OK so now we have a cleaned corpus: 
+MPA.DESG.dfm <- dfm(tokens(MPA.DESG.corpus)) # Create a document feature matrix
+Q2.textprocessed <- convert(MPA.DESG.dfm, to="stm") # convert dfm to stm format corpus
 
-# convert corpus to a document-term matrix
-# document term matrix: lists word occurances within a document 
-dtm.Q2 <- DocumentTermMatrix(MPA.DESG.corpus)
-inspect(dtm.Q2)
+docs <- Q2.textprocessed$documents
+vocab <- Q2.textprocessed$vocab
+meta <- Q2.textprocessed$meta
 
-# convert corpus to a term-document matrix
-# document term matrix: lists word occurances within a document 
-tdm.Q2 <- TermDocumentMatrix(MPA.DESG.corpus)
-inspect(tdm.Q2)
+Q2.out <- prepDocuments(docs, vocab, meta)
+
 
 # Save files ---------------------------------------------------------------------
 
 # Q1 cleaned corpus:
-saveRDS(mar.protected.corpus, file = "WP4/Policy_Interactions/data/05_Q1corpus")
-saveRDS(dtm.Q1, file = "WP4/Policy_Interactions/data/05_dtm.Q1")
-saveRDS(tdm.Q1, file = "WP4/Policy_Interactions/data/05_tdm.Q1")
-write.csv(x = mar.protected.text.df.clean.SENT,
-          file = "WP4/Policy_Interactions/data/05_Q1.cleansent.text.csv", row.names=FALSE)
+saveRDS(Q1.textprocessed, file = "WP4/Policy_Interactions/data/05_Q1.textprocessed.stm")
+saveRDS(Q1.out, file = "WP4/Policy_Interactions/data/05_Q1.preptext.stm")
+
 
 # Q1 cleaned corpus:
-saveRDS(MPA.DESG.corpus, file = "WP4/Policy_Interactions/data/05_Q2corpus")
-saveRDS(dtm.Q2, file = "WP4/Policy_Interactions/data/05_dtm.Q2")
-saveRDS(tdm.Q2, file = "WP4/Policy_Interactions/data/05_tdm.Q2")
-write.csv(x = MPA.DESG.text.df.SENT,
-          file = "WP4/Policy_Interactions/data/05_Q2.cleansent.text.csv", row.names=FALSE)
+saveRDS(Q2.textprocessed, file = "WP4/Policy_Interactions/data/05_Q2.textprocessed.stm")
+saveRDS(Q2.out, file = "WP4/Policy_Interactions/data/05_Q2.preptext.stm")
 
 
+# archival ---------------------
 
 
+# cleaning and pre-processing text data for sentiment analysis
+#sent.key <- 
+#  document.key.df %>%
+#  select(celex,date,force,labels,MT) %>% 
+#  mutate(date = as.Date(date)) %>%
+#  mutate(year = year(date)) %>%
+#  distinct()
+
+#mar.protected.text.df.clean.SENT <-
+#  mar.protected.text.df %>%
+#  mutate(clean.text = tolower(text),                                       # convert all to lower case
+#         clean.text = str_replace_all(clean.text,"[:digit:]",""),          # remove numbers
+#         clean.text = str_replace_all(clean.text, "[^[:graph:]]"," ")) %>% # remove all special characters
+#  group_by(doc_id) %>%
+#  distinct(doc_id, .keep_all=TRUE) %>%
+#  select(doc_id,clean.text,resource.type,url) %>%
+#rename("text" = "clean.text") %>%
+#  ungroup() %>%
+#  left_join(.,sent.key, by = c("doc_id" = "celex"))
+
+# cleaning and pre-processing text data for a corpus for text mining models
+#mar.protected.text.df.clean <-
+#  mar.protected.text.df %>%
+#  mutate(clean.text = tolower(text),                                   # convert all to lower case
+#         clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
+#         clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
+#         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
+#         clean.text = removeWords(clean.text,stopwords("en"))) %>%     # remove stop words
+#  mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
+#  unnest(clean.text) %>%
+#  group_by(doc_id) %>%
+#  mutate(clean.text = paste(clean.text, collapse = " ")) %>%
+ # distinct(doc_id, .keep_all=TRUE) %>%
+ # select(doc_id,clean.text,resource.type,url) %>%
+#  rename("text" = "clean.text") %>%
+ # ungroup() %>%
+#  as.data.frame()
+
+#possibly add force, date/year and theme so we have it in the meta-data of the corpus
+#mar.protected.text.df.clean <-
+# mar.protected.text.df.clean %>%
+#  left_join(. , smaller.key.df, by= c("doc_id" = "celex"))
+
+# lets make it into a corpus object
+#mar.protected.corpus <- DataframeSource(mar.protected.text.df.clean)
+#mar.protected.corpus <- SimpleCorpus(mar.protected.corpus, control = list(language = "en"))
+
+#meta(mar.protected.corpus)
+
+# cleaning and pre-processing text data for sentiment analysis
+#MPA.DESG.text.df.SENT <-
+ # MPA.DESG.text.df %>%
+ # mutate(clean.text = tolower(text),                                       # convert all to lower case
+ #        clean.text = str_replace_all(clean.text,"[:digit:]",""),          # remove numbers
+ #        clean.text = str_replace_all(clean.text, "[^[:graph:]]"," ")) %>% # remove all special characters
+ # group_by(doc_id) %>%
+ # distinct(doc_id, .keep_all=TRUE) %>%
+ # select(doc_id,clean.text,resource.type,url) %>%
+ # rename("text" = "clean.text") %>%
+ # ungroup()
+
+# cleaning and pre-processing text data 
+#MPA.DESG.text.df.clean <-
+#  MPA.DESG.text.df %>%
+#  mutate(clean.text = tolower(text),                                   # convert all to lower case
+#         clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
+#         clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
+#         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
+#         clean.text = removeWords(clean.text,stopwords("en"))) %>%     # remove stop words
+#  mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
+#  unnest(clean.text) %>%
+#  group_by(doc_id) %>%
+#  mutate(clean.text = paste(clean.text, collapse = " ")) %>%
+#  distinct(doc_id, .keep_all=TRUE) %>%
+#  select(doc_id,clean.text,resource.type,url,search.term,force) %>%
+#  rename("text" = "clean.text") %>%
+#  ungroup() %>%
+#  as.data.frame()
+
+#possibly add date and theme so we have it in the meta-data of the corpus
+#MPA.DESG.text.df.clean <-
+#  smaller.key.df %>%
+#  select(-force) %>% # already has force info in df
+#  right_join(. ,MPA.DESG.text.df.clean , by= c("celex" = "doc_id")) %>%
+#  rename("doc_id" = "celex") %>% 
+#  select(doc_id,text,resource.type,url,search.term,force, date, year)
+
+
+# lets make it into a corpus object
+#MPA.DESG.corpus <- DataframeSource(MPA.DESG.text.df.clean)
+#MPA.DESG.corpus <- SimpleCorpus(MPA.DESG.corpus, control = list(language = "en"))
+
+#meta(MPA.DESG.corpus)
 
