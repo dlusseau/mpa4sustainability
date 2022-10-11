@@ -7,6 +7,7 @@ rm(list = ls())
 library("dplyr")
 library("igraph")
 library("tibble")
+library("RColorBrewer")
 
 # Define functions --------------------------------------------------------
 
@@ -146,10 +147,14 @@ summary(Q1.1st.df)
 # degree 
 Q1.term.degree<-degree(Q1.terms.graph)
 
+summary(Q1.term.degree)
+
 V(Q1.terms.graph)
 
 # betweenness
 Q1.term.betweenness<-betweenness(Q1.terms.graph, directed = FALSE, normalized=TRUE)
+
+summary(Q1.term.betweenness)
 
 plot(Q1.term.degree ~ Q1.term.betweenness)
 
@@ -194,23 +199,6 @@ plot(Q1.terms.graph,
      vertex.size=1,
      layout = l2)
 
-Q1.term.df<-data.frame(name= V(Q1.terms.graph)$name,
-                       degree=Q1.term.degree,
-                       betweenness=Q1.term.betweenness,
-                       component=as.numeric(membership(Q1.termclusters)))
-
-rownames(Q1.term.df) <- NULL
-
-head(Q1.term.df)
-
-Q2.term.df<-data.frame(name= V(Q2.terms.graph)$name,
-                       degree=Q2.term.degree,
-                       betweenness=Q2.term.betweenness,
-                       component=as.numeric(membership(Q2.termclusters)))
-
-rownames(Q2.term.df) <- NULL
-
-head(Q2.term.df)
 
 # to make the plot slightly more legable lets remove those that have edges >= 9 (the median)
 member.attributesQ1 <- as.data.frame(as.matrix(membership(Q1.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
@@ -220,6 +208,7 @@ Q1.terms.meta2 <-
     left_join(.,member.attributesQ1, by = c("item1"="rowname"))
 
 
+
 Q1.network.updated <- graph_from_data_frame(d=Q1.terms, vertices = Q1.terms.meta2, directed = FALSE)
 
 
@@ -227,13 +216,26 @@ Q1.network.updated1 <- delete_vertices(Q1.network.updated, V(Q1.network.updated)
 
 n_distinct(V(Q1.network.updated1)$membership)
 
-library(RColorBrewer)
 
 colors <- brewer.pal(n = 7, name = "Dark2")
-colors3 <- c(colors, colors2)
+colors3 <- c(colors)
 
 V(Q1.network.updated1)$color <- colors3[as.numeric(as.factor(V(Q1.network.updated1)$membership))]
 
+cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)
+
+as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+    mutate(V2 = as.numeric(V2)) %>%
+    distinct(., .keep_all=TRUE) %>%
+    right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+    ggplot(., aes(label = item1, 
+                  size = total.count,
+                  color = V1)) +
+    geom_text_wordcloud(shape = "circle") +
+    scale_size_area(max_size = 10) +
+    theme_minimal() +
+    facet_wrap(~V2)  
+xx
 l3 <- layout.fruchterman.reingold(Q1.network.updated1)
 
 dist <- seq(-.025,0.25, by=.0024)
@@ -243,14 +245,14 @@ V(Q1.network.updated1)$dist <- dist[as.numeric(as.factor(V(Q1.network.updated1)$
 
 
 png(file = "WP4/Policy_Interactions/Results/query1.eurovocterm.network.png",
-    width = 1700, height = 1700)
+    width = 3000, height = 3000)
 
 
 plot(Q1.network.updated1,
      edge.width=E(Q1.network.updated1)$n,
-     edge.color=adjustcolor("gray", alpha.f = .25),
+     edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
-     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*100), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*150), # label size is equiv. to percent of edges associated to the word out of total edges
      vertex.label.color=V(Q1.network.updated1)$color, #membership(Q2.termclusters),
      vertex.shape="none",
      layout = l3,
@@ -344,10 +346,14 @@ summary(Q2.1st.df)
 # degree 
 Q2.term.degree<-degree(Q2.terms.graph)
 
+summary(Q2.term.degree)
+
 V(Q2.terms.graph)
 
 # betweenness
 Q2.term.betweenness<-betweenness(Q2.terms.graph, directed = FALSE, normalized=TRUE)
+
+summary(Q2.term.betweenness)
 
 plot(Q2.term.degree ~ Q2.term.betweenness)
 
@@ -358,6 +364,15 @@ Q2.termclusters <-cluster_leading_eigen(Q2.terms.graph,
                                         options = list(maxiter=10000))
 # 21 clusters
 
+
+
+plot(degree.in~degree.out,data=Q1.2nd.df)
+
+Q1.1st.df$degree.in.2nd<-Q1.2nd.df$degree.in[match(Q1.1st.df$name,Q1.2nd.df$name)]
+Q1.1st.df$degree.out.2nd<-Q1.2nd.df$degree.out[match(Q1.1st.df$name,Q1.2nd.df$name)]
+Q1.1st.df$betweenness.2nd<-Q1.2nd.df$betweenness[match(Q1.1st.df$name,Q1.2nd.df$name)]
+
+summary(Q1.1st.df)
 
 plot_dendrogram(Q2.termclusters)
 
@@ -429,10 +444,27 @@ member.attributes <- as.data.frame(as.matrix(membership(Q2.termclusters))) %>%  
 Q2.terms.meta2 <-
     Q2.terms.meta %>%
     left_join(.,member.attributes, by = c("item1"="rowname"))
-    
-    
+
+
+Q2.terms.meta2 %>%
+    filter(membership <10) %>%
+    ggplot(., aes(label = item1, size = total.count)) +
+    geom_text_wordcloud(shape = "circle") +
+    scale_size_area(max_size = 8) +
+    theme_minimal() +
+    facet_wrap(~membership)  
+
+Q2.terms.meta2 %>%
+    filter(membership >10) %>%
+    ggplot(., aes(label = item1, size = total.count)) +
+    geom_text_wordcloud(shape = "circle") +
+    scale_size_area(max_size = 8) +
+    theme_minimal() +
+    facet_wrap(~membership)  
+
 network.updated <- graph_from_data_frame(d=Q2.terms, vertices = Q2.terms.meta2, directed = FALSE)
 class(network3)
+
 
 
 network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(network.updated)<9])
@@ -456,12 +488,12 @@ V(network.updated1)$dist <- dist[as.numeric(as.factor(V(network.updated1)$name))
 
 
 png(file = "WP4/Policy_Interactions/Results/query2.eurovocterm.network.png",
-    width = 1500, height = 1500)
+    width = 2500, height = 2500)
 
 
 plot(network.updated1,
      edge.width=E(network.updated1)$n,
-     edge.color=adjustcolor("gray", alpha.f = .25),
+     edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
      vertex.label.cex=(degree(network.updated1)/sum(degree(network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
      vertex.label.color=V(network.updated1)$color, #membership(Q2.termclusters),
