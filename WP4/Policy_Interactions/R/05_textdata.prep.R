@@ -12,6 +12,8 @@ library("tidyr")
 library("lubridate")
 library("rvest")
 library("readr")
+library("sentimentr")
+library("stm")
 
 # Define functions ---------------------------------------------------------
 
@@ -84,20 +86,22 @@ mar.protected.text.df <-
 # OK so now we have a cleaned corpus: 
 
 
-  
-library("sentimentr")
 
 # cleaning and pre-processing whole text data for a corpus for topic models
   mar.protected.text.df.clean <-
     mar.protected.text.df %>%
     get_sentences() %>%
     mutate(clean.text = tolower(text),                                   # convert all to lower case
+           clean.text = str_replace_all(clean.text,"\\μ[:graph:]+",""),  # remove units that have this special character
+           clean.text = str_replace_all(clean.text,"[:graph:]+\\μ",""),  # remove units that have this special character
            clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
            clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
            clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
-           clean.text = removeWords(clean.text,stopwords("en"))) %>%     # remove stop words --> tm package
+           clean.text = removeWords(clean.text,stopwords("en")),         # remove stop words --> tm package
+           clean.text = stripWhitespace(clean.text)) %>%                 # strip extra whote space away --> tm package
     mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words --> corpus package (tm stemming package did not work...was doing something strange)
     unnest(clean.text) %>%                # sentences that become NAs aftere cleaning are removed...
+    filter(nchar(clean.text)>2) %>%      # remove words that are smaller than 2 characters
     group_by(element_id, sentence_id) %>%
     mutate(clean.text = paste(clean.text, collapse = " ")) %>%
     distinct(element_id, sentence_id, .keep_all=TRUE) %>%
@@ -163,13 +167,17 @@ MPA.DESG.text.df.clean <-
   MPA.DESG.text.df %>%
   get_sentences() %>%
   mutate(clean.text = tolower(text),                                   # convert all to lower case
+         clean.text = str_replace_all(clean.text,"\\μ[:graph:]+",""),  # remove units that have this special character
+         clean.text = str_replace_all(clean.text,"[:graph:]+\\μ",""),  # remove units that have this special character
          clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
          clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
          clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
-         clean.text = removeWords(clean.text,stopwords("en"))) %>%     # remove stop words
+         clean.text = removeWords(clean.text,stopwords("en")),         # remove stop words
+         clean.text = stripWhitespace(clean.text)) %>%                 # strip extra whote space away --> tm package
   mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
   unnest(clean.text) %>% # sentences that become NAs aftere cleaning are removed...
-  group_by(element_id, sentence_id) %>%
+  filter(nchar(clean.text)>2) %>%      # remove words that are smaller than 2 characters
+   group_by(element_id, sentence_id) %>%
   mutate(clean.text = paste(clean.text, collapse = " ")) %>%
   distinct(element_id, sentence_id, .keep_all=TRUE) %>%
   ungroup() %>%
