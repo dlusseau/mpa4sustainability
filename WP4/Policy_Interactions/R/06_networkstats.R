@@ -481,8 +481,9 @@ colors2 <- brewer.pal(n = 10, name = "Paired")
 colors2.5 <- colors2[-4] # remove the unreadable yellow
 colors2.5 <- colors2.5[-6] # remove the unreadable yellow
 
-colors3 <- c(colors, colors2.5)
-
+set.seed(01)
+colors3 <- sample(c(colors, colors2.5))
+#sort(colors3)
 V(network.updated1)$color <- colors3[as.numeric(as.factor(V(network.updated1)$membership))]
 
 # clusters not in the network... 2, 3, 15, 17, 19 but will still need a color that is not present in the network for the word clouds 
@@ -521,27 +522,27 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
                                   "Cluster 14", "Cluster 15", "Cluster 16",
                                   "Cluster 17", "Cluster 18","Cluster 19",
                                   "Cluster 20", "Cluster 21"),
-                       values=c("#1B9E77", 
+                       values=c("#A6CEE3", 
                                 "black",
                                 "purple",
-                                "#D95F02", 
-                                "#7570B3", 
                                 "#E7298A", 
-                                "#66A61E",
-                                "#E6AB02",
-                                "#A6761D",
-                                "#666666",
-                                "#A6CEE3", 
-                                "#1F78B4", 
-                                "#B2DF8A", 
-                                "#FB9A99",
-                                "#ff0099",
-                                "#E31A1C",
-                                "#0000ff",
+                                "#A6761D", 
+                                "#1B9E77", 
+                                "#D95F02",
                                 "#FF7F00",
-                                "00cccc",
+                                "#FB9A99",
+                                "#7570B3",
+                                "#E31A1C", 
+                                "#66A61E", 
+                                "#B2DF8A", 
+                                "#1F78B4",
+                                "#ff0099",
+                                "#E6AB02",
+                                "#0000ff",
                                 "#CAB2D6",
-                                "#6A3D9A"))
+                                "00cccc",
+                                "#6A3D9A",
+                                "#666666"))
 
 ggsave("WP4/Policy_Interactions/Results/Q2.termclusters2.png",
        width = 32, height = 30)
