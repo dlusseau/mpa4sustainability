@@ -19,10 +19,10 @@ library("ggplot2")
 
 # Load data ---------------------------------------------------------------
 
-mpa.policy.notext.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
+mpa.policy.notext.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
 
 # Our document-data key
-document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 
 #---------------------------------------------------------------------------
@@ -459,23 +459,6 @@ term.pairs<-
 
 summary(term.pairs)
 
-# for the left label column find the number of times a label is linked to another label.
-attributes1<- 
-  label.pairs.sub %>%
-  select(-all) %>%
-  group_by(item1) %>%
-  summarise(sum1 = sum(n)) %>%
-  mutate(sum1 = replace_na(sum1,0))
-
-# for the right label column find the number of times a label is linked to another label.
-attributes2<- 
-  label.pairs.sub %>%
-  select(-all) %>%
-  group_by(item2) %>%
-  summarise(sum2 = sum(n)) %>%
-  mutate(sum2 = replace_na(sum2,0))
-
-
 #Which labels have more than one theme?
 more.themes <- 
   mpa.policy.notext.df %>%
@@ -484,7 +467,6 @@ more.themes <-
   mutate(themes = n_distinct(MT)) %>%
   filter(themes > 1)
 
-#STOPPED HERE
 # for now I will just keep the location theme since it is the most straight forward 
 # will discuss with David. 
 remove <- 
@@ -504,13 +486,7 @@ attributes3 <-
   mutate(MT=gsub("\\d","",.$MT)) # remove the theme number code
 
 
-final.attributes <- 
-  full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
-  mutate(sum2 = replace_na(sum2,0)) %>% # make NAs 0
-  mutate(sum1 = replace_na(sum1,0)) %>% # make NAs 0
-  mutate(total.count=sum1+sum2) %>% # get the total number of edges
-  select(-c("sum1","sum2")) %>%
-  left_join(.,attributes3, by = c("item1"="labels"))
+final.attributes <- attributes3
 
 n_distinct(final.attributes$MT)
 

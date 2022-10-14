@@ -14,13 +14,13 @@ library("tidyr")
 
 # Load data ---------------------------------------------------------------
 
-EU.mpa.char<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EU.mpachar.csv")
+EU.mpa.char<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
 # EU mpa directives search: 
-EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
+EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
 
 
-document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 #---------------------------------------------------------------------------
 #------------- This is the analysis on the second search query  ------------
@@ -575,20 +575,6 @@ term.pairs<-
 
 summary(term.pairs)
 
-attributes1<- 
-  label.pairs.sub %>%
-  select(-all) %>%
-  group_by(item1) %>%
-  summarise(sum1 = sum(n)) %>%
-  mutate(sum1 = replace_na(sum1,0))
-
-attributes2<- 
-  label.pairs.sub %>%
-  select(-all) %>%
-  group_by(item2) %>%
-  summarise(sum2 = sum(n)) %>%
-  mutate(sum2 = replace_na(sum2,0))
-
 #Which labels have more than one theme?
 more.themes <- 
   EU.mpa.termsearch.data %>%
@@ -617,13 +603,7 @@ attributes3 <-
   mutate(MT=gsub("\\d","",.$MT))
 
 
-final.attributes <- 
-  full_join(attributes1,attributes2, by = c("item1"="item2")) %>%
-  mutate(sum2 = replace_na(sum2,0)) %>%
-  mutate(sum1 = replace_na(sum1,0)) %>%
-  mutate(total.count=sum1+sum2) %>%
-  select(-c("sum1","sum2")) %>%
-  left_join(.,attributes3, by = c("item1"="labels"))
+final.attributes <- attributes3
 
 n_distinct(final.attributes$MT)
 
@@ -641,7 +621,7 @@ plot(network3,
      edge.width=E(network3)$n*1,
      edge.color="grey",
      vertex.size=1,
-     vertex.label.cex=V(network3)$total.count*.02,
+     vertex.label.cex=(degree(network3)/sum(degree(network3))*100),
      vertex.label.color=V(network3)$color,
      vertex.shape="none",
      rescale = TRUE,
