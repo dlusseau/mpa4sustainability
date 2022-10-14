@@ -70,13 +70,13 @@ str(DK.text.df2)
 
 DK.text.df3 <-
   DK.text.df2 %>%
-    mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun")),
-           kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk")),
-           erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk")),
-           erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfiskeri")),
-           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt")),
-           sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl")),
-           fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle")))
+    mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
+           kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk|Kommercielt fisk")),
+           erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk|Erhvervsmæssigt fisk")),
+           erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfiskeri|Erhvervsfiskeri")),
+           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt|Rekreativt")),
+           sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl|Sæl")),
+           fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")))
 
 DK.text.df3 %>%
   group_by(search.term) %>%
@@ -96,19 +96,19 @@ DK.text.df3 %>%
   filter(search.term == "fiskeri" & erhvervsmæssigt == "TRUE") # 55 out of 1011 fisheries documents mention erhvervsmæssigt fisk
 
 DK.text.df3 %>%
-  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 49 out of 1011 fisheries documents mention erhvervsfiskeri
+  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 54 out of 1011 fisheries documents mention erhvervsfiskeri
 
 DK.text.df3 %>%
-  filter(search.term == "fiskeri" & rekreativt == "TRUE") # 25 out of 1011 fisheries documents mention rekreativt
+  filter(search.term == "fiskeri" & rekreativt == "TRUE") # 27 out of 1011 fisheries documents mention rekreativt
 
 DK.text.df3 %>%
-  filter(search.term == "jagt" & sæl == "TRUE") # 139 out of 346 hunting documents mention seal
+  filter(search.term == "jagt" & sæl == "TRUE") # 142 out of 346 hunting documents mention seal
 
 DK.text.df3 %>%
-  filter(search.term == "jagt" & fugle == "TRUE") # 164 out of 346 hunting documents mention bird
+  filter(search.term == "jagt" & fugle == "TRUE") # 175 out of 346 hunting documents mention bird
 
 DK.text.df3 %>%
-  filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 35 out of 346 hunting documents both mention bird and seal
+  filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 45 out of 346 hunting documents both mention bird and seal
 
 # Getting Eurlex links ---------------------------------------------------------
 
@@ -134,6 +134,18 @@ DK.EU.links1 <-
 n_distinct(DK.EU.links1$retsinfo.url) #450 dk documents are linked to an EU legislation
 n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
 unique(DK.EU.links1$resource.type)
+#in the proposal we are only looking into documents linking to 
+# Directives, Regulations, Decisions, and recommendations
+DK.EU.links1 <- 
+  DK.EU.links1 %>%
+  filter(resource.type == "DIR" |
+         resource.type == "REG" |
+         resource.type == "DEC" |
+         resource.type == "RECO")
+
+n_distinct(DK.EU.links1$retsinfo.url) #445 dk documents are linked to an EU legislation
+n_distinct(DK.EU.links1$EU.link.CELEX) # 235 EU legislation is linked
+unique(DK.EU.links1$resource.type)
 
 # which keywords link to which EU documents:
 DK.EU.links2 <- 
@@ -145,6 +157,7 @@ DK.EU.links2 <-
 
 # Cleaning & Pre-processing the text data --------------------------------------
 
+# this is taking wayyyyy to long than it ever did before???? trying it again on oct 14th
 # cleaning and pre-processing text data 
 DKtext.df.clean <-
   DK.text.df3 %>%
@@ -152,8 +165,8 @@ DKtext.df.clean <-
          clean.text = str_replace_all(clean.text,"[:punct:]",""),     # remove punctuation
          clean.text = str_replace_all(clean.text,"[:digit:]",""),     # remove numbers
          clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),# remove all special characters
-         clean.text = removeWords(clean.text,stopwords("da")),        # remove danish stop words
-         clean.text = stripWhitespace(clean.text)) %>%                # strip extra whote space away --> tm package
+         clean.text = removeWords(clean.text,stopwords("da")))#,        # remove danish stop words
+      #   clean.text = stripWhitespace(clean.text)) %>%                # strip extra whote space away --> tm package
   mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%  # stemming words
   unnest(clean.text) %>%
   group_by(url,search.term) %>%
