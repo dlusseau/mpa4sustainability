@@ -18,7 +18,7 @@ library("dplyr")
 
 # Load data --------------------------------------------------------------------
 
-setwd("C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
+setwd("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
 
 retsinformation.file.list <- list.files(pattern='*.csv')
 
@@ -33,14 +33,14 @@ retsinformation.df <-
          search.term = str_replace_all(search.term,"[:punct:]+",""))
 
 
-DK.text <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1")
+DK.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1")
 
-DK.apped.text <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.apped.text")
+DK.apped.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.apped.text")
 
-DK.text.ref <- readRDS(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" ) 
+DK.text.ref <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" ) 
 
 # Our document-data key
-document.key.df <- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 
 #  lets make it into a df to use -----------------------------------------------
@@ -90,10 +90,13 @@ DK.text.df3 %>%
   filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1011 fisheries documents mention harpun
 
 DK.text.df3 %>%
-  filter(search.term == "fiskeri" & kommercielt == "TRUE") # 47 out of 1011 fisheries documents mention kommercielt
+  filter(search.term == "fiskeri" & kommercielt == "TRUE") # 3 out of 1011 fisheries documents mention kommercielt fisk
 
 DK.text.df3 %>%
-  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 47 out of 1011 fisheries documents mention kommercielt
+  filter(search.term == "fiskeri" & erhvervsmæssigt == "TRUE") # 55 out of 1011 fisheries documents mention erhvervsmæssigt fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 49 out of 1011 fisheries documents mention erhvervsfiskeri
 
 DK.text.df3 %>%
   filter(search.term == "fiskeri" & rekreativt == "TRUE") # 25 out of 1011 fisheries documents mention rekreativt
@@ -128,9 +131,17 @@ DK.EU.links1 <-
   DK.EU.links %>%
   left_join(.,document.key.df, by = c("EU.link.CELEX" = "celex"))
 
-n_distinct(DK.EU.links1$retsinfo.url)
-n_distinct(DK.EU.links1$EU.link.CELEX)
+n_distinct(DK.EU.links1$retsinfo.url) #450 dk documents are linked to an EU legislation
+n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
 unique(DK.EU.links1$resource.type)
+
+# which keywords link to which EU documents:
+DK.EU.links2 <- 
+  DK.text.df3 %>%
+  select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,sæl,fugle) %>%
+  distinct(url, .keep_all = TRUE) %>%
+  right_join(.,DK.EU.links1, by = c("url" = "retsinfo.url"))
+
 
 # Cleaning & Pre-processing the text data --------------------------------------
 
@@ -141,7 +152,8 @@ DKtext.df.clean <-
          clean.text = str_replace_all(clean.text,"[:punct:]",""),     # remove punctuation
          clean.text = str_replace_all(clean.text,"[:digit:]",""),     # remove numbers
          clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),# remove all special characters
-         clean.text = removeWords(clean.text,stopwords("da"))) %>%    # remove danish stop words
+         clean.text = removeWords(clean.text,stopwords("da")),        # remove danish stop words
+         clean.text = stripWhitespace(clean.text)) %>%                # strip extra whote space away --> tm package
   mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%  # stemming words
   unnest(clean.text) %>%
   group_by(url,search.term) %>%
