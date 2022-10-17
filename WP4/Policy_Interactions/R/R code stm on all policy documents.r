@@ -1,3 +1,6 @@
+
+Sys.setenv(LANG = "en")
+
 ### R code to engage in topic modelling of EUR-LEX relevant text
 
 library(stringr)
@@ -21,10 +24,30 @@ load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord
 
 library(stminsights)
 library(ggraph)
+library(tidyverse)
 
 #  Query 1 -----------------------------------------------------------------------------------------------------------------------------------------
 
-Q1.labels<-labelTopics(Q1.stm,n =3) 
+Q1.DT.matrix <- Q1.stm$theta # rows are the text/"document" and columns are the topics, values are the topic proportions
+Q1.TW.list <- Q1.stm$beta # list of log word probabilities for each topic
+Q1.vocab <- Q1.stm$vocab # teh vocab within the list above
+
+# lets make this into a long df
+Q1.Doctopic.longdf <-
+  Q1.DT.matrix %>%
+  as.data.frame() %>%
+  rownames_to_column(var = "document_sentence") %>%
+  cbind(., Q1.text$meta$CELEX)
+  pivot_longer(.,
+               cols = 2:68,
+               names_to = "topic", 
+               values_to = "proportion") %>%
+  mutate(topic = str_replace_all(topic, "V", "topic"),
+         percent.doc = proportion *100) %>%
+  cbind(., Q1.text$meta$CELEX)
+
+
+Q1.labels<-labelTopics(Q1.stm,n =7) 
 
 Q1.net <- get_network(model = Q1.stm,
                          method = 'simple',
@@ -47,10 +70,29 @@ ggraph(Q1.net, layout = 'fr') +
   theme_graph()
 
 prep <- estimateEffect(1:39 ~ CELEX, Q1.stm,meta = Q1.text$meta, uncertainty = "Global") #?
-plot(prep, covariate = "lockdown", topics = c(22,25,17,4),model = paris.stm, labeltype="lift", method = "pointestimate",n=5)
+summary(prep, topics = 1:2)
+plot(prep, covariate = "CELEX", topics = c(22,25,17,4),model = Q1.stm, method = "pointestimate",n=5)
 
 
 #  Query 2 -----------------------------------------------------------------------------------------------------------------------------------------
+
+Q2.DT.matrix <- Q2.stm$theta # rows are the text/"document" and columns are the topics, values are the topic proportions
+Q2.TW.list <- Q2.stm$beta # list of log word probabilities for each topic
+Q2.vocab <- Q2.stm$vocab # teh vocab within the list above
+
+# lets make this into a long df
+Q2.Doctopic.longdf <-
+  Q2.DT.matrix %>%
+  as.data.frame() %>%
+  rownames_to_column(var = "document_sentence") %>%
+  cbind(., Q2.text$meta$celex) %>%
+  pivot_longer(.,
+               cols = 2:68,
+               names_to = "topic", 
+               values_to = "proportion") %>%
+  mutate(topic = str_replace_all(topic, "V", "topic"),
+         percent.doc = proportion *100)
+
 
 Q2.labels<-labelTopics(Q2.stm, n =3) 
 
