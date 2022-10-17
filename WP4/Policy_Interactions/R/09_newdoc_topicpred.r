@@ -18,7 +18,6 @@ library("stm")
 library("tibble")
 library("sentimentr")
 
-
 # Load data ---------------------------------------------------------------
 
 # Query 1
@@ -161,7 +160,7 @@ Q2C2.edge.text.preproc <-
   mutate(element_id = as.factor(element_id),
          sentence_id = as.factor(sentence_id)) %>%
   mutate(doc_id2 = paste(element_id, sentence_id, sep = "_")) %>%
-  select(doc_id2,clean.text,resource.type,url,doc_id) %>%
+  select(doc_id2,clean.text,resource.type,date,doc_id) %>%
   rename("text" = "clean.text",
          "CELEX" = "doc_id",
          "doc_id" = "doc_id2") %>%
@@ -187,6 +186,12 @@ meta  <- Q2C2.textprocessed$meta
 # "we don't run prepCorpus here because we don't want to drop any words- we want every word that showed up in the old documents."
 
 Q2.newdocs <- alignCorpus(new=Q2C2.textprocessed, old.vocab=Q1.stm$vocab)
+#Removing 18292 Documents with No Words 
+#Your new corpus now has 316256 documents, 3971 non-zero terms of 3980 total terms in the original set. 
+#93832 terms from the new data did not match.
+#This means the new data contained 99.8% of the old terms
+#and the old data contained 4.1% of the unique terms in the new data. 
+#You have retained 5660154 tokens of the 6472359 tokens you started with (87.5%)
 
 Q2C2.topi.pred <- 
   fitNewDocuments(model=Q2.stm, 
