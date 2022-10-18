@@ -32,11 +32,13 @@ retsinformation.df <-
   mutate(search.term = str_extract_all(search.term,"\\w+\\."),
          search.term = str_replace_all(search.term,"[:punct:]+",""))
 
-
+# text data for all URLs in retsinformation search result
 DK.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1")
 
+#  link that worked later after I ran the initial loop on Fri. Sep 30th 2022
 DK.apped.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.apped.text")
 
+# documents DK docs link to 
 DK.text.ref <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" ) 
 
 # Our document-data key
@@ -73,8 +75,8 @@ DK.text.df3 <-
     mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
            kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk|Kommercielt fisk")),
            erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk|Erhvervsmæssigt fisk")),
-           erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfiskeri|Erhvervsfiskeri")),
-           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt|Rekreativt")),
+           erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfisk|Erhvervsfisk")),
+           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt fisk|Rekreativt fisk")),
            sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl|Sæl")),
            fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")))
 
@@ -96,10 +98,10 @@ DK.text.df3 %>%
   filter(search.term == "fiskeri" & erhvervsmæssigt == "TRUE") # 55 out of 1011 fisheries documents mention erhvervsmæssigt fisk
 
 DK.text.df3 %>%
-  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 54 out of 1011 fisheries documents mention erhvervsfiskeri
+  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 97 out of 1011 fisheries documents mention erhvervsfisk
 
 DK.text.df3 %>%
-  filter(search.term == "fiskeri" & rekreativt == "TRUE") # 27 out of 1011 fisheries documents mention rekreativt
+  filter(search.term == "fiskeri" & rekreativt == "TRUE") # 10 out of 1011 fisheries documents mention rekreativt fisk
 
 DK.text.df3 %>%
   filter(search.term == "jagt" & sæl == "TRUE") # 142 out of 346 hunting documents mention seal
@@ -154,40 +156,81 @@ DK.EU.links2 <-
   distinct(url, .keep_all = TRUE) %>%
   right_join(.,DK.EU.links1, by = c("url" = "retsinfo.url"))
 
+# Save -------
 
-# Cleaning & Pre-processing the text data --------------------------------------
+write.csv(DK.EU.links2, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKEUlinks.csv", row.names=FALSE)
 
+
+# Cleaning Pre-processing the text data --------------------------------------
+gc()
 # this is taking wayyyyy to long than it ever did before???? trying it again on oct 14th
 # cleaning and pre-processing text data 
 DKtext.df.clean <-
   DK.text.df3 %>%
-  mutate(clean.text = tolower(text),                                  # convert all to lower case
+  select(url,text) %>% # to run faster remove un-nec data for text cleaning... will rejoin later 
+  distinct(., .keep_all=TRUE) %>%
+  rename("clean.text" = "text") %>%
+  mutate(clean.text = tolower(clean.text),                                  # convert all to lower case
          clean.text = str_replace_all(clean.text,"[:punct:]",""),     # remove punctuation
          clean.text = str_replace_all(clean.text,"[:digit:]",""),     # remove numbers
          clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),# remove all special characters
-         clean.text = removeWords(clean.text,stopwords("da")))#,        # remove danish stop words
-      #   clean.text = stripWhitespace(clean.text)) %>%                # strip extra whote space away --> tm package
+         clean.text = removeWords(clean.text,stopwords("da")),        # remove danish stop words
+         clean.text = stripWhitespace(clean.text)) %>%                # strip extra whote space away --> tm package
   mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%  # stemming words
   unnest(clean.text) %>%
-  group_by(url,search.term) %>%
+  group_by(url) %>%
   mutate(clean.text = paste(clean.text, collapse = " ")) %>%
-  distinct(doc_id, .keep_all=TRUE) %>%
-  select(doc_id,clean.text,search.term,country) %>%
+  distinct(url, .keep_all=TRUE) %>%
+  select(url,clean.text) %>%
   rename("text" = "clean.text") %>%
   ungroup() %>%
   as.data.frame()
 
 str(DKtext.df.clean)
 
+DKtext.df.clean1 <- 
+  DK.text.df3 %>%
+  select(-text) %>%
+  right_join(.,DKtext.df.clean, by = c("url"))
+
+# Save -------
+
+write.csv(DKtext.df.clean1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKtext.clean.csv", row.names=FALSE)
+
+# Archival for making it into a stm corpus will probably need to do later ------------ 
+
 # lets mak it into the good df format
-DKtext.df <- 
-  DKtext.df %>%
-  as.data.frame(.) %>% 
-  select(ID,search.term,country,text) %>%
-  mutate(search.term = as.factor(search.term),
-         doc_id = as.factor(ID),
-         country = as.factor(country)) %>%
-  select(doc_id,text,search.term,country)
+#DKtext.df <- 
+#  DKtext.df.clean1 %>%
+#  as.data.frame(.) %>% 
+#  select(ID,search.term,country,text) %>%
+#  mutate(search.term = as.factor(search.term),
+#         doc_id = as.factor(ID),
+#         country = as.factor(country)) %>%
+#  select(doc_id,text,search.term,country)
+
+# lets make it into a corpus object (tm package)
+mar.protected.corpus <- DataframeSource(mar.protected.text.df.clean)
+mar.protected.corpus <- SimpleCorpus(mar.protected.corpus, control = list(language = "da"))
+
+mar.protected.corpus <- corpus(mar.protected.corpus) #should convert it to quanteda package formate since it is the only type I could get a successful conversion to stm
+meta(mar.protected.corpus)
+docvars(mar.protected.corpus)
+ndoc(mar.protected.corpus)
+
+mar.protected.dfm <- dfm(tokens(mar.protected.corpus)) # Create a document feature matrix
+Q1.textprocessed <- convert(mar.protected.dfm, to="stm") # convert dfm to stm format corpus
+
+docs  <- Q1.textprocessed$documents
+vocab <- Q1.textprocessed$vocab
+meta  <- Q1.textprocessed$meta
+
+Q1.out <- prepDocuments(docs, vocab, meta)
+
+
+
+
+
 
 
 # lets make it into a corpus object
