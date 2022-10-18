@@ -19,7 +19,7 @@ library("tidyr")
 # Load data ---------------------------------------------------------------
 
 # Downloaded from retsinformation.dk using the search terms given
-setwd("C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
+setwd("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
 
 retsinformation.file.list <- list.files(pattern='*.csv')
 
@@ -28,7 +28,7 @@ retsinformation.file.list <- list.files(pattern='*.csv')
 # https://readr.tidyverse.org/articles/locales.html
 x <- "PopulærTitel" # --> one of the df column names
 Encoding(x) #"latin1"
-html_encoding_guess("C:/Users/aeljor/Desktop/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy/fiskeri.csv")
+html_encoding_guess("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy/fiskeri.csv")
 #encoding   confidence
 # ISO-8859-1       pt       0.25
 # ISO-8859-2       ro       0.12
@@ -50,14 +50,23 @@ retsinformation.df <-
   mutate(search.term = str_extract_all(search.term,"\\w+\\."),
          search.term = str_replace_all(search.term,"[:punct:]+",""))
 
+# after joining the three queries we have 1,367 documents
+retsinformation.df %>%
+  group_by(search.term) %>%
+  summarise(n=n())
+
+  # fiskeri      1012
+  # jagt          347
+  # sotrafik        8
+
 # some urls are pulled twice bc they appear in multiple search queries.
 # to lower the loop run time I will remove these here and then rejoin them to the search.term id.
 
 non.dups <- retsinformation.df[!duplicated(retsinformation.df$EliUrl), ]
-
+# in total there are 1,213 distinct articles with one were the link is faulty ( so in total text data results 1,212)
 
 # problem urls (from trying to run the loop previously)
-#URLs2[39]
+# URLs2[39]
 # "https://www.retsinformation.dk/eli/retsinfo/2000/20072"
 # URLs2[410]
 # "https://www.retsinformation.dk/eli/retsinfo/2000/20071"
