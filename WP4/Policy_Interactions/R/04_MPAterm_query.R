@@ -97,7 +97,7 @@ EU.mpa.termsearch.data %>%
   scale_x_continuous(breaks = seq(1976, 2024, by = 3)) +
   scale_y_continuous(limits=c(0, 15),breaks = seq(0, 15, by = 3) ,expand = c(0,0)) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("WP4/Policy_Interactions/Results/Q2.overtime.png")
+#ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.overtime.png")
 
 # Legislation numbers over times by resource/leg. type:
 EU.mpa.termsearch.data %>%
@@ -291,7 +291,7 @@ labels2 <- rep(NA,time=349)
 labels3 <- c(labels,labels2)
 V(network)$label <- labels3 
 
-png(file = "WP4/Policy_Interactions/Results/query2.1st.order.networkcitations.png",
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2.1st.order.networkcitations.png",
     width = 1000, height = 1000)
 
 
@@ -369,9 +369,9 @@ V(network)
 
 
 # first order citation data:
-write.csv(MPA.citations, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv", row.names=FALSE)
-write.csv(network.attributes.final, file = "WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q2firstordercit.network.rds")
+write.csv(MPA.citations, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.network.rds")
 
 
 
@@ -510,7 +510,7 @@ print(network2, e=TRUE, v=TRUE)
 l <- layout.fruchterman.reingold(network2)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-png(file = "WP4/Policy_Interactions/Results/query2.2nd.order.networkcitations.png",
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2.2nd.order.networkcitations.png",
     width = 1200, height = 1000)
 
 plot(network2,
@@ -551,9 +551,9 @@ V(network2)
 # Save files ---------------------------------------------------------------------
 
 # second order citation data:
-write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv", row.names=FALSE)
-write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q2secondordercit.network.rds")
+write.csv(Doc.citations3, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final4, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network2, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.network.rds")
 
 
 # Exploring Eurovoc terms -----------------------------------------------
@@ -620,6 +620,18 @@ n_distinct(final.attributes$MT)
 network3 <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
 class(network3)
 
+
+
+# Save ------------------------------------------------------------------
+
+# term co-ocurances:
+write.csv(term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2term.edgelist.csv", row.names=FALSE)
+write.csv(final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2term.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network3, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2.termnetwork.rds")
+
+# Archival code for EuroVoc graphics --------------------------------------
+# (graphics we actually use are in the network stats rscript
+
 #very helpful document for network vizualizations 
 #http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
 
@@ -646,18 +658,6 @@ edges <- degree(network3)
 sum(edges)
 
 V(network3)
-
-# Save ------------------------------------------------------------------
-
-# term co-ocurances:
-write.csv(term.pairs, file = "WP4/Policy_Interactions/data/03.Q2term.edgelist.csv", row.names=FALSE)
-write.csv(final.attributes, file = "WP4/Policy_Interactions/data/03.Q2term.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network3, file =  "WP4/Policy_Interactions/data/03.Q2.termnetwork.rds")
-
-# ------------------------------------------------------------------------
-
-
-
 I1 <-
   term.pairs %>%
   group_by(item1) %>%
