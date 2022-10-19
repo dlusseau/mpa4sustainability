@@ -79,7 +79,7 @@ mpa.policy.notext.df %>%
   scale_x_continuous(breaks = seq(1980, 2024, by = 4)) +
   scale_y_continuous(limits=c(0, 4.5), expand = c(0,0)) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("WP4/Policy_Interactions/Results/Q1.overtime.png")
+#ggsave("WP4/Policy_Interactions/Results/Q1.overtime.png")
 
 
 #Eurlex data/attributes about the citations
@@ -160,14 +160,17 @@ n_distinct(network.attributes.final$CELEX)
 #148
 #dimentions add up bc 17(docs)+134(citations)-3(remove the dup.bc within both) = 148
 
+# Now we have edge df
+# "from"  = Celex (is the first column)
+# "to"= citation celex (second column)
 Doc.citations <-
   Doc.citations %>%
-  rename("to"="CELEX",
-         "from"="citationcelex")
+  rename("from"="CELEX",
+         "to"="citationcelex")
 
-n_distinct(Doc.citations$to)
-# 17
 n_distinct(Doc.citations$from)
+# 17
+n_distinct(Doc.citations$to)
 #  134
 17+134-3
 #148
@@ -245,43 +248,49 @@ saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q1firstordercit.networ
 
 # Second order citations ---------------------------------------------------------------------------
 
-# lets find out what do the citations cite?
+# lets find out what do the citations cite
 # OK to have a indirect citation network we need to make the edge list 
-# We will need to make a new to|from df and then rbind them this will add the third layer
+# We will need to make a new from|to df and then rbind them this will add the third layer
 
 # Doc.citations what we will rbind to
-
 indir.citation_info <- 
   Doc.citations %>%
-  select(from) %>% #citations
-  left_join(.,document.key.df, by = c("from" = "celex")) 
+  select(to) %>% #citations
+  left_join(.,document.key.df, by = c("to" = "celex")) 
 
 #check
-n_distinct(Doc.citations$from)
-n_distinct(indir.citation_info$from)
+n_distinct(Doc.citations$to)
+n_distinct(indir.citation_info$to)
 # no changes :)
 
 Doc.citations.2 <-
   indir.citation_info %>%
-  distinct(from,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
+  distinct(to,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
   filter(!is.na(citationcelex)) %>% # remove those that have no citations
-  rename("to" = "from",
-         "from" = "citationcelex")
+  rename("from" = "to", # now this has the wrong label since they were the first order citations now they are citing so change to -> from
+         "to" = "citationcelex")
 
-#now make sure they are only legislation documents 
+n_distinct(Doc.citations.2$from) # celex
+#118
+n_distinct(Doc.citations.2$to) # citation
+#823
+
+#now make sure citations (to) are only legislation documents 
 leg.citation_info2 <- 
-  document.key.df %>%
-  filter(celex %in% Doc.citations.2$from) %>% 
+  document.key.df %>% # this only has legal acts so it is what we filter out of
+  filter(celex %in% Doc.citations.2$to) %>% 
   distinct(celex, .keep_all = TRUE) %>%
   select(resource.type,celex,date,force) %>%
   rename(CELEX = celex) %>%
   mutate(pulled.from = "reference2")
 
+# do the same for the edge list
 Doc.citations.2 <- 
   Doc.citations.2 %>%
-  filter(from %in% leg.citation_info2$CELEX) 
+  filter(to %in% leg.citation_info2$CELEX) 
+
 n_distinct(Doc.citations.2$to)
-#104 citations cite another document 
+#515 citations 
 
 citation.info2 <-  leg.citation_info2
 
@@ -324,9 +333,11 @@ both.cit2 <-
   distinct()%>%
   select(-n)
 
+# remove the all duplicated pulls
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
 # 663-76-76 = 511 math check add up :)
 
+#then rejoin the rows that were duplicated but the correct labeling for the network attributes
 network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
 # 551+76 = 587 
 	
@@ -345,14 +356,14 @@ network.attributes.final4 <-
 
 # 587 - 4 = 583
 
-n_distinct(Doc.citations3$to)
+n_distinct(Doc.citations$from)
 # 118 
 
-n_distinct(Doc.citations3$from)
+n_distinct(Doc.citations3$to)
 #  570 (134+515-76-4)
 
-docs <- unique(Doc.citations3$to)
-cit <-  unique(Doc.citations3$from)
+docs <- unique(Doc.citations3$from)
+cit <-  unique(Doc.citations3$to)
 xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx) #583 documents
 # ok so both the document citataion df and the network attributes df have the same dimentions 

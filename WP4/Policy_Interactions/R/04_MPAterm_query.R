@@ -261,12 +261,15 @@ network.attributes.final <-
 n_distinct(network.attributes.final$CELEX)
 # 381
 
+# Now we have edge df
+# "from"  = Celex (is the first column)
+# "to"= citation celex (second column)
 MPA.citations <-
   MPA.citations %>%
-  rename("to"="CELEX",
-         "from"="citationcelex")
+  rename("from"="CELEX",
+         "to"="citationcelex")
 
-n_distinct(MPA.citations$to)
+n_distinct(MPA.citations$from)
 # 85
 
 docs <- unique(MPA.citations$to)
@@ -376,35 +379,43 @@ saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q2firstordercit.networ
 
 indir.citation_info <- 
   MPA.citations %>%
-  select(from) %>%
-  left_join(.,document.key.df, by = c("from" = "celex"))
+  select(to) %>%
+  left_join(.,document.key.df, by = c("to" = "celex"))
 
-n_distinct(MPA.citations$from)
-n_distinct(indir.citation_info$from)
+
+n_distinct(MPA.citations$to)
+n_distinct(indir.citation_info$to)
 
 Doc.citations.2 <-
   indir.citation_info %>%
-  distinct(from,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
+  distinct(to,citationcelex) %>% # make sure no duplicate rows bc of multiple labeles/themes
   filter(!is.na(citationcelex)) %>%
-  rename("to" = "from",
-         "from" = "citationcelex")
+  rename("from" = "to",
+         "to" = "citationcelex")
 
-#now make sure they are only legislation documents 
+n_distinct(Doc.citations.2$from) # celex
+#272
+n_distinct(Doc.citations.2$to) # citation
+#1442
 
+#now make sure citations (to) are only legislation documents 
 leg.citation_info2 <- 
   document.key.df %>%
-  filter(celex %in% Doc.citations.2$from) %>% 
+  filter(celex %in% Doc.citations.2$to) %>% 
   distinct(celex, .keep_all = TRUE) %>%
   select(resource.type,celex,date,force) %>%
   rename(CELEX = celex) %>%
-  mutate(pulled.from = "reference2")
+  mutate(pulled.from = "reference2") # label them as second order references
 
+#do the same to the edge list
 Doc.citations.2 <- 
   Doc.citations.2 %>%
-  filter(from %in% leg.citation_info2$CELEX) 
+  filter(to %in% leg.citation_info2$CELEX) 
 
-n_distinct(Doc.citations.2$to)
-n_distinct(Doc.citations.2$from)
+n_distinct(Doc.citations.2$from) # celex
+# 248
+n_distinct(Doc.citations.2$to) # citation
+# 935
 
 citation.info2 <-  leg.citation_info2
 
@@ -426,7 +437,7 @@ network.attributes.final2 <-
 n_distinct(network.attributes.final2$CELEX)
 #935
 
-Doc.citations3 <- rbind(MPA.citations,Doc.citations.2)
+Doc.citations3 <- rbind(MPA.citations,Doc.citations.2) # combine the first order citation edge list with the second order citation edge list
 
 network.attributes.final3 <- rbind(network.attributes.final,network.attributes.final2)
 
@@ -449,7 +460,7 @@ both.cit2 <-
 
 
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
-# 1316-334= 982 math check add up :)
+# 1316-167-167= 982 math check add up :)
 
 network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
 # 982+167 = 1149 
@@ -482,14 +493,13 @@ network.attributes.final4 <-
   distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
 # 1149 - 20 - 3 = 1126
 
-n_distinct(Doc.citations3$to)
-# 312
 n_distinct(Doc.citations3$from)
+# 312
+n_distinct(Doc.citations3$to)
 # 1065
-312+1065
-#1377
-docs <- unique(Doc.citations3$to)
-cit <-  unique(Doc.citations3$from)
+
+docs <- unique(Doc.citations3$from)
+cit <-  unique(Doc.citations3$to)
 xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx)
 # ok so both the document citataion df and the network attributes df have the same dimentions 
