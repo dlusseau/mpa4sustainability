@@ -79,7 +79,7 @@ mpa.policy.notext.df %>%
   scale_x_continuous(breaks = seq(1980, 2024, by = 4)) +
   scale_y_continuous(limits=c(0, 4.5), expand = c(0,0)) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave("WP4/Policy_Interactions/Results/Q1.overtime.png")
+#ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.overtime.png")
 
 
 #Eurlex data/attributes about the citations
@@ -200,7 +200,7 @@ labels2 <- rep(NA,time=144)
 labels3 <- c(labels,labels2)
 V(network)$label <- labels3 
 
-png(file = "WP4/Policy_Interactions/Results/query1.1st.order.networkcitations.png",
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1.1st.order.networkcitations.png",
     width = 1000, height = 1000)
 
 
@@ -241,9 +241,9 @@ V(network)
 
 
 # first order citation data:
-write.csv(Doc.citations, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv", row.names=FALSE)
-write.csv(network.attributes.final, file = "WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network, file =  "WP4/Policy_Interactions/data/03.Q1firstordercit.network.rds")
+write.csv(Doc.citations, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.network.rds")
 
 
 # Second order citations ---------------------------------------------------------------------------
@@ -380,19 +380,19 @@ labels2 <- network.attributes.final[11,1]
 
 labels3 <- rep(NA,time=578)
 labels4 <- c(labels,labels3)
-labels4 <- append(labels4,labels2, after = 9)
+labels4 <- append(labels4,labels2, after = 10)
 
 V(network2)$label <- labels4
 
-png(file = "WP4/Policy_Interactions/Results/query1.2nd.order.networkcitations.png",
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1.2nd.order.networkcitations.png",
     width = 1100, height = 1100)
 
 plot(network2,
      edge.width=.5,
      edge.color=adjustcolor("gray", alpha.f = .65),
-     vertex.size=3,
-     vertex.label=NA,
-     vertex.label.cex=.65,
+     vertex.size=2.5,
+     vertex.label=NA ,#V(network2)$label ,
+     vertex.label.cex=1,
      vertex.label.family = "sans",
      edge.arrow.size=.5,
      edge.arrow.width=1,
@@ -434,9 +434,9 @@ network.attributes.final4 %>%
 
 
 # second order citation data:
-write.csv(Doc.citations3, file = "WP4/Policy_Interactions/data/03.Q1secondordercit.edgelist.csv", row.names=FALSE)
-write.csv(network.attributes.final4, file = "WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network2, file =  "WP4/Policy_Interactions/data/03.Q1secondordercit.network.rds")
+write.csv(Doc.citations3, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final4, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network2, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.network.rds")
 
 
 # Exploring Eurovoc terms -----------------------------------------------
@@ -500,11 +500,22 @@ attributes3 <-
 final.attributes <- attributes3
 
 n_distinct(final.attributes$MT)
-
+# 29
 network3 <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
 class(network3)
 
 
+
+
+# Save ------------------------------------------------------------------
+
+# term co-ocurances:
+write.csv(term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.edgelist.csv", row.names=FALSE)
+write.csv(final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network3, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1.termnetwork.rds")
+
+# Archival code for EuroVoc graphics --------------------------------------
+# (graphics we actually use are in the network stats rscript
 l <- layout.fruchterman.reingold(network3)
 l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
@@ -553,15 +564,6 @@ term.pairs%>%
   summarise(total = sum(n))
 V(network3)
 
-# Save ------------------------------------------------------------------
-
-# term co-ocurances:
-write.csv(term.pairs, file = "WP4/Policy_Interactions/data/03.Q1term.edgelist.csv", row.names=FALSE)
-write.csv(final.attributes, file = "WP4/Policy_Interactions/data/03.Q1term.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network3, file =  "WP4/Policy_Interactions/data/03.Q1.termnetwork.rds")
-
-# ------------------------------------------------------------------------
-
 # O.K. so the network viz is more legable 
 # I will only plot those that are the median or above edges
 
@@ -583,9 +585,9 @@ summary(I3$edge.number)
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 2.00    7.00    9.00   11.79   14.50   47.00 
 
-edges.remove <- V(network)[degree(network)<9]
-degree(network)
-graphNetwork <-  igraph::delete.vertices(network,edges.remove) 
+edges.remove <- V(network3)[degree(network3)<9]
+degree(network3)
+graphNetwork <-  igraph::delete.vertices(network3,edges.remove) 
 degree(graphNetwork)
 
 n_distinct(V(graphNetwork)$MT)
