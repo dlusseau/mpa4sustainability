@@ -22,21 +22,21 @@ library("stm")
 # Load data ----------------------------------------------------------------
 
 # Our document-data key
-document.key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 # EU mpa designation term associated text data: 
-MPA.DESG.text <- read.csv(file = "WP4/Policy_Interactions/data/01_mpaterms.text.data.dup.csv")
+MPA.DESG.text <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_mpaterms.text.data.dup.csv")
 
 # "marine protected" associated text data:
-html_encoding_guess("WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
+html_encoding_guess("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv")
 
-mar.protected.text <- read_csv(file = "WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv",
+mar.protected.text <- read_csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_CELEXmpa.text.data.csv",
                       locale = locale(encoding = "ISO-8859-1"),
                       show_col_types = FALSE)
 
 
 # EU mpa characteristics: 
-EU.mpachar <- read.csv(file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv")
+EU.mpachar <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
 
 # Cleaning & Pre-processing the text data -----------------------------------
@@ -219,13 +219,13 @@ Q2.out <- prepDocuments(docs, vocab, meta)
 # Save files ---------------------------------------------------------------------
 
 # Q1 cleaned corpus:
-saveRDS(Q1.textprocessed, file = "WP4/Policy_Interactions/data/05_Q1.textprocessed.stm")
-saveRDS(Q1.out, file = "WP4/Policy_Interactions/data/05_Q1.preptext.stm")
+saveRDS(Q1.textprocessed, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q1.textprocessed.stm")
+saveRDS(Q1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q1.preptext.stm")
 
 
 # Q1 cleaned corpus:
-saveRDS(Q2.textprocessed, file = "WP4/Policy_Interactions/data/05_Q2.textprocessed.stm")
-saveRDS(Q2.out, file = "WP4/Policy_Interactions/data/05_Q2.preptext.stm")
+saveRDS(Q2.textprocessed, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q2.textprocessed.stm")
+saveRDS(Q2.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q2.preptext.stm")
 
 
 # archival ---------------------
