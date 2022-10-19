@@ -20,36 +20,36 @@ library("ggwordcloud")
 # ------------ Query 1 (Q1) --------- #
 
 # -- citations -- #
-Q1.net1st<-read.csv("WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv")               # edge list
-Q1.net1st.meta<-read.csv("WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv")  # vertices meta data
-Q1.net1st.graph<-readRDS("WP4/Policy_Interactions/data/03.Q1firstordercit.network.rds")           # the network object 
+Q1.net1st<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv")               # edge list
+Q1.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv")  # vertices meta data
+Q1.net1st.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.network.rds")           # the network object 
 
-Q1.net2nd<-read.csv("WP4/Policy_Interactions/data/03.Q1secondordercit.edgelist.csv")              # edge list
-Q1.net2nd.meta<-read.csv("WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv") # vertices meta data
-Q1.net2nd.graph<-readRDS("WP4/Policy_Interactions/data/03.Q1secondordercit.network.rds")          # the network object 
+Q1.net2nd<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.edgelist.csv")              # edge list
+Q1.net2nd.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv") # vertices meta data
+Q1.net2nd.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.network.rds")          # the network object 
 
 # -- terms co-occurance -- #
 
-Q1.terms<-read.csv("WP4/Policy_Interactions/data/03.Q1term.edgelist.csv")                         # edge list
-Q1.terms.meta<-read.csv("WP4/Policy_Interactions/data/03.Q1term.verticesmetadata.csv")            # vertices meta data
-Q1.terms.graph<-readRDS("WP4/Policy_Interactions/data/03.Q1.termnetwork.rds")                     # the network object 
+Q1.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.edgelist.csv")                         # edge list
+Q1.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.verticesmetadata.csv")            # vertices meta data
+Q1.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1.termnetwork.rds")                     # the network object 
 
 # ----------- Query 2 (Q2) ---------- #
 
 # -- citations -- #
-Q2.net1st<-read.csv("WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv")               # edge list
-Q2.net1st.meta<-read.csv("WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv")  # vertices meta data
-Q2.net1st.graph<-readRDS("WP4/Policy_Interactions/data/03.Q2firstordercit.network.rds")           # the network object 
+Q2.net1st<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv")               # edge list
+Q2.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv")  # vertices meta data
+Q2.net1st.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.network.rds")           # the network object 
 
-Q2.net2nd<-read.csv("WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv")              # edge list
-Q2.net2nd.meta<-read.csv("WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv") # vertices meta data
-Q2.net2nd.graph<-readRDS("WP4/Policy_Interactions/data/03.Q2secondordercit.network.rds")          # the network object 
+Q2.net2nd<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv")              # edge list
+Q2.net2nd.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv") # vertices meta data
+Q2.net2nd.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.network.rds")          # the network object 
 
 # -- terms co-occurance -- #
 
-Q2.terms<-read.csv("WP4/Policy_Interactions/data/03.Q2term.edgelist.csv")                         # edge list
-Q2.terms.meta<-read.csv("WP4/Policy_Interactions/data/03.Q2term.verticesmetadata.csv")            # vertices meta data
-Q2.terms.graph<-readRDS("WP4/Policy_Interactions/data/03.Q2.termnetwork.rds")                     # the network object 
+Q2.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2term.edgelist.csv")                         # edge list
+Q2.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2term.verticesmetadata.csv")            # vertices meta data
+Q2.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2.termnetwork.rds")                     # the network object 
 
 # Network Stats ---------------------------------------------------------------
 
@@ -265,7 +265,7 @@ dist <- rep(c(0.28, -0.28), length.out = 54)
 V(Q1.network.updated1)$dist <- dist[as.numeric(as.factor(V(Q1.network.updated1)$name))]
 
 
-png(file = "WP4/Policy_Interactions/Results/query1.eurovocterm.network.png",
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1.eurovocterm.network.png",
     width = 3000, height = 3000)
 
 
@@ -557,7 +557,7 @@ dist <- rep(c(0.18, -0.18), length.out = 226)
 V(network.updated1)$dist <- dist[as.numeric(as.factor(V(network.updated1)$name))]
 
 
-png(file = "WP4/Policy_Interactions/Results/query2.eurovocterm.network.png",
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2.eurovocterm.network.png",
     width = 2500, height = 2500)
 
 
