@@ -208,8 +208,7 @@ member.attributesQ1 <- as.data.frame(as.matrix(membership(Q1.termclusters))) %>%
 
 Q1.terms.meta2 <-
     Q1.terms.meta %>%
-    left_join(.,member.attributesQ1, by = c("item1"="rowname"))
-
+    left_join(.,member.attributesQ1, by = c("labels"="rowname"))
 
 
 Q1.network.updated <- graph_from_data_frame(d=Q1.terms, vertices = Q1.terms.meta2, directed = FALSE)
@@ -234,10 +233,10 @@ as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$members
     mutate(V2 = as.numeric(V2)) %>%
     distinct(., .keep_all=TRUE) %>%
     right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
-    left_join(.,degrees, by = c("item1"= "rowname")) %>%
+    left_join(.,degrees, by = c("labels"= "rowname")) %>%
     mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
     mutate(V2= as.factor(V2)) %>%
-    ggplot(., aes(label = item1, 
+    ggplot(., aes(label = labels, 
                   size = degree,
                  # x=V2,
                   color = V2)) +
@@ -255,7 +254,7 @@ as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$members
                                 "#66A61E", 
                                 "#E6AB02", 
                                 "#A6761D"))
-ggsave("WP4/Policy_Interactions/Results/Q1.termclusters.png")
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.termclusters.png")
 
 l3 <- layout.fruchterman.reingold(Q1.network.updated1)
 
@@ -461,20 +460,26 @@ rownames(Q2.term.df) <- NULL
 head(Q2.term.df)
 
 # to make the plot slightly more legable lets remove those that have edges >= 9 (the median)
-member.attributes <- as.data.frame(as.matrix(membership(Q2.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
+member.attributes <- 
+    as.data.frame(as.matrix(membership(Q2.termclusters))) %>%   
+    rownames_to_column() %>% 
+    rename("membership" = "V1" )
 
 Q2.terms.meta2 <-
     Q2.terms.meta %>%
-    left_join(.,member.attributes, by = c("item1"="rowname"))
+    left_join(.,member.attributes, by = c("labels"="rowname")) %>%
+    filter(!is.na(.$labels))
+
 
 network.updated <- graph_from_data_frame(d=Q2.terms, vertices = Q2.terms.meta2, directed = FALSE)
-class(network3)
+class(network.updated)
 
 
 
 network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(network.updated)<9])
 
 n_distinct(V(network.updated1)$membership)
+#16 in the filtered network
 
 library(RColorBrewer)
 
@@ -483,12 +488,10 @@ colors2 <- brewer.pal(n = 10, name = "Paired")
 colors2.5 <- colors2[-4] # remove the unreadable yellow
 colors2.5 <- colors2.5[-6] # remove the unreadable yellow
 
-set.seed(01)
+set.seed(11)
 colors3 <- sample(c(colors, colors2.5))
-#sort(colors3)
 V(network.updated1)$color <- colors3[as.numeric(as.factor(V(network.updated1)$membership))]
 
-# clusters not in the network... 2, 3, 15, 17, 19 but will still need a color that is not present in the network for the word clouds 
 
 degrees1 <- 
     as.data.frame(cbind(degree(Q2.terms.graph))) %>%
@@ -499,7 +502,7 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
     mutate(V2 = as.numeric(V2)) %>%
     distinct(., .keep_all=TRUE) %>%
     right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-    left_join(.,degrees1, by = c("item1"= "rowname")) %>%
+    left_join(.,degrees1, by = c("labels"= "rowname")) %>%
     mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
     mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
                                      "Cluster 4", "Cluster 5", "Cluster 6",
@@ -508,8 +511,8 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
                                      "Cluster 14", "Cluster 15", "Cluster 16",
                                      "Cluster 17","Cluster 18","Cluster 19",
                                      "Cluster 20", "Cluster 21"))) %>%
-    ggplot(., aes(label = item1, 
-                  size = total.count,
+    ggplot(., aes(label = labels, 
+                  size = degree,
                   color = V22)) +
     geom_text_wordcloud(shape = "circle",eccentricity = 1) +
     scale_size_area(max_size = 50) +
@@ -524,30 +527,33 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
                                   "Cluster 14", "Cluster 15", "Cluster 16",
                                   "Cluster 17", "Cluster 18","Cluster 19",
                                   "Cluster 20", "Cluster 21"),
-                       values=c("#A6CEE3", 
-                                "black",
-                                "purple",
-                                "#E7298A", 
-                                "#A6761D", 
-                                "#1B9E77", 
-                                "#D95F02",
-                                "#FF7F00",
-                                "#FB9A99",
-                                "#7570B3",
-                                "#E31A1C", 
-                                "#66A61E", 
-                                "#B2DF8A", 
-                                "#1F78B4",
-                                "#ff0099",
-                                "#E6AB02",
-                                "#0000ff",
-                                "#CAB2D6",
-                                "00cccc",
-                                "#6A3D9A",
-                                "#666666"))
+                       # clusters not in the network... 2, 3, 13, 14, 16 but will still need a color that is not present in the network for the word clouds 
+                       
+                       values=c("#66A61E", #1
+                                "black",   #2
+                                "purple",  #3
+                                "#E7298A", #4
+                                "#A6761D", #5
+                                "#1B9E77", #6 
+                                "#D95F02", #7
+                                "#FF7F00", #8
+                                "#FB9A99", #9
+                                "#7570B3",#10
+                                "#E31A1C",#11 
+                                "#66A61E",#12 
+                                "#00cccc",#13 
+                                "#cc3333",#14
+                                "#ff6600",#15
+                                "#B2DF8A",#16
+                                "#1F78B4",#17
+                                "#E6AB02",#18
+                                "#CAB2D6",#19
+                                "#7570B3",#20
+                                "#666666" #21
+                                ))
 
-ggsave("WP4/Policy_Interactions/Results/Q2.termclusters2.png",
-       width = 32, height = 30)
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusters2.png",
+       width = 35, height = 35)
 
 l3 <- layout.fruchterman.reingold(network.updated1)
 
@@ -556,6 +562,7 @@ dist <- rep(c(0.18, -0.18), length.out = 226)
 #try to jitter the labels a little to avoid overlap 
 V(network.updated1)$dist <- dist[as.numeric(as.factor(V(network.updated1)$name))]
 
+dev.off()
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2.eurovocterm.network.png",
     width = 2500, height = 2500)
