@@ -564,12 +564,17 @@ cleaned.labels <-
   distinct(CELEX,labels, .keep_all = TRUE)
 
 n_distinct(cleaned.labels$MT)
-# 70 themes
+# 79 themes
 n_distinct(cleaned.labels$labels)
 # 403 terms
 
+cleaned.labels %>% 
+  group_by(CELEX) %>%
+  filter(is.na(labels)) # 11 documents have no eurovoc label thus total labels is 402
+
 label.pairs <- 
   cleaned.labels %>%
+  filter(!is.na(labels)) %>% # for the network we will remove NAs 
   pairwise_count(labels,CELEX, sort=TRUE)
 
 #david's code help
@@ -593,7 +598,6 @@ more.themes <-
   mutate(themes = n_distinct(MT)) %>%
   filter(themes > 1)
 
-#STOPPED HERE
 # for now I will just keep the location theme since it is the most straight forward 
 # will discuss with David. 
 remove <- 
@@ -610,7 +614,8 @@ attributes3 <-
   EU.mpa.termsearch.data %>%
   distinct(labels,MT) %>%
   anti_join(.,remove, by = c("labels","MT")) %>%
-  mutate(MT=gsub("\\d","",.$MT))
+  mutate(MT=gsub("\\d","",.$MT)) %>%
+ filter(!is.na(labels))
 
 
 final.attributes <- attributes3
