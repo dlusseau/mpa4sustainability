@@ -1,6 +1,7 @@
 
 # Clear work space -------------------------------------------------------------
 rm(list = ls())
+Sys.setenv(LANG = "en") # change the language to english 
 
 # Load libraries ---------------------------------------------------------------
 
@@ -33,13 +34,13 @@ retsinformation.df <-
          search.term = str_replace_all(search.term,"[:punct:]+",""))
 
 # text data for all URLs in retsinformation search result
-DK.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.text.list.1")
+DK.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01_DK.text.list.1")
 
 #  link that worked later after I ran the initial loop on Fri. Sep 30th 2022
-DK.apped.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.apped.text")
+DK.apped.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01_DK.apped.text")
 
 # documents DK docs link to 
-DK.text.ref <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/DK.textREF.list.1" ) 
+DK.text.ref <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01_DK.textREF.list.1" ) 
 
 # Our document-data key
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
@@ -76,7 +77,10 @@ DK.text.df3 <-
            kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk|Kommercielt fisk")),
            erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk|Erhvervsmæssigt fisk")),
            erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfisk|Erhvervsfisk")),
-           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt fisk|Rekreativt fisk")), # add rekreative fisk to this 
+           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt fisk|Rekreativt fisk")),
+           rekreative = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreative fisk|Rekreative fisk")), 
+           lystfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "lystfiske|Lystfiske")), 
+           fritidsfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "fritidsfiske|Fritidsfiske")), 
            sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl|Sæl")),
            fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")))
 
@@ -102,6 +106,15 @@ DK.text.df3 %>%
 
 DK.text.df3 %>%
   filter(search.term == "fiskeri" & rekreativt == "TRUE") # 10 out of 1011 fisheries documents mention rekreativt fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & rekreative == "TRUE") # 3 out of 1011 fisheries documents mention rekreative fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & lystfiske == "TRUE") # 61 out of 1011 fisheries documents mention lystfiske fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & fritidsfiske == "TRUE") # 10 out of 1011 fisheries documents mention fritidsfiske fisk
 
 DK.text.df3 %>%
   filter(search.term == "jagt" & sæl == "TRUE") # 142 out of 346 hunting documents mention seal
