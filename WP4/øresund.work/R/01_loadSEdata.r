@@ -1,6 +1,7 @@
 
 # Clear work space -------------------------------------------------------------
 rm(list = ls())
+Sys.setenv(LANG = "en") # change the language to english 
 
 # Define functions -------------------------------------------------------------
 
@@ -12,11 +13,13 @@ library("stringi")
 library("stringr")
 library("rvest")
 library("gtools")
+library("plyr")
+library("dplyr")
 
 # Using the Swedish Parlaments open data website. Has an API that searches for Svensk författningssamling (SFS). 
 # from all the digginig in I have done. I think this is the exact same thing as what is stated on https://lagrummet.se/lagrummet/rattsinformation/lagar-och-forordningar
 
-#made the api queries from there builder:
+# Made the api queries from there builder:
 # https://data.riksdagen.se/dokumentlista/
   
 # "Fiske" query ------------------------------------------------------------------
@@ -64,7 +67,7 @@ fiske.data.object <- fromJSON(fiske.data.list, flatten = TRUE)
   
 fiske.df <- as.data.frame(fiske.data.object$dokumentlista$dokument, row.names = NULL)
 
-full.fisk.df <- rbind.fill(full.fisk.df,fiske.df)
+full.fisk.df <- rbind.fill(full.fisk.df,fiske.df) # use r.bindfill since some had diff columns so rbind will not allow
 
 print(i)
 
@@ -74,17 +77,31 @@ print(i)
 
 # this works nicely... just need to make a loop with all the data like we did for dk text
 
-doc.id <- full.fisk.df[,16]
-doc.id <- doc.id[-23]
-doc.id <- doc.id[-114]
-doc.id <- doc.id[-144]
-  
-SK.fisketext.list <- structure(vector("list", 258), names=doc.id)
+#found these problem urls yesterday Oct. 20th. two of them the reason is the space value changes once in the web but the other is just faulty 
+# for now I will remove the faulty text url and edit the other two so the work. 
 
-URLs <- paste0("https:",full.fisk.df[,18], sep="") #put https: infront of the url
-URLs <- URLs[-23]   #https://data.riksdagen.se/dokument/sfs-1723-1016 1.text after I copy this into chrome it changes to: https://data.riksdagen.se/dokument/sfs-1723-1016%201.text
-URLs <- URLs[-114] #https://data.riksdagen.se/dokument/sfs-1736-0123 1.text after I copy this into chrome it changes to: https://data.riksdagen.se/dokument/sfs-1736-0123%201 # for both the space is replaced with %20
-URLs <- URLs[-144] #https://data.riksdagen.se/dokument/sfs-1910-72 s.1.text --> this is just a faulty link i think...
+#https://data.riksdagen.se/dokument/sfs-1723-1016 1.text after I copy this into chrome it changes to: https://data.riksdagen.se/dokument/sfs-1723-1016%201.text
+#https://data.riksdagen.se/dokument/sfs-1736-0123 1.text after I copy this into chrome it changes to: https://data.riksdagen.se/dokument/sfs-1736-0123%201 # for both the space is replaced with %20
+#https://data.riksdagen.se/dokument/sfs-1910-72 s.1.text --> this is just a faulty link in the online search it comes up as a result but says no document is found...
+
+#just to check that these are the only url with spaces... and they are
+full.fisk.df %>%
+  mutate(detect = str_detect(dokument_url_text, " ")) %>%
+  select(detect,dokument_url_text)%>%
+  filter(detect == TRUE)
+
+# totally remove the faulty link and then edit the two to be the correct path
+full.fisk.df1 <- 
+  full.fisk.df %>%
+  filter(dokument_url_text != "//data.riksdagen.se/dokument/sfs-1910-72 s.1.text") %>%
+  mutate(dokument_url_text = str_replace_all(dokument_url_text, " ", "%20"))
+  
+URLs <- paste0("https:",full.fisk.df1[,18], sep="") #put https: infront of the url
+
+doc.id <- full.fisk.df1[,16]
+
+
+SK.fisketext.list <- structure(vector("list", 260), names=doc.id)
 
 for (i in seq(URLs)) {
   
@@ -231,13 +248,17 @@ for (i in seq(No.pgs)) {
 
 # this works nicely... just need to make a loop with all the data like we did for dk text
 
-doc.id <- full.sjotrafik.df[,16]
-doc.id <- doc.id[-5]
+# https://data.riksdagen.se/dokument/sfs-1891-35 s.1.text --> faulty link
+# totally remove the faulty link and then edit the two to be the correct path
+full.sjotrafik.df1 <- 
+  full.sjotrafik.df %>%
+  filter(dokument_url_text != "//data.riksdagen.se/dokument/sfs-1891-35 s.1.text")
 
-SK.sjotrafik.list <- structure(vector("list", 40), names=doc.id)
+doc.id <- full.sjotrafik.df1[,16]
 
-URLs <- paste0("https:",full.sjotrafik.df[,18], sep="") #put https: infront of the url
-URLs <- URLs[-5] # https://data.riksdagen.se/dokument/sfs-1891-35 s.1.text --> faulty link
+SK.sjotrafik.list <- structure(vector("list", 39), names=doc.id)
+
+URLs <- paste0("https:",full.sjotrafik.df1[,18], sep="") #put https: infront of the url
 
 for (i in seq(URLs)) {
   
@@ -256,10 +277,11 @@ for (i in seq(URLs)) {
 # Save ---------------------------------------------------------------------------------------
 
 # dfs of result document data
-
-write.csv(full.sjotrafik.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.sjotrafik.csv", row.names=FALSE)
+write.csv(full.sjotrafik1.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.sjotrafik.df.csv", row.names=FALSE)
 write.csv(full.jaga.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.jaga.df.csv", row.names=FALSE)
-write.csv(full.fisk.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.fisk.df.csv", row.names=FALSE)
+
+full.fisk.df2 <- full.fisk.df1 %>% select(-filbilaga.fil) # this column the others do not have and it is no nec. for us so will remove it
+write.csv(full.fisk.df2, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.fisk.df.csv", row.names=FALSE)
 
 # list of result text
 saveRDS(SK.sjotrafik.list, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.sjotrafik.list" )
