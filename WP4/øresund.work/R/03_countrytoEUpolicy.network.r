@@ -24,43 +24,43 @@ DKEUlinks1 <-
   distinct(url,EU.link.CELEX) %>% # make sure no duplicate rows bc of multiple labeles/themes/citations
   mutate(url = str_replace_all(url, "https://www.retsinformation.dk","")) %>% # just to make the id url shorter
   rename("from" = "url",
-         "to" = "EU.link.CELEX")
+         "to" = "EU.link.CELEX") %>%
+  filter(!is.na(to))    # remove documents that dont link to an EU CELEX
   
 
-n_distinct(DKEUlinks1$url)
-# 445 dk documents link to an EU doc
-n_distinct(DKEUlinks1$EU.link.CELEX)
-# 235 legal acts link to a dk document
+n_distinct(DKEUlinks1$from)
+# 206 dk documents link to an EU doc
+n_distinct(DKEUlinks1$to)
+# 234 EU legal acts link 
 
 
 eu.vertices <- 
-  DKEUlinks%>%
-  select(-url,-search.term,-harpun,-kommercielt,-erhvervsmæssigt,-erhvervs,-rekreativt,-sæl,-fugle) %>%
-  distinct(EU.link.CELEX) %>%
-  rename("vertices" = "EU.link.CELEX")
+  DKEUlinks1%>%
+ # select(-url,-search.term,-harpun,-kommercielt,-erhvervsmæssigt,-erhvervs,-rekreativt,-sæl,-fugle) %>%
+  distinct(to) %>%
+  rename("vertices" = "to") %>%
+  mutate(source = "EU")
 
 dk.vertices <- 
-  DKEUlinks%>%
-  select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,sæl,fugle) %>%
-  distinct(url) %>%
-  mutate(url = str_replace_all(url, "https://www.retsinformation.dk","")) %>%
-  rename("vertices" = "url")
+  DKEUlinks1%>%
+  #select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,sæl,fugle) %>%
+  distinct(from) %>%
+ # mutate(url = str_replace_all(url, "https://www.retsinformation.dk","")) %>%
+  rename("vertices" = "from")%>%
+  mutate(source = "DK")
 
 vertices <- rbind(dk.vertices,eu.vertices)
 
 network <- graph_from_data_frame(d=DKEUlinks1, directed = FALSE, vertices = vertices)
 print(network, e=TRUE, v=TRUE)
 
+library(RColorBrewer)
+col  <- brewer.pal(3, "Set1") 
+col <- col[-1]
+V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
+# DK doc are the red ones...
+plot(network,
+     vertex.size = 2,
+     vertex.label=NA)
 
-actors <- data.frame(name=c("Alice", "Bob", "Cecil", "David",
-                            "Esmeralda"),
-                     age=c(48,33,45,34,21),
-                     gender=c("F","M","F","M","F"))
-relations <- data.frame(from=c("Bob", "Cecil", "Cecil", "David",
-                               "David", "Esmeralda"),
-                        to=c("Alice", "Bob", "Alice", "Alice", "Bob", "Alice"),
-                        same.dept=c(FALSE,FALSE,TRUE,FALSE,FALSE,TRUE),
-                        friendship=c(4,5,5,2,1,1), advice=c(4,5,5,4,2,3))
-
-
-
+sort(degree(network), decreasing = TRUE)
