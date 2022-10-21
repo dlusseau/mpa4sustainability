@@ -55,12 +55,16 @@ network <- graph_from_data_frame(d=DKEUlinks1, directed = FALSE, vertices = vert
 print(network, e=TRUE, v=TRUE)
 
 library(RColorBrewer)
-col  <- brewer.pal(3, "Set1") 
+col  <- brewer.pal(3, "Set2") 
 col <- col[-1]
 V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
 # DK doc are the red ones...
+degree <- degree(network)
+
+l <- layout.fruchterman.reingold(network)
 plot(network,
-     vertex.size = 2,
-     vertex.label=NA)
+     vertex.label=NA,
+     vertex.size= 2,
+     layout = l)
 
 sort(degree(network), decreasing = TRUE)
