@@ -21,21 +21,26 @@ library("sentimentr")
 # Load data ---------------------------------------------------------------
 
 # Query 1
-Q1C2.edge.text<- read.csv(file =  "WP4/Policy_Interactions/data/08.Q1C2.edge.text.csv")
-Q1.net2nd.meta<-read.csv(file = "WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv") # vertices meta data
+Q1C2.edge.text<- read.csv(file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q1C2.edge.text.csv")
+Q1.net2nd.meta<-read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv") # vertices meta data
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.5_Q1_stm.Rdata")
-Q1.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q1.preptext.stm")
 
-#Query 2
-Q2C2.edge.text<- read.csv(file = "WP4/Policy_Interactions/data/08.Q2C2.edge.text.csv")
-Q2.net2nd.meta<-read.csv(file = "WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv") # vertices meta data
+# first order citations to filter later 
+Q1.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv") # vertices meta data
+
+# Query 2
+Q2C2.edge.text<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q2C2.edge.text.csv")
+Q2.net2nd.meta<-read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv") # vertices meta data
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.5_Q2_stm.Rdata")
-Q2.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q2.preptext.stm")
+
+# first order citations to filter later 
+Q2.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv") # vertices meta data
 
 # Make the new text data and align it with the result stm data ------------
 
-# Query 1 ----------------
+# ---------------- ---------------- Query 1 ---------------- ----------------
 
+# Second order citations ----------------
 Q1C2.edge.text.preproc <- 
   Q1C2.edge.text %>%
   left_join(.,Q1.net2nd.meta, by = c("CELEX")) %>%
@@ -55,7 +60,10 @@ Q1C2.edge.text.preproc <-
            clean.text = removeWords(clean.text,stopwords("en")),         # remove stop words
            clean.text = stripWhitespace(clean.text)) %>%                 # strip extra whote space away --> tm package
     mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
-    unnest(clean.text) %>%          # sentences that become NAs aftere cleaning are removed...
+
+Q1C2.edge.text.preproc2 <- 
+  Q1C2.edge.text.preproc %>%
+  unnest(clean.text) %>%          # sentences that become NAs aftere cleaning are removed...
     filter(nchar(clean.text)>2) %>% # remove words that are smaller than 2 characters
     group_by(element_id, sentence_id) %>%
     mutate(clean.text = paste(clean.text, collapse = " ")) %>%
@@ -72,7 +80,7 @@ Q1C2.edge.text.preproc <-
 
 
 # lets make it into a corpus object (tm package)
-Q1C2.textpreproc.corpus <- DataframeSource(Q1C2.edge.text.preproc)
+Q1C2.textpreproc.corpus <- DataframeSource(Q1C2.edge.text.preproc2)
 Q1C2.textpreproc.corpus <- SimpleCorpus(Q1C2.textpreproc.corpus, control = list(language = "en"))
 
 Q1C2.textpreproc.corpus <- corpus(Q1C2.textpreproc.corpus) # should convert it to quanteda package formate since it is the only type I could get a successful conversion to stm
@@ -87,51 +95,46 @@ docs  <- Q1C2.textprocessed$documents
 vocab <- Q1C2.textprocessed$vocab
 meta  <- Q1C2.textprocessed$meta
 
-# **Note from the stm CRAN manual!
-# "we don't run prepCorpus here because we don't want to drop any words- we want every word that showed up in the old documents."
+Q1C2.out <- prepDocuments(docs, vocab, meta)
+# Removing 30320 of 62747 terms (30320 of 3149484 tokens) due to frequency 
+# Removing 285 Documents with No Words 
+# Your corpus now has 206565 documents, 32427 terms and 3119164 tokens.
 
-Q1.newdocs <- alignCorpus(new=Q1C2.textprocessed, old.vocab=Q1.stm$vocab)
-# info on what was done: 
-# Removing 14628 Documents with No Words (in our case sentences)
-# Your new corpus now has 192222 documents (sentences), 3968 non-zero terms of 3980 total terms in the original set. 
-# 58779 terms from the new data did not match.
-# This means the new data contained 99.7% of the old terms
-# and the old data contained 6.3% of the unique terms in the new data. 
-# You have retained 3499112 tokens of the 3956192 tokens you started with (88.4%)
+# First order citations ----------------
 
+# now filter out the C2 text for only the first order citation network --> Q1.net1st.meta
+Q1C1.edge.text.preproc2 <- 
+  Q1C2.edge.text.preproc2 %>% 
+  filter(CELEX %in% Q1.net1st.meta$CELEX )
 
-Q1C2.topi.pred <- 
-  fitNewDocuments(model=Q1.stm, 
-                  documents=Q1.newdocs$documents, 
-                  newData=Q1.newdocs$meta,
-                  origData=Q1.text$meta)
+#check 
+n_distinct(Q1C1.edge.text.preproc2$CELEX) # has the right number of documents
+# 148
 
-Q1C2.doctopic.pred <- Q1C2.topi.pred$theta
+# lets make it into a corpus object (tm package)
+Q1C1.textpreproc.corpus <- DataframeSource(Q1C1.edge.text.preproc2)
+Q1C1.textpreproc.corpus <- SimpleCorpus(Q1C1.textpreproc.corpus, control = list(language = "en"))
 
-Q1.doc.names <- as.data.frame(names(Q1.newdocs$documents))
+Q1C1.textpreproc.corpus <- corpus(Q1C1.textpreproc.corpus) # should convert it to quanteda package formate since it is the only type I could get a successful conversion to stm
+meta(Q1C1.textpreproc.corpus)
+docvars(Q1C1.textpreproc.corpus)
+ndoc(Q1C1.textpreproc.corpus)
 
-# lets make this into a long df
-Q1C2.Doctopic.longdf <-
-  Q1C2.doctopic.pred %>%
-  as.data.frame() %>%
-  rownames_to_column(var = "document_sentence") %>%
-  cbind(., Q1.newdocs$meta$CELEX,Q1.doc.names) %>%
-pivot_longer(.,
-             cols = 2:68,
-             names_to = "topic", 
-             values_to = "proportion") %>%
-  mutate(topic = str_replace_all(topic, "V", "topic"),
-         percent.doc = proportion *100) 
+Q1C1.textpreproc.dfm <- dfm(tokens(Q1C1.textpreproc.corpus))   # Create a document feature matrix
+Q1C1.textprocessed <- convert(Q1C1.textpreproc.dfm, to="stm") # convert dfm to stm format corpus
 
-n_distinct(Q1C2.Doctopic.longdf$`Q1.newdocs$meta$CELEX`)
-# 583
+docs  <- Q1C1.textprocessed$documents
+vocab <- Q1C1.textprocessed$vocab
+meta  <- Q1C1.textprocessed$meta
 
-summary(Q1C2.Doctopic.longdf$percent.doc)
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.0000  0.1708  0.5688  1.4925  1.4362 99.4407 
+Q1C1.out <- prepDocuments(docs, vocab, meta)
+#Removing 8270 of 17978 terms (8270 of 855689 tokens) due to frequency 
+#Removing 125 Documents with No Words 
+#Your corpus now has 50424 documents, 9708 terms and 847419 tokens.
 
-# Query 2 ----------------
+# ---------------- ---------------- Query 2 ---------------- ----------------
 
+# Second order citations ----------------
 Q2C2.edge.text.preproc <- 
   Q2C2.edge.text %>%
   left_join(.,Q2.net2nd.meta, by = c("CELEX")) %>%
@@ -182,6 +185,98 @@ docs  <- Q2C2.textprocessed$documents
 vocab <- Q2C2.textprocessed$vocab
 meta  <- Q2C2.textprocessed$meta
 
+Q2C2.out <- prepDocuments(docs, vocab, meta)
+#Removing 49456 of 97803 terms (49456 of 5150043 tokens) due to frequency 
+#Removing 511 Documents with No Words 
+#Your corpus now has 334037 documents, 48347 terms and 5100587 tokens.
+
+# First order citations ----------------
+
+# now filter out the C2 text for only the first order citation network
+Q2C1.edge.text.preproc <- 
+  Q2C2.edge.text.preproc %>% 
+  filter(CELEX %in% Q2.net1st.meta$CELEX )
+
+#check 
+n_distinct(Q2C1.edge.text.preproc$CELEX) # has the right number of documents
+# 381
+
+# lets make it into a corpus object (tm package)
+Q2C1.textpreproc.corpus <- DataframeSource(Q2C1.edge.text.preproc)
+Q2C1.textpreproc.corpus <- SimpleCorpus(Q2C1.textpreproc.corpus, control = list(language = "en"))
+
+Q2C1.textpreproc.corpus <- corpus(Q2C1.textpreproc.corpus) # should convert it to quanteda package formate since it is the only type I could get a successful conversion to stm
+meta(Q2C1.textpreproc.corpus)
+docvars(Q2C1.textpreproc.corpus)
+ndoc(Q2C1.textpreproc.corpus)
+
+Q2C1.textpreproc.dfm <- dfm(tokens(Q2C1.textpreproc.corpus))   # Create a document feature matrix
+Q2C1.textprocessed <- convert(Q2C1.textpreproc.dfm, to="stm") # convert dfm to stm format corpus
+
+docs  <- Q2C1.textprocessed$documents
+vocab <- Q2C1.textprocessed$vocab
+meta  <- Q2C1.textprocessed$meta
+
+Q2C1.out <- prepDocuments(docs, vocab, meta)
+
+# Save -------------------------------------------------------------------------------------
+
+write.csv(Q1C2.edge.text.preproc2, file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q1C2.edge.text.cleantext.csv")
+write.csv(Q2C2.edge.text.preproc, file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q2C2.edge.text.cleantext.csv")
+
+saveRDS(Q1C2.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q2C2.preptext.rds")
+saveRDS(Q2C2.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q1C2.preptext.rds")
+saveRDS(Q1C1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q2C1.preptext.rds")
+saveRDS(Q2C1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q1C1.preptext.rds")
+
+
+
+# Archived ------------------------------------
+
+# **Note from the stm CRAN manual!
+# "we don't run prepCorpus here because we don't want to drop any words- we want every word that showed up in the old documents."
+
+Q1.newdocs <- alignCorpus(new=Q1C2.textprocessed, old.vocab=Q1.stm$vocab)
+# info on what was done: 
+# Removing 14628 Documents with No Words (in our case sentences)
+# Your new corpus now has 192222 documents (sentences), 3968 non-zero terms of 3980 total terms in the original set. 
+# 58779 terms from the new data did not match.
+# This means the new data contained 99.7% of the old terms
+# and the old data contained 6.3% of the unique terms in the new data. 
+# You have retained 3499112 tokens of the 3956192 tokens you started with (88.4%)
+
+
+Q1C2.topi.pred <- 
+  fitNewDocuments(model=Q1.stm, 
+                  documents=Q1.newdocs$documents, 
+                  newData=Q1.newdocs$meta,
+                  origData=Q1.text$meta)
+
+Q1C2.doctopic.pred <- Q1C2.topi.pred$theta
+
+Q1.doc.names <- as.data.frame(names(Q1.newdocs$documents))
+
+# lets make this into a long df
+Q1C2.Doctopic.longdf <-
+  Q1C2.doctopic.pred %>%
+  as.data.frame() %>%
+  rownames_to_column(var = "document_sentence") %>%
+  cbind(., Q1.newdocs$meta$CELEX,Q1.doc.names) %>%
+  pivot_longer(.,
+               cols = 2:68,
+               names_to = "topic", 
+               values_to = "proportion") %>%
+  mutate(topic = str_replace_all(topic, "V", "topic"),
+         percent.doc = proportion *100) 
+
+n_distinct(Q1C2.Doctopic.longdf$`Q1.newdocs$meta$CELEX`)
+# 583
+
+summary(Q1C2.Doctopic.longdf$percent.doc)
+#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.0000  0.1708  0.5688  1.4925  1.4362 99.4407 
+
+
 # **Note from the stm CRAN manual!
 # "we don't run prepCorpus here because we don't want to drop any words- we want every word that showed up in the old documents."
 
@@ -220,13 +315,6 @@ Q2C2.Doctopic.longdf <-
 n_distinct(Q2C2.Doctopic.longdf$`Q2.newdocs$meta$CELEX`)
 
 
-# Save -------------------------------------------------------------------------------------
-
-write.csv(Q1C2.Doctopic.longdf, file = "WP4/Policy_Interactions/data/09.Q1C2.Doctopic.longdf.csv", row.names=FALSE)
-write.csv(Q2C2.Doctopic.longdf, file = "WP4/Policy_Interactions/data/09.Q2C2.Doctopic.longdf.csv", row.names=FALSE)
-
-saveRDS(Q2.newdocs, file = "WP4/Policy_Interactions/data/09_Q2.newdocs.rds")
-saveRDS(Q1.newdocs, file = "WP4/Policy_Interactions/data/09_Q1.newdocs.rds")
-
-
+#write.csv(Q1C2.Doctopic.longdf, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q1C2.Doctopic.longdf.csv", row.names=FALSE)
+#write.csv(Q2C2.Doctopic.longdf, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q2C2.Doctopic.longdf.csv", row.names=FALSE)
 
