@@ -76,7 +76,7 @@ DK.text.df3 <-
            kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk|Kommercielt fisk")),
            erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk|Erhvervsmæssigt fisk")),
            erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfisk|Erhvervsfisk")),
-           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt fisk|Rekreativt fisk")),
+           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt fisk|Rekreativt fisk")), # add rekreative fisk to this 
            sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl|Sæl")),
            fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")))
 
@@ -226,11 +226,6 @@ vocab <- Q1.textprocessed$vocab
 meta  <- Q1.textprocessed$meta
 
 Q1.out <- prepDocuments(docs, vocab, meta)
-
-
-
-
-
 
 
 # lets make it into a corpus object
