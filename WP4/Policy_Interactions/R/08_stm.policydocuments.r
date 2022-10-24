@@ -1,32 +1,44 @@
 
-Sys.setenv(LANG = "en")
+# Clear work space ---------------------------------------------------------
+rm(list = ls())
+Sys.setenv(LANG = "en") # change the language to english 
 
-### R code to engage in topic modelling of EUR-LEX relevant text
+# Load libraries ----------------------------------------------------------
+library("stringr")
+library("stm")
+library("stminsights")
+library("ggraph")
+library("tidyverse")
 
-library(stringr)
-library(stm)
-Q1.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q1.preptext.stm")
-Q2.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05_Q2.preptext.stm")
+# Load data ---------------------------------------------------------------
+
+# R code to engage in topic modelling of EUR-LEX relevant text
+
+# query 1
+Q1C1.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q1C1.preptext.rds")
+Q1C2.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q1C2.preptext.rds")
+# query 2
+Q2C1.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q2C1.preptext.rds")
+Q2C2.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q2C2.preptext.rds")
+
+# Topic predictions
+
+# query 1
+# Q1C1.stm<-stm(Q1C1.text$documents,Q1C1.text$vocab,data=Q1C1.text$meta,K=0,init.type="Spectral")
+load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1C1_stm.Rdata")
+# Q1C2.stm<-stm(Q1C2.text$documents,Q1C2.text$vocab,data=Q1C2.text$meta,K=0,init.type="Spectral")
+load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1C2_stm.Rdata")
+
+# query 2
+# Q2C1.stm<-stm(Q2C1.text$documents,Q2C1.text$vocab,data=Q2C1.text$meta,K=0,init.type="Spectral")
+load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q2C1_stm.Rdata")
+# Q2C2.stm<-stm(Q2C2.text$documents,Q2C2.text$vocab,data=Q2C2.text$meta,K=0,init.type="Spectral")
+load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q2C2_stm.Rdata")
 
 
-#Q1.stm<-stm(Q1.text$documents,Q1.text$vocab,data=Q1.text$meta,K=0,init.type="Spectral")
-#save(Q1.stm,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/Q1_stm.Rdata")
+#Finding topics within each document ---------------------------------------
 
-#Q2.stm<-stm(Q2.text$documents,Q2.text$vocab,data=Q2.text$meta,K=0,init.type="Spectral")
-#save(Q2.stm,file="C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/Q2_stm.Rdata")
-
-#predictions
-
-
-# load 
-load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.5_Q1_stm.Rdata")
-load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.5_Q2_stm.Rdata")
-
-library(stminsights)
-library(ggraph)
-library(tidyverse)
-
-#  Query 1 -----------------------------------------------------------------------------------------------------------------------------------------
+#  Query 1 -----------------------------------------------------------------
 
 Q1.DT.matrix <- Q1.stm$theta # rows are the text/"document" and columns are the topics, values are the topic proportions
 Q1.TW.list <- Q1.stm$beta # list of log word probabilities for each topic
