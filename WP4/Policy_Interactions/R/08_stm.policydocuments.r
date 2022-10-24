@@ -145,9 +145,9 @@ ggraph(Q1C1.net, layout = 'fr') +
   scale_edge_width(range = c(.1, 3)) +
   theme_graph()
 
-prep <- estimateEffect(1:39 ~ CELEX, Q1C1.stm,meta = Q1C1.text$meta, uncertainty = "Global") #?
-summary(prep, topics = 1:2)
-plot(prep, covariate = "CELEX", topics = c(22,25,17,4),model = Q1C1.stm, method = "pointestimate",n=5)
+#prep <- estimateEffect(1:39 ~ CELEX, Q1C1.stm,meta = Q1C1.text$meta, uncertainty = "Global") #?
+#summary(prep, topics = 1:2)
+#plot(prep, covariate = "CELEX", topics = c(22,25,17,4),model = Q1C1.stm, method = "pointestimate",n=5)
 
 # ---- second order citations ----- #
 Q1C2.DT.matrix <- Q1C2.stm$theta # rows are the text/"document" and columns are the topics, values are the topic proportions
@@ -380,5 +380,14 @@ Q2C2YorN <-
   select(from,to,same.topic) %>%
   distinct()
 filter(same.topic == "TRUE")
+
+
+# Save -----------------------------------------------------------------------
+
+write.csv(Q1C1.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q1C1.edgelist.topics.csv", row.names=FALSE)
+write.csv(Q1C2.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q1C2.edgelist.topics.csv", row.names=FALSE)
+write.csv(Q2C1.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q2C1.edgelist.topics.csv", row.names=FALSE)
+write.csv(Q2C2.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q2C2.edgelist.topics.csv", row.names=FALSE)
+
 
 
