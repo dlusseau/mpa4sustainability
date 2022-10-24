@@ -257,8 +257,8 @@ edges <- degree(Q2.net2nd.graph)
 sum(edges)
 # Save ---------------------------------------------------------------
 
-write.csv(Q2.edge.text, file = "WP4/Policy_Interactions/data/08.Q2C2.edge.text.csv", row.names=FALSE)
-write.csv(Q1.edge.text, file = "WP4/Policy_Interactions/data/08.Q1C2.edge.text.csv", row.names=FALSE)
+write.csv(Q2.edge.text, file = "WP4/Policy_Interactions/data/05.Q2C2.edge.text.csv", row.names=FALSE)
+write.csv(Q1.edge.text, file = "WP4/Policy_Interactions/data/05.Q1C2.edge.text.csv", row.names=FALSE)
 
 
 
