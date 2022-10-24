@@ -1,6 +1,7 @@
 
 # Clear work space ---------------------------------------------------------
 rm(list = ls())
+Sys.setenv(LANG = "en") # change the language to english 
 
 # Load libraries ----------------------------------------------------------
 
