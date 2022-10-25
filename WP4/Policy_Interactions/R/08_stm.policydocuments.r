@@ -90,7 +90,7 @@ summary(Q1C1max.topic)
 #Mean   :0.2257   Mean   :22.57  
 #3rd Qu.:0.2819   3rd Qu.:28.19  
 #Max.   :0.9978   Max.   :99.78  
-                                                   
+                                             
 Q1C1topics <-
   Q1C1max.topic %>%
   ungroup() %>%
@@ -380,6 +380,12 @@ Q2C2YorN <-
   select(from,to,same.topic) %>%
   distinct()
 filter(same.topic == "TRUE")
+
+par(mfrow=c(2,2))
+hist(Q1C1max.topic$percent.doc)
+hist(Q1C2max.topic$percent.doc)
+hist(Q2C1max.topic$percent.doc)
+hist(Q2C2max.topic$percent.doc)
 
 
 # Save -----------------------------------------------------------------------
