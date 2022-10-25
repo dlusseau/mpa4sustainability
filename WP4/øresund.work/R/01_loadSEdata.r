@@ -21,12 +21,14 @@ library("dplyr")
 
 # Made the api queries from there builder:
 # https://data.riksdagen.se/dokumentlista/
+
+# filter set to have the search word, document type is Svensk författningssamling (SFS) the output was clicked to be in JSON format
   
-# "Fiske" query ------------------------------------------------------------------
+# "fiske" query ------------------------------------------------------------------
 
 Fiske.API.URL <-
 "https://data.riksdagen.se/dokumentlista/?sok=%22fiske%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
-  
+
 fiske.raw.data <- GET(Fiske.API.URL)
 fiske.raw.data$status_code # 200 means it is ok :)
 names(fiske.raw.data)
@@ -116,53 +118,53 @@ for (i in seq(URLs)) {
   print(i)       # Print what iteration we are on
 }
 
-# jaga query -----------
+# jakt query -----------
 
-jaga.API.URL <-
+jakt.API.URL <-
 "https://data.riksdagen.se/dokumentlista/?sok=%22jakt%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
 
-jaga.raw.data <- GET(jaga.API.URL)
-jaga.raw.data$status_code # 200 means it is ok :)
-names(jaga.raw.data)
+jakt.raw.data <- GET(jakt.API.URL)
+jakt.raw.data$status_code # 200 means it is ok :)
+names(jakt.raw.data)
 
-stop_for_status(jaga.raw.data)
+stop_for_status(jakt.raw.data)
 
-jaga.data.list <- stri_encode(as.raw(jaga.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
+jakt.data.list <- stri_encode(as.raw(jakt.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
 
-jaga.data.object <- fromJSON(jaga.data.list)
+jakt.data.object <- fromJSON(jakt.data.list)
 
-jaga.df <- jaga.data.object$dokumentlista$dokument
+jakt.df <- jakt.data.object$dokumentlista$dokument
 
 # this is only the first page.... need to figure out how to get the other pages each page as 20 results.
 # someone else has this Q on stackoverflow: https://stackoverflow.com/questions/54575231/a-continuation-of-extracting-data-from-an-api-using-r 
 
-No.pgs <- as.numeric(jaga.data.object[["dokumentlista"]][["@sidor"]])
+No.pgs <- as.numeric(jakt.data.object[["dokumentlista"]][["@sidor"]])
 
-nextpage <- jaga.data.object[["dokumentlista"]][["@nasta_sida"]]
+nextpage <- jakt.data.object[["dokumentlista"]][["@nasta_sida"]]
 
 
 # now we know the number of pages for that query so lets make a loop to get the results
 
-full.jaga.df <- NULL
+full.jakt.df <- NULL
 
 for (i in seq(No.pgs)) {
   
-  jaga.res.url <- str_sub(nextpage, start = 1L, end = -2L) # remove the last character which is the nxt pg number
+  jakt.res.url <- str_sub(nextpage, start = 1L, end = -2L) # remove the last character which is the nxt pg number
   
-  nxt.pg.url <- paste0(jaga.res.url,i, sep="") #put the pg number based on the loop iteration number
+  nxt.pg.url <- paste0(jakt.res.url,i, sep="") #put the pg number based on the loop iteration number
   
-  jaga.raw.data <- GET(nxt.pg.url)
-  print(jaga.raw.data$status_code)
+  jakt.raw.data <- GET(nxt.pg.url)
+  print(jakt.raw.data$status_code)
   
-  stop_for_status(jaga.raw.data) # convets http errors to R errors (if we encounter one)
+  stop_for_status(jakt.raw.data) # convets http errors to R errors (if we encounter one)
   
-  jaga.data.list <- stri_encode(as.raw(jaga.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
+  jakt.data.list <- stri_encode(as.raw(jakt.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
   
-  jaga.data.object <- fromJSON(jaga.data.list, flatten = TRUE)
+  jakt.data.object <- fromJSON(jakt.data.list, flatten = TRUE)
   
-  jaga.df <- as.data.frame(jaga.data.object$dokumentlista$dokument, row.names = NULL)
+  jakt.df <- as.data.frame(jakt.data.object$dokumentlista$dokument, row.names = NULL)
   
-  full.jaga.df <- rbind.fill(full.jaga.df,jaga.df)
+  full.jakt.df <- rbind.fill(full.jakt.df,jakt.df)
   
   print(i)
   
@@ -172,11 +174,11 @@ for (i in seq(No.pgs)) {
 
 # this works nicely... just need to make a loop with all the data like we did for dk text
 
-doc.id <- full.jaga.df[,16]
+doc.id <- full.jakt.df[,16]
 
 SK.jakttext.list <- structure(vector("list", 94), names=doc.id)
 
-URLs <- paste0("https:",full.jaga.df[,18], sep="") #put https: infront of the url
+URLs <- paste0("https:",full.jakt.df[,18], sep="") #put https: infront of the url
 
 for (i in seq(URLs)) {
   
@@ -192,52 +194,52 @@ for (i in seq(URLs)) {
 }
 
 
-# sjötrafik query -----------
+# sjöfart query -----------
 
-sjotrafik.API.URL <-
-"https://data.riksdagen.se/dokumentlista/?sok=%22sj%C3%B6trafik%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+sjofart.API.URL <-
+"https://data.riksdagen.se/dokumentlista/?sok=%22sj%C3%B6fart%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+  
+sjofart.raw.data <- GET(sjofart.API.URL)
+sjofart.raw.data$status_code # 200 means it is ok :)
+names(sjofart.raw.data)
 
-sjotrafik.raw.data <- GET(sjotrafik.API.URL)
-sjotrafik.raw.data$status_code # 200 means it is ok :)
-names(sjotrafik.raw.data)
+stop_for_status(sjofart.raw.data)
 
-stop_for_status(sjotrafik.raw.data)
+sjofart.data.list <- stri_encode(as.raw(sjofart.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
 
-sjotrafik.data.list <- stri_encode(as.raw(sjotrafik.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
+sjofart.data.object <- fromJSON(sjofart.data.list)
 
-sjotrafik.data.object <- fromJSON(sjotrafik.data.list)
-
-sjotrafik.df <- sjotrafik.data.object$dokumentlista$dokument
+sjofart.df <- sjofart.data.object$dokumentlista$dokument
 
 # this is only the first page.... need to figure out how to get the other pages each page as 20 results.
 # someone else has this Q on stackoverflow: https://stackoverflow.com/questions/54575231/a-continuation-of-extracting-data-from-an-api-using-r 
 
-No.pgs <- as.numeric(sjotrafik.data.object[["dokumentlista"]][["@sidor"]])
+No.pgs <- as.numeric(sjofart.data.object[["dokumentlista"]][["@sidor"]])
 
-nextpage <- sjotrafik.data.object[["dokumentlista"]][["@nasta_sida"]]
+nextpage <- sjofart.data.object[["dokumentlista"]][["@nasta_sida"]]
 
 # now we know the number of pages for that query so lets make a loop to get the results
 
-full.sjotrafik.df <- NULL
+full.sjofart.df <- NULL
 
 for (i in seq(No.pgs)) {
   
-  sjotrafik.res.url <- str_sub(nextpage, start = 1L, end = -2L) # remove the last character which is the nxt pg number
+  sjofart.res.url <- str_sub(nextpage, start = 1L, end = -2L) # remove the last character which is the nxt pg number
   
-  nxt.pg.url <- paste0(sjotrafik.res.url,i, sep="") #put the pg number based on the loop iteration number
+  nxt.pg.url <- paste0(sjofart.res.url,i, sep="") #put the pg number based on the loop iteration number
   
-  sjotrafik.raw.data <- GET(nxt.pg.url)
-  print(sjotrafik.raw.data$status_code)
+  sjofart.raw.data <- GET(nxt.pg.url)
+  print(sjofart.raw.data$status_code)
   
-  stop_for_status(sjotrafik.raw.data) # convets http errors to R errors (if we encounter one)
+  stop_for_status(sjofart.raw.data) # convets http errors to R errors (if we encounter one)
   
-  sjotrafik.data.list <- stri_encode(as.raw(sjotrafik.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
+  sjofart.data.list <- stri_encode(as.raw(sjofart.raw.data$content), 'UTF-8') #data_list <- rawToChar(raw_data$content) --> same as this but takes into account the encoding
   
-  sjotrafik.data.object <- fromJSON(sjotrafik.data.list, flatten = TRUE)
+  sjofart.data.object <- fromJSON(sjofart.data.list, flatten = TRUE)
   
-  sjotrafik.df <- as.data.frame(sjotrafik.data.object$dokumentlista$dokument, row.names = NULL)
+  sjofart.df <- as.data.frame(sjofart.data.object$dokumentlista$dokument, row.names = NULL)
   
-  full.sjotrafik.df <- rbind.fill(full.sjotrafik.df,sjotrafik.df)
+  full.sjofart.df <- rbind.fill(full.sjofart.df,sjofart.df)
   
   print(i)
   
@@ -247,24 +249,28 @@ for (i in seq(No.pgs)) {
 ## ---------- now get the text from the url given in the df ---------- #
 
 # this works nicely... just need to make a loop with all the data like we did for dk text
-
-# https://data.riksdagen.se/dokument/sfs-1891-35 s.1.text --> faulty link
+#just to check that these are the only url with spaces... and they are
+full.sjofart.df %>%
+  mutate(detect = str_detect(dokument_url_text, " ")) %>%
+  select(detect,dokument_url_text)%>%
+  filter(detect == TRUE)
+# https://data.riksdagen.se/dokument/sfs-1891-35 s.1.text --> THIS LINK IS FAULTY
 # totally remove the faulty link and then edit the two to be the correct path
-full.sjotrafik.df1 <- 
-  full.sjotrafik.df %>%
+full.sjofart.df1 <- 
+  full.sjofart.df %>%
   filter(dokument_url_text != "//data.riksdagen.se/dokument/sfs-1891-35 s.1.text")
 
-doc.id <- full.sjotrafik.df1[,16]
+doc.id <- full.sjofart.df1[,16]
 
-SK.sjotrafik.list <- structure(vector("list", 39), names=doc.id)
+SK.sjofart.list <- structure(vector("list", 199), names=doc.id)
 
-URLs <- paste0("https:",full.sjotrafik.df1[,18], sep="") #put https: infront of the url
+URLs <- paste0("https:",full.sjofart.df1[,18], sep="") #put https: infront of the url
 
 for (i in seq(URLs)) {
   
   html <- read_html(URLs[i], options = "HUGE")
   
-  SK.sjotrafik.list[[i]] <-
+  SK.sjofart.list[[i]] <-
     html%>%
     html_nodes("body") %>%
     html_text2()
@@ -277,14 +283,15 @@ for (i in seq(URLs)) {
 # Save ---------------------------------------------------------------------------------------
 
 # dfs of result document data
-write.csv(full.sjotrafik1.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.sjotrafik.df.csv", row.names=FALSE)
-write.csv(full.jaga.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.jaga.df.csv", row.names=FALSE)
+full.sjofart.df1 <- full.sjofart.df1 %>% select(-filbilaga.fil) # this column the others do not have and it is no nec. for us so will remove it
+write.csv(full.sjofart.df1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.sjofart.df.csv", row.names=FALSE)
+write.csv(full.jakt.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.jakt.df.csv", row.names=FALSE)
 
 full.fisk.df2 <- full.fisk.df1 %>% select(-filbilaga.fil) # this column the others do not have and it is no nec. for us so will remove it
 write.csv(full.fisk.df2, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.fisk.df.csv", row.names=FALSE)
 
 # list of result text
-saveRDS(SK.sjotrafik.list, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.sjotrafik.list" )
+saveRDS(SK.sjofart.list, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.sjofart.list" )
 saveRDS(SK.jakttext.list, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.jakttext.list" )
 saveRDS(SK.fisketext.list, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.fisketext.list" )
 
