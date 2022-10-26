@@ -21,17 +21,17 @@ library("sentimentr")
 # Load data ---------------------------------------------------------------
 
 # Query 1
-Q1C2.edge.text<- read.csv(file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q1C2.edge.text.csv")
+Q1C2.edge.text<- read.csv(file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.Q1C2.edge.text.csv")
 Q1.net2nd.meta<-read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv") # vertices meta data
-load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.5_Q1_stm.Rdata")
+#load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1_stm.Rdata")
 
 # first order citations to filter later 
 Q1.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv") # vertices meta data
 
 # Query 2
-Q2C2.edge.text<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q2C2.edge.text.csv")
+Q2C2.edge.text<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.Q2C2.edge.text.csv")
 Q2.net2nd.meta<-read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv") # vertices meta data
-load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.5_Q2_stm.Rdata")
+#load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q2_stm.Rdata")
 
 # first order citations to filter later 
 Q2.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv") # vertices meta data
@@ -51,15 +51,15 @@ Q1C2.edge.text.preproc <-
          date = as.Date(date)) %>%
   # cleaning and pre-processing whole text data exactly the sme as the corpus for topic models
   get_sentences() %>%
-  mutate(clean.text = tolower(total.text),                             # convert all to lower case
-           clean.text = str_replace_all(clean.text,"\\μ[:graph:]+",""),  # remove units that have this special character
-           clean.text = str_replace_all(clean.text,"[:graph:]+\\μ",""),  # remove units that have this special character
-           clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
-           clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
-           clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
-           clean.text = removeWords(clean.text,stopwords("en")),         # remove stop words
-           clean.text = stripWhitespace(clean.text)) %>%                 # strip extra whote space away --> tm package
-    mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
+  mutate(clean.text = tolower(total.text),                                # convert all to lower case
+           clean.text = str_replace_all(clean.text,"\\μ[:graph:]+"," "),  # remove units that have this special character
+           clean.text = str_replace_all(clean.text,"[:graph:]+\\μ"," "),  # remove units that have this special character
+           clean.text = str_replace_all(clean.text,"[:punct:]"," "),      # remove punctuation
+           clean.text = str_replace_all(clean.text,"[:digit:]"," "),      # remove numbers
+           clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),  # remove all special characters
+           clean.text = stripWhitespace(clean.text),                      # strip extra white space away --> tm package
+           clean.text = removeWords(clean.text,stopwords("en"))) %>%      # remove stop words
+    mutate(clean.text = text_tokens(.$clean.text, stemmer = "en"))        # stemming words
 
 Q1C2.edge.text.preproc2 <- 
   Q1C2.edge.text.preproc %>%
@@ -145,14 +145,14 @@ Q2C2.edge.text.preproc <-
          date = as.Date(date)) %>%
   # cleaning and pre-processing whole text data exactly the sme as the corpus for topic models
   get_sentences() %>%
-  mutate(clean.text = tolower(total.text),                             # convert all to lower case
-         clean.text = str_replace_all(clean.text,"\\μ[:graph:]+",""),  # remove units that have this special character
-         clean.text = str_replace_all(clean.text,"[:graph:]+\\μ",""),  # remove units that have this special character
-         clean.text = str_replace_all(clean.text,"[:punct:]",""),      # remove punctuation
-         clean.text = str_replace_all(clean.text,"[:digit:]",""),      # remove numbers
-         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "), # remove all special characters
-         clean.text = removeWords(clean.text,stopwords("en")),         # remove stop words
-         clean.text = stripWhitespace(clean.text)) %>%                 # strip extra whote space away --> tm package
+  mutate(clean.text = tolower(total.text),                                # convert all to lower case
+         clean.text = str_replace_all(clean.text,"\\μ[:graph:]+"," "),  # remove units that have this special character
+         clean.text = str_replace_all(clean.text,"[:graph:]+\\μ"," "),  # remove units that have this special character
+         clean.text = str_replace_all(clean.text,"[:punct:]"," "),      # remove punctuation
+         clean.text = str_replace_all(clean.text,"[:digit:]"," "),      # remove numbers
+         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),  # remove all special characters
+         clean.text = stripWhitespace(clean.text),                      # strip extra white space away --> tm package
+         clean.text = removeWords(clean.text,stopwords("en"))) %>%      # remove stop words
   mutate(clean.text = text_tokens(.$clean.text, stemmer = "en")) %>%   # stemming words
   unnest(clean.text) %>%          # sentences that become NAs aftere cleaning are removed...
   filter(nchar(clean.text)>2) %>% # remove words that are smaller than 2 characters
@@ -221,13 +221,13 @@ Q2C1.out <- prepDocuments(docs, vocab, meta)
 
 # Save -------------------------------------------------------------------------------------
 
-write.csv(Q1C2.edge.text.preproc2, file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q1C2.edge.text.cleantext.csv")
-write.csv(Q2C2.edge.text.preproc, file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q2C2.edge.text.cleantext.csv")
+write.csv(Q1C2.edge.text.preproc2, file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06.Q1C2.edge.text.cleantext.csv")
+write.csv(Q2C2.edge.text.preproc, file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06.Q2C2.edge.text.cleantext.csv")
 
-saveRDS(Q1C2.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q2C2.preptext.rds")
-saveRDS(Q2C2.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q1C2.preptext.rds")
-saveRDS(Q1C1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q2C1.preptext.rds")
-saveRDS(Q2C1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09_Q1C1.preptext.rds")
+saveRDS(Q1C2.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q2C2.preptext.rds")
+saveRDS(Q2C2.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q1C2.preptext.rds")
+saveRDS(Q1C1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q2C1.preptext.rds")
+saveRDS(Q2C1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q1C1.preptext.rds")
 
 
 
