@@ -59,13 +59,68 @@ decision.titles <-
   filter(!is.na(.$celex)) %>% # remove na values for celex
   select(-resource.type,-celex)
 
-dec.test<-array(0) #2652 3402 3469
-for (i in 1:dim(decision.titles)[1]) {
+rm(document.key.df1) # remove this bc it takes up a lot of space
+
+dec.test<-array(0) # 127 problem one make title blank url is faulty..., 386 skip these and do them later (see below)
+
+for (i in 5201:dim(decision.titles)[1]) {
   dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
   print(i)
   flush.console()
 }
 
+ i<-127 #--> faulty link make title blank
+dec.test[127]<- " "
+# ran this above
+i<-386
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-780
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-822
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-1274
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-1308
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-1325
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-1806
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-1876
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-2160
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-2543
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-2655
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-2968
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-3661
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-4468
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+# ran this above
+i<-5200
+dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+
+
+decision.titles$titles<-dec.test
+
+saveRDS(decision.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.decision.titles1.6326.rds") 
 
 # --- Regulation --- #
 
