@@ -16,49 +16,6 @@ Q1C2.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekn
 Q2C1.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q2C1.edgelist.topics.csv")
 Q2C2.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q2C2.edgelist.topics.csv")
 
-###########################################
-
-Q1C1.same.topics <- 
-  Q1C1.edgelist.topics %>%
-  ungroup%>%
-  filter(same.topic == TRUE)%>%
-  select(-from.topic) %>%
-  group_by(from, to, same.topic) %>%
-  summarise(n.topics = n_distinct(to.topic))
-
-
-Q1C1.NOTsame.topics <- 
-  Q1C1.edgelist.topics %>%
-  ungroup%>%
-  filter(same.topic == FALSE)%>%
-  select(-from.topic) %>%
-  group_by(from, to, same.topic) %>%
-  summarise(n.topics = n_distinct(to.topic))
-  group_by(from, to, NOTsame.topic) %>%
-  summarise(No.topics = n_distinct())
-  
-
-new.edgelist <-
-  rbind(Q1C1.same.topics,Q1C1.NOTsame.topics)
-
-
-
-
-network <- graph_from_data_frame(new.edgelist, directed = TRUE) 
-V(network)
-
-E(network)$color[E(network)$same.topic == TRUE] <- 'green'
-E(network)$color[E(network)$same.topic == FALSE] <- 'red'
-
-
-l <- layout.fruchterman.reingold(network)
-
-plot(network,
-     vertex.label=NA,
-     edge.width =E(network)$n.topics/6,
-     edge.color= E(network)$color,
-     vertex.size= 2,
-     layout = l)
 
 ########### testing this ##################
 
@@ -78,24 +35,26 @@ edges <-
   rbind(from, to) %>%
   distinct() %>%
   rename(from = celex,
-         to = topic)
+         to = topic)%>%
+  filter(!is.na(to))
 
 
 celex <- 
   edges %>%
   select(from) %>%
-  mutate(color = "#E69F00")%>%
+  mutate(type = "celex")%>%
   rename("name" = "from")
 
 topic <- 
   edges %>%
   select(to) %>%
-  mutate(color = "#56B4E9")%>%
+  mutate(type = "topic")%>%
   rename("name" = "to")
 
 vertices <- 
   rbind(celex,topic)%>%
-  distinct
+  distinct() %>%
+  filter(!is.na(name))
 
 
 network <- graph_from_data_frame(edges,vertices = vertices, directed = FALSE) 
@@ -103,17 +62,64 @@ V(network)
 
 
 library(RColorBrewer)
-col  <- brewer.pal(3, "Set2") 
-col <- col[-1]
-V(network)$color <- col[as.numeric(as.factor(V(network)$color))]
-# DK doc are the red ones...
+col  <- brewer.pal(2, "Set2") 
+#col <- col[-1]
+V(network)$color <- col[as.numeric(as.factor(V(network)$type))]
+# EUdocs are orange, topics  are blue
 degree <- degree(network)
+sort(degree)
+l <- layout.fruchterman.reingold(network)
+
+plot(network,
+     vertex.label=ifelse(V(network)$type == "topic",V(network)$name,NA),
+     vertex.color= V(network)$color,
+     vertex.size=  2,
+     layout = l)
+
+
+# archival --------------
+
+###########################################
+
+Q1C1.same.topics <- 
+  Q1C1.edgelist.topics %>%
+  ungroup%>%
+  filter(same.topic == TRUE)%>%
+  select(-from.topic) %>%
+  group_by(from, to, same.topic) %>%
+  summarise(n.topics = n_distinct(to.topic))
+
+
+Q1C1.NOTsame.topics <- 
+  Q1C1.edgelist.topics %>%
+  ungroup%>%
+  filter(same.topic == FALSE)%>%
+  select(-from.topic) %>%
+  group_by(from, to, same.topic) %>%
+  summarise(n.topics = n_distinct(to.topic))
+
+
+
+new.edgelist <-
+  rbind(Q1C1.same.topics,Q1C1.NOTsame.topics)
+
+
+
+
+network <- graph_from_data_frame(new.edgelist, directed = TRUE) 
+V(network)
+
+E(network)$color[E(network)$same.topic == TRUE] <- 'green'
+E(network)$color[E(network)$same.topic == FALSE] <- 'red'
+
 
 l <- layout.fruchterman.reingold(network)
 
 plot(network,
-          vertex.label=NA,
-     vertex.color= V(network)$color,
+     vertex.label=NA,
+     edge.width =E(network)$n.topics/2,
+     edge.color= E(network)$color,
      vertex.size= 2,
-     layout = layout.circle)
+     layout = l)
+
      
