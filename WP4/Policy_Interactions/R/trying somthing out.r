@@ -11,6 +11,8 @@ library("tidyverse")
 # Load data ---------------------------------------------------------------
 
 Q1C1.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q1C1.edgelist.topics.csv")
+load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1C1_stm.Rdata")
+
 Q1C2.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q1C1.edgelist.topics.csv")
 
 Q2C1.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q2C1.edgelist.topics.csv")
@@ -75,6 +77,18 @@ plot(network,
      vertex.color= V(network)$color,
      vertex.size=  2,
      layout = l)
+
+
+
+cloud(Q1C1.stm, topic = 32, scale= c(2,2))
+cloud(Q1C1.stm, topic = 59, scale= c(2,2))
+cloud(Q1C1.stm, topic = 17, scale= c(2,2))
+cloud(Q1C1.stm, topic = 33)
+cloud(Q1C1.stm, topic = 13)
+cloud(Q1C1.stm, topic = 67)
+cloud(Q1C1.stm, topic = 70)
+cloud(Q1C1.stm, topic = 49)
+cloud(Q1C1.stm, topic = 38)
 
 
 # archival --------------
