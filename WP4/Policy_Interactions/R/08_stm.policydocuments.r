@@ -74,10 +74,11 @@ Q1C1.Doctopic.longdf <-
 Q1C1max.topic <-
   Q1C1.Doctopic.longdf %>%
   group_by(document_sentence) %>%
-  filter(percent.doc == max(percent.doc))
+  filter(percent.doc == max(percent.doc)) %>%
+  filter(percent.doc > 50)
 
 Q1C1topic.no <- 
-  max.topic %>%
+  Q1C1max.topic %>%
   ungroup() %>%
   group_by(CELEX) %>%
   summarise(n.topics = n_distinct(topic))
@@ -90,14 +91,23 @@ summary(Q1C1max.topic)
 #Mean   :0.2257   Mean   :22.57  
 #3rd Qu.:0.2819   3rd Qu.:28.19  
 #Max.   :0.9978   Max.   :99.78  
+
+# After setting a filter > 50
+#  proportion      percent.doc   
+# Min.   :0.5001   Min.   :50.01  
+# 1st Qu.:0.5466   1st Qu.:54.66  
+# Median :0.6212   Median :62.12  
+# Mean   :0.6575   Mean   :65.75  
+# 3rd Qu.:0.7386   3rd Qu.:73.86  
+# Max.   :0.9978   Max.   :99.78
                                              
 Q1C1topics <-
   Q1C1max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q1C1topics$topic) # 72 ao one od the topics is never discussed at a max probability 
-sort(unique(Q1C1topics$topic)) # this is topic 73
+n_distinct(Q1C1topics$topic) # 56 
+sort(unique(Q1C1topics$topic)) 
 
 #lets join the edge list and the topic assignments
 
@@ -177,7 +187,8 @@ Q1C2.Doctopic.longdf <-
 Q1C2max.topic <-
   Q1C2.Doctopic.longdf %>%
   group_by(document_sentence) %>%
-  filter(percent.doc == max(percent.doc))
+  filter(percent.doc == max(percent.doc))%>%
+  filter(percent.doc > 50)
 
 Q1C2topic.no <- 
   Q1C2max.topic %>%
@@ -194,12 +205,20 @@ summary(Q1C2max.topic)
 # 3rd Qu.:28.388  
 # Max.   :99.872  
 
+# After >50 filter
+# Min.   :50.00  
+# 1st Qu.:56.19  
+# Median :62.60  
+# Mean   :66.20  
+# 3rd Qu.:75.54  
+# Max.   :99.87 
+
 Q1C2topics <-
   Q1C2max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q1C2topics$topic) # 76 so all are at least once a max probability 
+n_distinct(Q1C2topics$topic) # 65 
 sort(unique(Q1C2topics$topic)) 
 
 #lets join the edge list and the topic assignments
@@ -255,7 +274,8 @@ Q2C1.Doctopic.longdf <-
 Q2C1max.topic <-
   Q2C1.Doctopic.longdf %>%
   group_by(document_sentence) %>%
-  filter(percent.doc == max(percent.doc))
+  filter(percent.doc == max(percent.doc)) %>%
+  filter(percent.doc > 50)
 
 Q2C1topic.no <- 
   max.topic %>%
@@ -272,14 +292,21 @@ summary(Q2C1max.topic)
 # 3rd Qu.:30.337  
 # Max.   :99.517  
 
+# After >50 filter
+# Min.   :50.00  
+# 1st Qu.:54.83  
+# Median :61.18  
+# Mean   :65.14  
+# 3rd Qu.:73.18  
+# Max.   :99.52 
 
 Q2C1topics <-
   Q2C1max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q2C1topics$topic) # 75 so one of the topics is never discussed at a max probability 
-sort(unique(Q2C1topics$topic)) # this is topic 39
+n_distinct(Q2C1topics$topic) # 57
+sort(unique(Q2C1topics$topic)) 
 
 #lets join the edge list and the topic assignments
 
@@ -334,7 +361,8 @@ Q2C2.Doctopic.longdf <-
 Q2C2max.topic <-
   Q2C2.Doctopic.longdf %>%
   group_by(document_sentence) %>%
-  filter(percent.doc == max(percent.doc))
+  filter(percent.doc == max(percent.doc)) %>%
+  filter(percent.doc > 50)
 
 Q2C2topic.no <- 
   Q2C2max.topic %>%
@@ -351,13 +379,20 @@ summary(Q2C2max.topic)
 #   3rd Qu.:32.167  
 #   Max.   :99.954  
 
+# After filter >50  
+#Min.   :50.00  
+#1st Qu.:56.91  
+#Median :64.40  
+#Mean   :67.53  
+#3rd Qu.:77.81  
+#Max.   :99.95 
 
 Q2C2topics <-
   Q2C2max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q2C2topics$topic) # 63 so all are at least once a max probability 
+n_distinct(Q2C2topics$topic) # 53
 
 #lets join the edge list and the topic assignments
 
