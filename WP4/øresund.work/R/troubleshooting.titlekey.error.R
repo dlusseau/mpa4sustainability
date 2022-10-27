@@ -21,6 +21,11 @@ document.key.df1 <-
   mutate(celex = as.factor(celex)) %>%
   distinct(celex, .keep_all = TRUE) 
 
+document.key.df1 %>%
+  group_by(resource.type) %>%
+  summarise(n=n_distinct(celex))
+
+
 rm(document.key.df) # remove this bc it takes up a lot of space
 
 # --- Directives --- #
@@ -49,7 +54,17 @@ test[i]<-elx_fetch_data(directive.titles$work[i],type="title")
 directive.titles$titles<-test
 
 write.csv(directive.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
-            
+       
+# -------------
+#directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv")
+
+#directive.titles <-
+#  directive.titles %>%
+#  select(-X) %>% 
+ # mutate(title.code =  str_extract(titles, "[:digit:]+/[:digit:]+/[:alpha:]+"))
+
+
+# ok this is taking FOREVER AND WORSE THAN BEFORE RUNNING THE DIRECTIVES... trying somthing new     
 # --- Decisions --- #
 
 decision.titles <- 
@@ -59,68 +74,37 @@ decision.titles <-
   filter(!is.na(.$celex)) %>% # remove na values for celex
   select(-resource.type,-celex)
 
+# Working on this one first
+decision.titles.1.12002 <- 
+  slice(decision.titles,1:12002)
+
 rm(document.key.df1) # remove this bc it takes up a lot of space
+rm(decision.titles) # remove this bc it takes up a lot of space
 
 dec.test<-array(0) # 127 problem one make title blank url is faulty..., 386 skip these and do them later (see below)
 
-for (i in 5201:dim(decision.titles)[1]) {
-  dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
+gc()
+for (i in 45:dim(decision.titles.1.12002)[1]) {
+  dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
   print(i)
   flush.console()
+  gc()
 }
 
- i<-127 #--> faulty link make title blank
+i<-127 #--> faulty link make title blank
 dec.test[127]<- " "
-# ran this above
-i<-386
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-780
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-822
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-1274
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-1308
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-1325
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-1806
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-1876
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-2160
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-2543
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-2655
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-2968
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-3661
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-4468
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
-# ran this above
-i<-5200
-dec.test[i]<-elx_fetch_data(decision.titles$work[i],type="title")
 
+# ran this above
+i<-44
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-185
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
 
-decision.titles$titles<-dec.test
+decision.titles.1.12002$titles<-dec.test
 
 saveRDS(decision.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.decision.titles1.6326.rds") 
+
+
 
 # --- Regulation --- #
 
