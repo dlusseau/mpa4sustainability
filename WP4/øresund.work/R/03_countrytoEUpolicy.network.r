@@ -101,8 +101,8 @@ plot(network.degree ~ network.betweenness)
 E(network)
 
 network.clusters <-cluster_leading_eigen(network,
-                                       # steps = -1,
-                                        weights = NULL)
+                                         weights = NULL)
+
 sort(table(network.clusters$membership))
 # cluster 33 is the largest!
 
@@ -139,7 +139,7 @@ palette3 <- sample(palette3_all, 42)                    # Sample colors
 palette3 
 
 V(network)$color <- palette3[as.numeric(as.factor(membership(network.clusters)))]
-
+as.numeric(V(network)$color)
 
 plot(network,
      vertex.color=V(network)$color,
@@ -150,6 +150,17 @@ plot(network,
                            "circle","square"),
      vertex.size= 3,
      layout = l2)
+
+legend(
+  "bottomleft",
+  legend=levels(as.factor(membership(network.clusters))) ,
+  col = palette3,
+  pch    = 20,
+  cex    = 1,
+  bty    = "n",
+  title  = "",
+  horiz = FALSE
+)
 
 plot(network,
      vertex.label=ifelse(degree(network) >7.05 & V(network)$source == "EU",
