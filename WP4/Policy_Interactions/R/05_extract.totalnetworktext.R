@@ -112,8 +112,6 @@ Q1edge.NOtextsec1 <-
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>% 
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
   as_tibble() %>%
-  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-  as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
   as_tibble() %>%
   mutate(total.text = paste0(.$title,.$text)) %>%
@@ -126,8 +124,6 @@ Q1edge.NOtextsec2 <-
   distinct(., .keep_all = TRUE) %>% # 546 celex
   slice(274:546) %>% # 515
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>% 
-  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-  as_tibble() %>%
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
   as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
