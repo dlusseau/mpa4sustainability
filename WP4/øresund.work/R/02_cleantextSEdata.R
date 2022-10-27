@@ -42,7 +42,7 @@ jakttext.df <-
   rownames_to_column(., var = "doc.id") %>%
   rename("text" = "jakttext.list") %>%
   unnest(text, keep_empty=TRUE) %>%
-  mutate(search.term = "jakttrafik") %>%
+  mutate(search.term = "jakt") %>%
   mutate(country = "SE") 
 
 fisketext.df <- 
@@ -54,6 +54,62 @@ fisketext.df <-
   mutate(country = "SE") 
 
 SEtext.dk <- rbind(sjofarttext.df,jakttext.df,fisketext.df)
+
+n_distinct(SEtext.dk$doc.id)
+
+
+#looking for the other forms of hunting and fishing 
+#fisheries (commercial, recreational and spear fishing) : fiske (yrkesfiske, fritidsfiske, harpunfiske). 
+# You could possibly also look for “husbehovsfiske” or “fiske för husbehov” (approx. subsidiary fishing).
+#hunting (along with bird and seal hunting): jakt, fågeljakt/sjöfågeljakt, säljakt
+#and maritime traffic: sjöfart (general term, name of the sector), båttrafik (boating), småbåtstrafik (small private vessels), fritidsbåtstrafik (recreational vessels), fartygstrafik (large vessels), 
+#Routes: farled (general term), fartygsled/sjöfartsled/transportled (routes for larger vessels), farled/båtled (route for smaller vessels)
+
+SEtext.dk1 <-
+  SEtext.dk %>%
+  mutate(harpun = case_when(search.term == "fiske" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
+         commercial = case_when(search.term == "fiske" ~ str_detect(text, "yrkesfisk|Yrkesfisk")),
+         recreational = case_when(search.term == "fiske" ~ str_detect(text, "fritidsfisk|Fritidsfisk")), 
+         angling = case_when(search.term == "fiske" ~ str_detect(text, "handredskapsfisk|Handredskapsfisk")), 
+         angling2    = case_when(search.term == "fiske" ~ str_detect(text, "spöfisk|Spöfisk")),
+         birdhunt = case_when(search.term == "jakt" ~ str_detect(text, "fågel|Fågel")),
+         waterfowl = case_when(search.term == "jakt" ~ str_detect(text, "sjöfågel|Sjöfågel")), 
+         seal = case_when(search.term == "jakt" ~ str_detect(text, "säl|Säl")))
+
+SEtext.dk1 %>%
+  group_by(search.term) %>%
+  summarise(n=n_distinct(doc.id))
+
+# fiske         260
+# jakt           94
+# sjofart       199
+
+SEtext.dk1 %>%
+  filter(search.term == "fiske" & harpun == "TRUE") # 0 mention harpun
+
+SEtext.dk1 %>%
+  filter(search.term == "fiske" & commercial == "TRUE") # 26 fisheries documents mention yrkesfisk
+
+SEtext.dk1 %>%
+  filter(search.term == "fiske" & recreational == "TRUE") # 10 fisheries documents mention fritidsfisk fisk
+
+SEtext.dk1 %>%
+  filter(search.term == "fiske" & angling == "TRUE") # 2 mention handredskapsfisk
+
+SEtext.dk1 %>%
+  filter(search.term == "fiske" & angling2 == "TRUE") # 1  documents mention spöfisk
+
+SEtext.dk1 %>%
+  filter(search.term == "jakt" & birdhunt == "TRUE") # 7 fågel
+
+SEtext.dk1 %>%
+  filter(search.term == "jakt" & waterfowl == "TRUE") # 1 sjöfågel
+
+SEtext.dk1 %>%
+  filter(search.term == "jakt" & seal == "TRUE") # 62 mention säl fisk
+
+
+# Getting Eurlex links ---------------------------------------------------------
 
 #https://eur-lex.europa.eu/content/help/eurlex-content/numbering-of-acts.html 
 # they do put habitatdirektiv and fågeldirektiv ramdirektiv för vatten
@@ -113,7 +169,71 @@ EU.links4 <-
   filter(!is.na(ref)) # remove na values
 
 
+
+
+
+
+
+
 # ok now lets get the EU legislation key and extract titles to link to the reference codes: -------------------------------
+
+directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv")
+
+Q2C2.edge.text <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.Q2C2.edge.text.csv")
+
+directive.titles1 <-
+  directive.titles %>%
+  select(-X) %>% 
+  mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
+  mutate(title.code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+"))
+
+test<- 
+  EU.links4 %>%
+  distinct(ref) %>%
+  left_join(.,directive.titles1, by = c("ref"="title.code"))
+
+
+Q2C2.edge.text1 <-
+  Q2C2.edge.text %>%
+  mutate(title2 = str_trunc(total.text,100,side = c("right"))) %>%
+  select(CELEX,title2) %>%
+  mutate(Reg.2 =  str_extract(title2,"\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)"))  #(EU or ECC) nr #/#
+ # mutate(Reg.3 =  str_extract(title2,"\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>% #(EU or ECC) #/# (this one i noticed but not explicitly said in the link above)
+ # mutate(Reg. =  str_extract(title2, "Regulation\\sNo\\s[:digit:]+")) %>% # Regulation No 17
+ # mutate(Reg.4 =  str_extract(title2, "\\sNo\\s[:digit:]+/[:digit:]+(?!/)")) # förordning EEG nr 2658/87 
+
+test2 <- 
+  test %>%
+  left_join(.,Q2C2.edge.text1, by = c("ref"="Reg.2"))
+
+Q2C2.edge.text2 <-
+  Q2C2.edge.text %>%
+  mutate(title2 = str_trunc(total.text,100,side = c("right"))) %>%
+  select(CELEX,title2) %>%
+ # mutate(Reg.2 =  str_extract(title2,"\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)"))  #(EU or ECC) nr #/#
+ mutate(Reg.3 =  str_extract(title2,"\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"))  #(EU or ECC) #/# (this one i noticed but not explicitly said in the link above)
+# mutate(Reg. =  str_extract(title2, "Regulation\\sNo\\s[:digit:]+")) %>% # Regulation No 17
+# mutate(Reg.4 =  str_extract(title2, "\\sNo\\s[:digit:]+/[:digit:]+(?!/)")) # förordning EEG nr 2658/87 
+
+test3 <- 
+  test2 %>%
+  left_join(.,Q2C2.edge.text2, by = c("ref"="Reg.3"))
+
+
+# remove those that reference nothing
+no.title <- 
+  test3 %>%
+  filter((is.na(title2.x) &
+             is.na(title2.y) &
+             is.na(title2)))
+
+
+
+
+
+
+
+
 
 # EURLEX KEY
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
