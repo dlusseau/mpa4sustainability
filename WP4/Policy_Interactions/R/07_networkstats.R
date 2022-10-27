@@ -332,6 +332,8 @@ Q2.2nd.comp.weak<-components(Q2.net2nd.graph,mode="weak")
 
 V(Q2.net2nd.graph)$component<-membership(Q2.2nd.comp.weak)
 
+sort(table(Q2.2nd.comp.weak$membership))
+
 Q2.2nd.giant<-subgraph(Q2.net2nd.graph,vids=V(Q2.net2nd.graph)[V(Q2.net2nd.graph)$component==1])
 
 Q2.2nd.giant.cluster<-cluster_edge_betweenness(Q2.2nd.giant, directed = TRUE)
