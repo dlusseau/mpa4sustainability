@@ -84,25 +84,157 @@ rm(decision.titles) # remove this bc it takes up a lot of space
 dec.test<-array(0) # 127 problem one make title blank url is faulty..., 386 skip these and do them later (see below)
 
 gc()
-for (i in 45:dim(decision.titles.1.12002)[1]) {
+for (i in 4555:dim(decision.titles.1.12002)[1]) {
   dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
   print(i)
   flush.console()
+  Sys.sleep(1)
   gc()
 }
 
 i<-127 #--> faulty link make title blank
 dec.test[127]<- " "
-
 # ran this above
-i<-44
+i<-278
 dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
-i<-185
+i<-528
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-610
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-653
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-693
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-761
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-854
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-1170
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-1257
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-1576
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-1845
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2048
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2058
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2137
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2161
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2205
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2211
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2222
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2269
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2272
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2293
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2331
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2334
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2338
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2432
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2438
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2520
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2522
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2562
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2581
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2590
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2625
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2760
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2763
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2904
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2921
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2933
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2948
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-2971
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3033
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3037
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3183
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3370
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3400
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3403
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3427
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3510
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3513
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3522
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3590
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3595
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3623
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3824
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3859
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3894
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3961
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-3996
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4092
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4295
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4351
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4400
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4440
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4482
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4488
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4524
+dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
+i<-4555
 dec.test[i]<-elx_fetch_data(decision.titles.1.12002$work[i],type="title")
 
-decision.titles.1.12002$titles<-dec.test
+decision.titles.1.4725 <- 
+  decision.titles.1.12002 %>%
+  slice(.,1:4725)
 
-saveRDS(decision.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.decision.titles1.6326.rds") 
+decision.titles.1.4725$titles<-dec.test
+
+write.csv(decision.titles.1.4725, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles1.4725.csv") 
 
 
 
