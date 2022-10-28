@@ -151,6 +151,17 @@ plot(network,
      vertex.size= 3,
      layout = l2)
 
+# celes to label later
+# 32021R1060
+#"32021R1139"   31979L0409" 
+#"31992L0043"  "32004L0035"             
+#"32013R1303"  "32014R0508" 
+# 32006L0123
+# 32009L0147
+# 31991L0676
+#"32000L0060"             
+#"32011L0092" 
+
 legend(
   "bottomleft",
   legend=levels(as.factor(membership(network.clusters))) ,
