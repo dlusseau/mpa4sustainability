@@ -114,20 +114,63 @@ SEtext.dk1 %>%
 #https://eur-lex.europa.eu/content/help/eurlex-content/numbering-of-acts.html 
 # they do put habitatdirektiv and fågeldirektiv ramdirektiv för vatten
 # maybe they sight others
+
+
+# Example of how directives could be cited: 
+# Utredaren ska även föreslå de författningsändringar som krävs för att säkerställa att kraven i artikel 6.2 och 6.3 i 
+# rådets direktiv 92/43/EEG av den 21 maj 1992 om bevarande av livsmiljöer samt vilda djur och växter (art- och habitatdirektivet) tillämpas fullt ut på fiske i enlighet med Sveriges EU-rättsliga åtaganden.
+
+# Decisions:
+# kommissionens beslut 2005/909/EG.
+
+# Reccomendations: 
+# kommissionens rekommendation 2003/361/EG
+
+# council regulations:
+# rådets förordning EEG nr 2658/87 
+
+# lets first detect if sentences mention regulation types 
 EU.links <- 
   SEtext.dk %>%
   get_sentences() %>%
-  mutate(Dir.Reg.Rec.Dec =  str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")) %>% #/#/# or will also pick up those under the code nr #/#/# just not the nr
-  unnest(Dir.Reg.Rec.Dec,keep_empty = TRUE) %>%
-  mutate(Reg.2 =  str_extract_all(text,"\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)")) %>% #(EU or ECC) nr #/#
-  unnest(Reg.2,keep_empty = TRUE) %>%
-  mutate(Reg.3 =  str_extract_all(text,"\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>% #(EU or ECC) #/# (this one i noticed but not explicitly said in the link above)
-  unnest(Reg.3,keep_empty = TRUE) %>%
-  mutate(Reg. =  str_extract_all(text, "förordning\\snr\\s[:digit:]+")) %>% # Regulation No 17
-  unnest(Reg.,keep_empty = TRUE) %>%
-  mutate(Reg.4 =  str_extract_all(text, "förordning\\s[:alpha:]+\\snr\\s[:digit:]+/[:digit:]+(?!/)")) %>% # förordning EEG nr 2658/87 
-  unnest(Reg.4,keep_empty = TRUE)
+  mutate(dir =  str_extract(text, "direktiv")) %>% 
+  unnest(dir,keep_empty = TRUE) %>%
+  mutate(reg =  str_extract(text, "förordning")) %>% 
+  unnest(reg,keep_empty = TRUE) %>%
+  mutate(dec =  str_extract(text, "beslut")) %>% 
+  unnest(dec,keep_empty = TRUE) %>%
+  mutate(rec =  str_extract(text, "rekommendation"))%>% 
+  unnest(rec,keep_empty = TRUE)
+
+EU.links2 <-
+  EU.links %>%
+  pivot_longer(.,
+               cols = dir:rec,
+               names_to = "type",
+               values_to = "ref") %>%
+  distinct() %>%
+  mutate(ref=as.factor(ref),
+         text=as.character(text)) %>%
+  filter(!is.na(ref)) # remove na values
+
+# then lets pull all the codes in those sentences...
+
+EU.links3 <-
+  EU.links2 %>%
+  mutate(dir.code = case_when(ref == "direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")), # change this one to both since it is second order referenced. 
+                              ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?!/)")),
+                              ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
+                              ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
+  mutate(dir.code = str_replace_all(dir.code,"c\\(",""),
+         dir.code = str_replace_all(dir.code,"(?<!G|0|U)\\)",""),
+         dir.code = str_replace_all(dir.code,'\\"',""),
+         dir.code = strsplit(dir.code, ",")) %>%
+  unnest(cols = c(dir.code))
   
+unique(EU.links3$dir.code)
+
+                              
+
   
 # remove those that reference nothing
 EU.links2 <- 
@@ -338,16 +381,18 @@ EU.links4 %>%
   distinct(doc.id,ref, .keep_all= TRUE)
 
 
-# Example of how directives could be cited: 
-# Utredaren ska även föreslå de författningsändringar som krävs för att säkerställa att kraven i artikel 6.2 och 6.3 i 
-# rådets direktiv 92/43/EEG av den 21 maj 1992 om bevarande av livsmiljöer samt vilda djur och växter (art- och habitatdirektivet) tillämpas fullt ut på fiske i enlighet med Sveriges EU-rättsliga åtaganden.
+# archival -----------------------
 
-# Decisions:
-# kommissionens beslut 2005/909/EG.
+EU.linksTEST <- 
+  SEtext.dk %>%
+  get_sentences() %>%
+  mutate(Reg.2 =  str_extract_all(text,"\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)")) %>% #(EU or ECC) nr #/#
+  unnest(Reg.2,keep_empty = TRUE) %>%
+  mutate(Reg.3 =  str_extract_all(text,"\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>% #(EU or ECC) #/# (this one i noticed but not explicitly said in the link above)
+  unnest(Reg.3,keep_empty = TRUE) %>%
+  mutate(Reg. =  str_extract_all(text, "förordning\\snr\\s[:digit:]+(?!/)")) %>% # Regulation No 17
+  unnest(Reg.,keep_empty = TRUE) %>%
+  mutate(Reg.4 =  str_extract_all(text, "förordning\\s[:alpha:]+\\snr\\s[:digit:]+/[:digit:]+(?!/)")) %>% # förordning EEG nr 2658/87 
+  unnest(Reg.4,keep_empty = TRUE)
 
-# Reccomendations: 
-# kommissionens rekommendation 2003/361/EG
-
-# council regulations:
-# rådets förordning EEG nr 2658/87 
 
