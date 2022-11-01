@@ -152,15 +152,18 @@ plot(network,
      layout = l2)
 
 # celes to label later
-# 32021R1060
-#"32021R1139"   31979L0409" 
-#"31992L0043"  "32004L0035"             
-#"32013R1303"  "32014R0508" 
-# 32006L0123
-# 32009L0147
-# 31991L0676
-#"32000L0060"             
-#"32011L0092" 
+# 32021R1060 - Common rules on EU funds (2021–2027)
+#"32021R1139" - European Maritime, Fisheries and Aquaculture Fund (2021–2027)
+# 31979L0409" - Council Directive 79/409/EEC of 2 April 1979 on the conservation of wild birds
+#"31992L0043" - Protecting Europe’s biodiversity (Natura 2000)
+#"32004L0035" - The polluter-pays principle and environmental liability
+#"32013R1303" -
+#"32014R0508" - European Maritime and Fisheries Fund (2014-2020)
+# 32006L0123  - The EU’s services directive
+# 32009L0147 - Conservation of wild birds
+# 31991L0676 - Fighting water pollution from agricultural nitrates
+#"32000L0060" - Good-quality water in Europe (EU water directive)
+#"32011L0092" - Assessment of the effects of projects on the environment (EIA)
 
 legend(
   "bottomleft",
