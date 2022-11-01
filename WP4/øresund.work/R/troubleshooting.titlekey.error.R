@@ -236,7 +236,133 @@ decision.titles.1.4725$titles<-dec.test
 
 write.csv(decision.titles.1.4725, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles1.4725.csv") 
 
+# --- second part --- #
 
+  decision.titles <- 
+  document.key.df1 %>%
+  filter(resource.type == "DEC") %>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(!is.na(.$celex)) %>% # remove na values for celex
+  select(-resource.type,-celex)
+
+# Working on this one first
+decision.titles.4725.8725 <- 
+  slice(decision.titles,4725:8725)
+
+rm(document.key.df1) # remove this bc it takes up a lot of space
+rm(decision.titles) # remove this bc it takes up a lot of space
+
+dec.test<-array(0) # 127 problem one make title blank url is faulty..., 386 skip these and do them later (see below)
+
+gc()
+for (i in 1:dim(decision.titles.4725.8725)[1]) {
+  dec.test[i]<-elx_fetch_data(decision.titles.4725.8725$work[i],type="title")
+  print(i)
+  flush.console()
+  Sys.sleep(1)
+  gc()
+}
+
+
+decision.titles1.4725.8725 <- 
+  decision.titles.4725.8725 
+
+decision.titles1.4725.8725$titles<-dec.test
+
+write.csv(decision.titles1.4725.8725, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.4725.8725.csv") 
+
+
+# --- third part --- #
+
+decision.titles <- 
+  document.key.df1 %>%
+  filter(resource.type == "DEC") %>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(!is.na(.$celex)) %>% # remove na values for celex
+  select(-resource.type,-celex)
+
+# Working on this one first
+decision.titles.8726.16726 <- 
+  slice(decision.titles,8726:16726)
+decision.titles.8726.16726[4307,]
+rm(document.key.df1) # remove this bc it takes up a lot of space
+rm(decision.titles) # remove this bc it takes up a lot of space
+
+dec.test<-array(0) # 127 problem one make title blank url is faulty..., 386 skip these and do them later (see below)
+
+gc()
+for (i in 4308:dim(decision.titles.8726.16726)[1]) {
+  dec.test[i]<-elx_fetch_data(decision.titles.8726.16726$work[i],type="title")
+  print(i)
+  flush.console()
+}
+
+i<-2913
+dec.test[i]<-elx_fetch_data(decision.titles.8726.16726$work[i],type="title")
+4307#--> faulty link make title blank
+dec.test[4307]<- " "
+
+decision.titles1.8726.16726 <- 
+  decision.titles.8726.16726 
+
+decision.titles1.8726.16726$titles<-dec.test
+
+write.csv(decision.titles1.8726.16726, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.8726.16726.csv") 
+
+
+# --- fourth part --- #
+
+decision.titles <- 
+  document.key.df1 %>%
+  filter(resource.type == "DEC") %>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(!is.na(.$celex)) %>% # remove na values for celex
+  select(-resource.type,-celex)
+
+# Working on this one first
+decision.titles.16727.48008<- 
+  slice(decision.titles,16727:48008)
+
+rm(document.key.df1) # remove this bc it takes up a lot of space
+rm(decision.titles) # remove this bc it takes up a lot of space
+
+dec.test<-array(0) # 127 problem one make title blank url is faulty..., 386 skip these and do them later (see below)
+
+gc()
+for (i in 23188:dim(decision.titles.16727.48008)[1]) {
+  httr::handle_reset("http://publications.europa.eu/")
+  dec.test[i]<-elx_fetch_data(decision.titles.16727.48008$work[i],type="title")
+  print(i)
+  flush.console()
+}
+
+
+decision.titles1.16727.48008 <- 
+  decision.titles.16727.48008 
+
+decision.titles1.16727.48008$titles<-dec.test
+
+
+write.csv(decision.titles1.16727.48008, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.16727.48008.csv") 
+
+# let combine the four directives part ----
+
+dec.1 <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles1.4725.csv")
+dec.2 <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.4725.8725.csv")
+dec.3 <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.8726.16726.csv")
+dec.4 <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.16727.48008.csv")
+
+Eurlexkey.decision.titles <- rbind(dec.1,dec.2,dec.3,dec.4) # i duplicated the title for poisition 4725 see below
+Eurlexkey.decision.titles[4725,]
+Eurlexkey.decision.titles[4726,]
+
+Eurlexkey.decision.titles1 <-
+  Eurlexkey.decision.titles%>%
+  distinct(work, .keep_all=TRUE) %>% # ok back to the original dimentions
+  left_join(., document.key.df1, by = c("work")) %>%
+  select(-X)
+
+write.csv(Eurlexkey.decision.titles1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv", row.names=FALSE) 
 
 # --- Regulation --- #
 
@@ -248,7 +374,17 @@ regulation.titles <-
   select(-resource.type,-celex)
 
 
+rm(document.key.df1) # remove this bc it takes up a lot of space
 
+reg.test<-array(0) # 
+
+gc()
+for (i in 1:dim(regulation.titles)[1]) {
+  httr::handle_reset("http://publications.europa.eu/")
+  reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
+  print(i)
+  flush.console()
+}
 
 
 
