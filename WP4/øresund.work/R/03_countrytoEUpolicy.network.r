@@ -70,12 +70,12 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 l <- layout.fruchterman.reingold(network)
 
 plot(network,
-     vertex.label=ifelse(degree(network) >7.05 & V(network)$source == "EU",
+     vertex.label=ifelse(degree(network) >=7.05 & V(network)$source == "EU",
                          V(network)$name,NA),
      vertex.label.cex = .75,
      vertex.size= 3,
      layout = l)
-#labels are those EU docs that are > the 95% percentile for the degree number
+#labels are those EU docs that are >= the 95% percentile for the degree number
 
 # network stats ----------------------------------
 
