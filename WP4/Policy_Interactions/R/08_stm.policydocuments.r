@@ -62,7 +62,7 @@ Q1C1.Doctopic.longdf <-
   relocate(c("names(Q1C1.text$documents)"), .after = c(row.id)) %>%
   relocate(c("Q1C1.text$meta$CELEX"), .after = c("names(Q1C1.text$documents)")) %>%
   pivot_longer(.,
-               cols = 4:76,
+               cols = 4:64,
                names_to = "topic", 
                values_to = "proportion") %>%
   mutate(topic = str_replace_all(topic, "V", "topic"),
@@ -85,28 +85,19 @@ Q1C1topic.no <-
 
 summary(Q1C1max.topic)
 #  proportion      percent.doc   
-#Min.   :0.0343   Min.   : 3.43  
-#1st Qu.:0.1170   1st Qu.:11.70  
-#Median :0.1772   Median :17.72  
-#Mean   :0.2257   Mean   :22.57  
-#3rd Qu.:0.2819   3rd Qu.:28.19  
-#Max.   :0.9978   Max.   :99.78  
-
-# After setting a filter > 50
-#  proportion      percent.doc   
-# Min.   :0.5001   Min.   :50.01  
-# 1st Qu.:0.5466   1st Qu.:54.66  
-# Median :0.6212   Median :62.12  
-# Mean   :0.6575   Mean   :65.75  
-# 3rd Qu.:0.7386   3rd Qu.:73.86  
-# Max.   :0.9978   Max.   :99.78
+# Min.   :0.5000   Min.   :50.00  
+# 1st Qu.:0.5448   1st Qu.:54.48  
+# Median :0.6038   Median :60.38  
+# Mean   :0.6410   Mean   :64.10  
+# 3rd Qu.:0.7102   3rd Qu.:71.02  
+# Max.   :0.9979   Max.   :99.79 
                                              
 Q1C1topics <-
   Q1C1max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q1C1topics$topic) # 56 
+n_distinct(Q1C1topics$topic) # 54 
 sort(unique(Q1C1topics$topic)) 
 
 #lets join the edge list and the topic assignments
@@ -125,19 +116,11 @@ Q1C1.edgelist.cat <-
   mutate(same.topic = case_when(from.topic == to.topic ~ "TRUE",
                                 from.topic != to.topic ~ "FALSE")) 
 
-Q1C1YorN <- 
-  Q1C1.edgelist.cat %>%
-  select(from,to,same.topic) %>%
-  distinct()
-  filter(same.topic == "TRUE")
-
-Q1C1YorN %>%group_by(from,to)%>% summarise(n=n_distinct(same.topic))
-
-Q1C.labels<-labelTopics(Q1C1.stm,n =50) 
+Q1C1.labels<-labelTopics(Q1C1.stm,n =50) 
 
 Q1C1.net <- get_network(model = Q1C1.stm,
                          method = 'simple',
-                         labels = Q1.labels$prob,
+                         labels = Q1C1.labels$prob,
                          cutoff = 0.05,
                          cutiso = FALSE)
 
@@ -175,7 +158,7 @@ Q1C2.Doctopic.longdf <-
   relocate(c("names(Q1C2.text$documents)"), .after = c(row.id)) %>%
   relocate(c("Q1C2.text$meta$CELEX"), .after = c("names(Q1C2.text$documents)")) %>%
   pivot_longer(.,
-               cols = 4:80,
+               cols = 4:72,
                names_to = "topic", 
                values_to = "proportion") %>%
   mutate(topic = str_replace_all(topic, "V", "topic"),
@@ -197,28 +180,20 @@ Q1C2topic.no <-
   summarise(n.topics = n_distinct(topic))
 
 summary(Q1C2max.topic)
-# percent.doc   
-# Min.   : 3.185  
-# 1st Qu.:11.508  
-# Median :17.502  
-# Mean   :22.783  
-# 3rd Qu.:28.388  
-# Max.   :99.872  
-
-# After >50 filter
-# Min.   :50.00  
-# 1st Qu.:56.19  
-# Median :62.60  
-# Mean   :66.20  
-# 3rd Qu.:75.54  
-# Max.   :99.87 
+# proportion      percent.doc   
+# Min.   :0.5000   Min.   :50.00  
+# 1st Qu.:0.5393   1st Qu.:53.93  
+# Median :0.6326   Median :63.26  
+# Mean   :0.6653   Mean   :66.53  
+# 3rd Qu.:0.7786   3rd Qu.:77.86  
+# Max.   :0.9996   Max.   :99.96  
 
 Q1C2topics <-
   Q1C2max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q1C2topics$topic) # 65 
+n_distinct(Q1C2topics$topic) # 57 
 sort(unique(Q1C2topics$topic)) 
 
 #lets join the edge list and the topic assignments
@@ -237,11 +212,6 @@ Q1C2.edgelist.cat <-
   mutate(same.topic = case_when(from.topic == to.topic ~ "TRUE",
                                 from.topic != to.topic ~ "FALSE")) 
 
-Q1C2YorN <- 
-  Q1C2.edgelist.cat %>%
-  select(from,to,same.topic) %>%
-  distinct()
-filter(same.topic == "TRUE")
 
 #  Query 2 -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -261,7 +231,7 @@ Q2C1.Doctopic.longdf <-
   relocate(c("names(Q2C1.text$documents)"), .after = c(row.id)) %>%
   relocate(c("Q2C1.text$meta$CELEX"), .after = c("names(Q2C1.text$documents)")) %>%
   pivot_longer(.,
-               cols = 4:80,
+               cols = 4:73,
                names_to = "topic", 
                values_to = "proportion") %>%
   mutate(topic = str_replace_all(topic, "V", "topic"),
@@ -284,28 +254,20 @@ Q2C1topic.no <-
   summarise(n.topics = n_distinct(topic))
 
 summary(Q2C1max.topic)
-#  percent.doc   
-# Min.   : 3.547  
-# 1st Qu.:12.826  
-# Median :19.413  
-# Mean   :24.038  
-# 3rd Qu.:30.337  
-# Max.   :99.517  
-
-# After >50 filter
-# Min.   :50.00  
-# 1st Qu.:54.83  
-# Median :61.18  
-# Mean   :65.14  
-# 3rd Qu.:73.18  
-# Max.   :99.52 
+#   proportion      percent.doc   
+# Min.   :0.5000   Min.   :50.00  
+# 1st Qu.:0.5495   1st Qu.:54.95  
+# Median :0.6183   Median :61.83  
+# Mean   :0.6540   Mean   :65.40  
+# 3rd Qu.:0.7395   3rd Qu.:73.95  
+# Max.   :0.9965   Max.   :99.65 
 
 Q2C1topics <-
   Q2C1max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q2C1topics$topic) # 57
+n_distinct(Q2C1topics$topic) # 52
 sort(unique(Q2C1topics$topic)) 
 
 #lets join the edge list and the topic assignments
@@ -324,13 +286,6 @@ Q2C1.edgelist.cat <-
   mutate(same.topic = case_when(from.topic == to.topic ~ "TRUE",
                                 from.topic != to.topic ~ "FALSE")) 
 
-Q2C1YorN <- 
-  Q2C1.edgelist.cat %>%
-  select(from,to,same.topic) %>%
-  distinct()
-
-Q2C1YorN %>%group_by(from,to)%>% summarise(n=n_distinct(same.topic))
-
 
 # ---- second order citations ----- #
 Q2C2.DT.matrix <- Q2C2.stm$theta # rows are the text/"document" and columns are the topics, values are the topic proportions
@@ -348,7 +303,7 @@ Q2C2.Doctopic.longdf <-
   relocate(c("names(Q2C2.text$documents)"), .after = c(row.id)) %>%
   relocate(c("Q2C2.text$meta$CELEX"), .after = c("names(Q2C2.text$documents)")) %>%
   pivot_longer(.,
-               cols = 4:67,
+               cols = 4:74,
                names_to = "topic", 
                values_to = "proportion") %>%
   mutate(topic = str_replace_all(topic, "V", "topic"),
@@ -371,28 +326,20 @@ Q2C2topic.no <-
   summarise(n.topics = n_distinct(topic))
 
 summary(Q2C2max.topic)
-# percent.doc    
-#   Min.   : 3.983  
-#   1st Qu.:13.366  
-#   Median :19.885  
-#   Mean   :25.777  
-#   3rd Qu.:32.167  
-#   Max.   :99.954  
-
-# After filter >50  
-#Min.   :50.00  
-#1st Qu.:56.91  
-#Median :64.40  
-#Mean   :67.53  
-#3rd Qu.:77.81  
-#Max.   :99.95 
+# proportion      percent.doc   
+# Min.   :0.5000   Min.   :50.00  
+# 1st Qu.:0.5602   1st Qu.:56.02  
+# Median :0.6406   Median :64.06  
+# Mean   :0.6667   Mean   :66.67  
+# 3rd Qu.:0.7660   3rd Qu.:76.60  
+# Max.   :0.9996   Max.   :99.96  
 
 Q2C2topics <-
   Q2C2max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q2C2topics$topic) # 53
+n_distinct(Q2C2topics$topic) # 59
 
 #lets join the edge list and the topic assignments
 
@@ -410,11 +357,6 @@ Q2C2.edgelist.cat <-
   mutate(same.topic = case_when(from.topic == to.topic ~ "TRUE",
                                 from.topic != to.topic ~ "FALSE")) 
 
-Q2C2YorN <- 
-  Q2C2.edgelist.cat %>%
-  select(from,to,same.topic) %>%
-  distinct()
-filter(same.topic == "TRUE")
 
 par(mfrow=c(2,2))
 hist(Q1C1max.topic$percent.doc)
