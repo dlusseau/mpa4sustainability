@@ -113,17 +113,6 @@ cloud(Q1C1.stm, topic = 8)
 cloud(Q1C1.stm, topic = 9) 
 
 
-
-
-
-
-
-
-
-
-
-
-
 ########### Query 1 Citation 2 ##################
 
 from <-
