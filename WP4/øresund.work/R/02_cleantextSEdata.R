@@ -72,9 +72,11 @@ SEtext.dk1 <-
          recreational = case_when(search.term == "fiske" ~ str_detect(text, "fritidsfisk|Fritidsfisk")), 
          angling = case_when(search.term == "fiske" ~ str_detect(text, "handredskapsfisk|Handredskapsfisk")), 
          angling2    = case_when(search.term == "fiske" ~ str_detect(text, "spöfisk|Spöfisk")),
+         houseneeds.fishing = case_when(search.term == "fiske" ~ str_detect(text, "husbehovsfisk|Husbehovsfisk")), 
+         houseneeds.fishing2 = case_when(search.term == "fiske" ~ str_detect(text, "fiske för husbehov|Fiske för husbehov")),
          birdhunt = case_when(search.term == "jakt" ~ str_detect(text, "fågel|Fågel")),
-         waterfowl = case_when(search.term == "jakt" ~ str_detect(text, "sjöfågel|Sjöfågel")), 
-         seal = case_when(search.term == "jakt" ~ str_detect(text, "säl|Säl")))
+         seal = case_when(search.term == "jakt" ~ str_detect(text, "säl|Säl")),
+         boat.traffic = case_when(search.term == "sjofart" ~ str_detect(text, "båtstrafik|Båtstrafik")))
 
 SEtext.dk1 %>%
   group_by(search.term) %>%
@@ -100,6 +102,12 @@ SEtext.dk1 %>%
   filter(search.term == "fiske" & angling2 == "TRUE") # 1  documents mention spöfisk
 
 SEtext.dk1 %>%
+  filter(search.term == "fiske" & houseneeds.fishing == "TRUE") # 1  documents mention husbehovsfisk
+
+SEtext.dk1 %>%
+  filter(search.term == "fiske" & houseneeds.fishing2 == "TRUE") # 0  documents mention fiske för husbehov
+
+SEtext.dk1 %>%
   filter(search.term == "jakt" & birdhunt == "TRUE") # 7 fågel
 
 SEtext.dk1 %>%
@@ -108,6 +116,8 @@ SEtext.dk1 %>%
 SEtext.dk1 %>%
   filter(search.term == "jakt" & seal == "TRUE") # 62 mention säl fisk
 
+SEtext.dk1 %>%
+  filter(search.term == "sjofart" & boat.traffic == "TRUE") # 62 mention säl fisk
 
 # Getting Eurlex links ---------------------------------------------------------
 
@@ -157,21 +167,80 @@ EU.links2 <-
 
 EU.links3 <-
   EU.links2 %>%
-  mutate(dir.code = case_when(ref == "direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")), # change this one to both since it is second order referenced. 
-                              ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?!/)")),
-                              ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
-                              ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
-  mutate(dir.code = str_replace_all(dir.code,"c\\(",""),
-         dir.code = str_replace_all(dir.code,"(?<!G|0|U)\\)",""),
-         dir.code = str_replace_all(dir.code,'\\"',""),
-         dir.code = strsplit(dir.code, ",")) %>%
-  unnest(cols = c(dir.code))
-  
-unique(EU.links3$dir.code)
+  mutate(code = case_when(ref == "direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")), # change this one to both since it is second order referenced. 
+                          ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?!/)")),
+                          ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
+                          ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
+  mutate(code = str_replace_all(code,"c\\(",""),
+         code = str_replace_all(code,"(?<!G|0|U)\\)",""),
+         code = str_replace_all(code,'\\"',"")) %>%
+  mutate(code = na_if(code,"character(0)")) %>% #change these values to NA
+  filter(!is.na(code)) %>% # remove the NAs
+  mutate(code = strsplit(code, ",")) %>%
+  unnest(code) %>%
+  mutate(code = str_trim(code, side = c("both")))%>%
+  mutate(code = str_replace_all(code, "EG", "EC"),
+         code = str_replace_all(code, "nr", "No"))
 
-                              
 
-  
+
+
+#### title Keys from EurLex ###
+
+# EURLEX KEY
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+
+document.key.df1 <- 
+  document.key.df %>% 
+  select(resource.type, work, celex) %>%
+  mutate(celex = as.factor(celex)) %>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(resource.type == "DIR") %>%
+  select(work,celex)
+
+document.key.df1 %>%
+  group_by(resource.type) %>%
+  summarise(n=n_distinct(celex))%>%
+  filter(resource.type == "DIR") %>%
+  select(work,celex)
+
+decision.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv") 
+
+directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
+
+directive.titles1 <-
+  directive.titles %>%
+  select(-X) %>% 
+  left_join(.,document.key.df1, by = c("work")) %>%
+  mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
+  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+")) %>%
+  mutate(type = "dir")  %>%
+  select(celex,type,code)
+
+EU.links4 <-
+  EU.links3 %>%
+  left_join(., directive.titles1, by = c("type", "code")) %>%
+  rename(celex.dir = celex)
+
+decision.titles1 <-
+  decision.titles %>%
+  mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
+  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+")) %>%
+  mutate(type = "dec")  %>%
+  select(celex,type,code)
+
+
+EU.links5 <-
+  EU.links4 %>%
+  left_join(., decision.titles1, by = c("type", "code")) %>%
+  rename(celex.dec = celex)
+
+
+
+
+
+
+
 # remove those that reference nothing
 EU.links2 <- 
   EU.links %>%
