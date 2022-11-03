@@ -15,6 +15,8 @@ library("dplyr")
 library("sentimentr")
 library("eurlex")
 library("purrr")
+library("tidyverse")
+library("readxl")
 
 # Define functions -------------------------------------------------------------
 
@@ -110,8 +112,8 @@ SEtext.dk1 %>%
 SEtext.dk1 %>%
   filter(search.term == "jakt" & birdhunt == "TRUE") # 7 fågel
 
-SEtext.dk1 %>%
-  filter(search.term == "jakt" & waterfowl == "TRUE") # 1 sjöfågel
+#SEtext.dk1 %>%
+ # filter(search.term == "jakt" & waterfowl == "TRUE") # 1 sjöfågel
 
 SEtext.dk1 %>%
   filter(search.term == "jakt" & seal == "TRUE") # 62 mention säl fisk
@@ -147,7 +149,7 @@ EU.links <-
   unnest(dir,keep_empty = TRUE) %>%
   mutate(reg =  str_extract(text, "förordning")) %>% 
   unnest(reg,keep_empty = TRUE) %>%
-  mutate(dec =  str_extract(text, "beslut")) %>% 
+  mutate(dec =  str_extract(text, "beslut|genomförandebeslut")) %>% 
   unnest(dec,keep_empty = TRUE) %>%
   mutate(rec =  str_extract(text, "rekommendation"))%>% 
   unnest(rec,keep_empty = TRUE)
@@ -168,8 +170,9 @@ EU.links2 <-
 EU.links3 <-
   EU.links2 %>%
   mutate(code = case_when(ref == "direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")), # change this one to both since it is second order referenced. 
-                          ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?!/)")),
-                          ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
+                          ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?=\\s)")),
+                          ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
+                          ref == "genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
                           ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
   mutate(code = str_replace_all(code,"c\\(",""),
          code = str_replace_all(code,"(?<!G|0|U)\\)",""),
@@ -180,7 +183,8 @@ EU.links3 <-
   unnest(code) %>%
   mutate(code = str_trim(code, side = c("both")))%>%
   mutate(code = str_replace_all(code, "EG", "EC"),
-         code = str_replace_all(code, "nr", "No"))
+         code = str_replace_all(code, "nr", "No"),
+         code = str_replace_all(code, "RIF", "JHA"))
 
 
 
@@ -190,7 +194,7 @@ EU.links3 <-
 # EURLEX KEY
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
-document.key.df1 <- 
+document.dir.key.df1 <- 
   document.key.df %>% 
   select(resource.type, work, celex) %>%
   mutate(celex = as.factor(celex)) %>%
@@ -198,20 +202,15 @@ document.key.df1 <-
   filter(resource.type == "DIR") %>%
   select(work,celex)
 
-document.key.df1 %>%
-  group_by(resource.type) %>%
-  summarise(n=n_distinct(celex))%>%
-  filter(resource.type == "DIR") %>%
-  select(work,celex)
 
-decision.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv") 
 
 directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
+
 
 directive.titles1 <-
   directive.titles %>%
   select(-X) %>% 
-  left_join(.,document.key.df1, by = c("work")) %>%
+  left_join(.,document.dir.key.df1, by = c("work")) %>%
   mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
   mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+")) %>%
   mutate(type = "dir")  %>%
@@ -222,24 +221,210 @@ EU.links4 <-
   left_join(., directive.titles1, by = c("type", "code")) %>%
   rename(celex.dir = celex)
 
+
+decision.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv") 
+
+
 decision.titles1 <-
   decision.titles %>%
   mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
-  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+")) %>%
+  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>%
   mutate(type = "dec")  %>%
-  select(celex,type,code)
+  select(celex,type,code) 
 
 
 EU.links5 <-
   EU.links4 %>%
   left_join(., decision.titles1, by = c("type", "code")) %>%
-  rename(celex.dec = celex)
+  rename(celex.dec = celex)%>%
+  mutate(celex.dir = as.character(celex.dir))
 
 
+reccomendation.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.reccomendations.titles.csv") 
 
 
+document.rec.key.df1 <- 
+  document.key.df %>% 
+  select(resource.type, work, celex) %>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(resource.type == "RECO") %>%
+  select(work,celex)
+
+reccomendation.titles1 <-
+  reccomendation.titles %>%
+  left_join(.,document.rec.key.df1, by = c("work")) %>%
+  mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
+  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+")) %>%
+  mutate(type = "rec")  %>%
+  select(celex,type,code)
+
+EU.links6 <-
+  EU.links5 %>%
+  left_join(., reccomendation.titles1, by = c("type", "code")) %>%
+  rename(celex.rec = celex)
+
+regulation.titles.yr2020.2022 <- 
+  read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.regulation.titles.yr2020.2022.csv") %>%
+  select(-work) 
+
+regulation.titles <-  read_excel("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/EurLex_regulations_no_text_all.xlsx") 
+
+regulation.titles1 <-
+  regulation.titles %>%
+  select(CELEX, Act_name)%>%
+  distinct(CELEX, .keep_all=TRUE) %>%
+  rename("celex" = "CELEX",
+         "titles" = "Act_name") %>%
+  rbind(.,regulation.titles.yr2020.2022) %>%
+  mutate(titles = str_remove_all(titles, "Ã|Ã o ")) %>%
+  mutate(title2 = str_replace(titles," °", "o")) %>%
+  mutate(title3 = str_replace(title2,"N0", "No")) %>%
+  mutate(title4 = str_replace(title3,"No\\.", "No")) %>%
+  mutate(title5 = str_replace(title3,"no\\.", "No")) %>%
+  mutate(title6 = str_replace(title5,"\\(\\sEEC\\)", "\\(EEC\\)")) %>%
+  mutate(title7 = str_replace(title6,"\\(EEC ", "\\(EEC\\)")) %>%
+  mutate(title8 = str_trunc(title7,75,side = c("right")),
+         title9 = str_replace_all(title8,"\\(\\sEEC\\s\\)", "\\(EEC\\)")) %>%
+  mutate(code =  str_extract(title9, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|Regulation\\sNo\\s[:digit:]+(?=\\s)")) %>%
+    mutate(type = "reg")  %>%
+  select(celex,type,code)
 
 
+test <-
+  EU.links7 %>%
+  filter(type=="reg" & is.na(celex.reg))%>%
+  mutate(code = as.factor(code)) 
+
+unique(test$code)
+
+EU.links7 <-
+  EU.links6 %>%
+  distinct() %>% # remove those that are mentioned exactly the same multiple times in a sentence
+  left_join(., regulation.titles1, by = c("type", "code")) %>%
+  rename(celex.reg = celex) %>%
+  mutate(ref = as.character(ref)) %>%
+  mutate(celex.reg = case_when(type == "reg" & code == "(EC) No 1907/2006" ~ "32006R1907",
+                               type == "reg" & code == "(EC) 1383/2003" ~ "32003R1383",
+                               type == "reg" & code == "(EC) No 1966/2006" ~ "32006R1966",
+                               type == "reg" & code == "(EC) 1407/2002" ~ "32002R1407",
+                               type == "reg" & code == "No 4064/89/EEC" ~ "31989R4064",
+                               type == "reg" & code == "No 3975/87/EEC" ~ "31987R3975",
+                               type == "reg" & code == "No 2367/90/EEC" ~	"31990R2367",
+                               type == "reg" & code == "(EU) No 2019/1021" ~	"32019R1021",
+                               type == "reg" & code == "(EEC) 793/93" ~	"31993R0793",
+                               type == "reg" & code == "(EU) No 2016/424" ~	"32016R0424",
+                               type == "reg" & code == "förordning No 17" ~	"31962R0017",
+                               type == "reg" & code == "(EU) 2019/1896" ~	"32019R1896",
+                               type == "reg" & code == "(EU) No 868/2014" ~	"32014R0868",
+                               type == "reg" & code == "(EU) No 2019/1248" ~	"32019R1248",
+                               type == "reg" & code == "(EU) No 2019/1241" ~	"32019R1241",
+                               type == "reg" & code == "(EU) 2019/1603" ~	"32019R1603",
+                               type == "reg" & code == "(EU) 2019/2033" ~	"32019R2033",
+                               type == "reg" & code == "(EU) 2021/836" ~	"32021R0836",
+                               type == "reg" & code == "(EU) 2021/1139" ~	"32021R1139",
+                               type == "reg" & code == "(EU) 2020/262" ~	"32021R1139",
+                               type == "reg" & code == "(EEC) 2658/87" ~	"31987R2658",
+                               type == "reg" & code == "(EEC) No 1182/71" ~	"31971R1182",
+                               type == "reg" & code == "(EEC) No 2299/8" ~	"31989R2299", # these are actioally 80
+                               type == "reg" & code == "(EEC) No 2343/9" ~	"31990R2343", # 90
+                               type == "reg" & code == "(EEC) No 2344/9" ~	"31990R2344",# 90
+                               type == "reg" & code == "(EEC) No 3975/8" ~	"31987R3975",# 87
+                               type == "reg" & code == "(EU) 1380/2013" ~	"32013R1380",# 
+                               type == "reg" & code == "No 3975/87/n" ~	"31987R3975",#  n is how they refe a section in the SE leg. 
+                               TRUE ~ celex.reg)) %>%
+  mutate(celex.rec = case_when(type == "rec" & code == "2003/361/EC" ~ "32003H0361", # all recos are done!
+                               TRUE ~ celex.rec)) %>%
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2019/713" ~ "32019L0713", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2019/713" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2019/713" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))         %>%
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2018/843" ~ "32018L0843", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2018/843" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2018/843" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))      %>%
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2020/262" ~ "32020L0262", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2020/262" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs.1994.1776" & code == "(EU) 2020/262" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))  %>%
+  mutate(ref = case_when(doc.id == "sfs-1994-1776" & code == "(EU) 2020/262" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))   %>% 
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/413" ~ "32015L0413", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2015/413" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2015/413" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))  %>%
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/652" ~ "32015L0652", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2015/652" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs.2014.1434" & code == "(EU) 2015/652" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))  %>%
+  mutate(ref = case_when(doc.id == "sfs-2014-1434" & code == "(EU) 2015/652" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))%>%
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2018/851" ~ "32018L0851", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2018/851" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs-2020-614" & code == "(EU) 2018/851" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))%>%
+  mutate(ref = case_when(doc.id == "sfs.2020.614" & code == "(EU) 2018/851" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))%>%
+  filter(code != "No 529/2013/EU") %>% # No 529/2013/EU No 280/2004/EC	No 1313/2013/EU		 these are decisions but dec pulled it without No so remove row when type ==reg
+  filter(code != "No 280/2004/EC") %>% 
+  filter(code != "No 1313/2013/EU") %>% 
+  mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2018/552" ~ "32018D0552", #  
+                               TRUE ~ celex.dec))%>%
+  mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2021/2326" ~ "32021D2326", # 
+                               TRUE ~ celex.dec))%>%
+  mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2017/302" ~ "32017D0302", # 
+                               TRUE ~ celex.dec))%>%
+  mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2017/1442" ~ "32017D1442", # 
+                               TRUE ~ celex.dec))
+
+  
+  
+  
+#sfs-1980-789	-->(EC) No 2978/941	not a footnote but cannot find a celex for this...
+#sfs.1980.657	--> (EC) No 726/20048	 same with 8
+# sfs.1971.807	 (EC) No 820/974 same as this...
+
+# förordning No 187	 dont think this is EU regulation
+
+
+# DONE FIXING 
+# sfs-2014-1102	Directive (EU) 2019/713 of the European Parliament and of the Council of 17 April 2019 on combating fraud and counterfeiting of non-cash means of payment and replacing Council Framework Decision 2001/413/JHA
+#sfs-2014-1102	 Directive (EU) 2018/843 of the European Parliament and of the Council of 30 May 2018 amending Directive (EU) 2015/849 on the prevention of the use of the financial system for the purposes of money laundering or terrorist financing, and amending Directives 2009/138/EC and 2013/36/EU (Text with EEA relevance)
+# (EU) 2020/262	directive...sfs.1994.1776	
+# (EU) 2015/413	
+
+EU.links8 <-
+  EU.links7 %>%
+  group_by(doc.id, element_id, sentence_id) %>%
+  mutate( dup.first = duplicated(code, fromLast = TRUE),
+          dup.last = duplicated(code, fromLast = FALSE) ) %>%
+  mutate(delete = 
+           case_when(  dup.first == "TRUE"& 
+                       is.na(celex.dir)== "TRUE" & 
+                       is.na(celex.dec)== "TRUE" & 
+                       is.na(celex.rec)== "TRUE" & 
+                       is.na(celex.reg)== "TRUE" | 
+                        # OR
+                       dup.last == "TRUE"  &
+                       is.na(celex.dir)== "TRUE" & 
+                       is.na(celex.dec)== "TRUE" & 
+                       is.na(celex.rec)== "TRUE" & 
+                       is.na(celex.reg)== "TRUE" ~ "YES",
+                        # if not...
+                       TRUE ~ "NO" 
+                          ))   
+  
 
 # remove those that reference nothing
 EU.links2 <- 
