@@ -366,6 +366,94 @@ write.csv(Eurlexkey.decision.titles1, file = "C:/Users/aeljor/OneDrive - Danmark
 
 # --- Regulation --- #
 
+# ok the harvard database has up to 2019 so lets extract 2020-2022
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+# https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0EGYWY 
+
+library(lubridate)
+
+regulation.titles <- 
+  document.key.df %>%
+  filter(resource.type == "REG")%>%
+  mutate(date = as.Date(date)) %>%
+  mutate(year = year(date)) %>%
+  filter(year > 2019) %>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(!is.na(.$celex)) %>% # remove na values for celex
+  select(celex,work)
+
+
+rm(document.key.df) # remove this bc it takes up a lot of space
+
+reg.test<-array(0) # 
+
+gc()
+for (i in 1547:dim(regulation.titles)[1]) {
+  httr::handle_reset("http://publications.europa.eu/")
+  reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
+  print(i)
+  flush.console()
+}
+
+i<-1546
+reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
+
+regulation.titles1 <-
+  regulation.titles 
+
+regulation.titles1$titles<-reg.test
+
+
+write.csv(regulation.titles1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.regulation.titles.yr2020.2022.csv", row.names=FALSE) 
+
+# --- Reccomendations --- #
+
+reccomendations.titles <- 
+  document.key.df1 %>%
+  filter(resource.type == "RECO")%>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(!is.na(.$celex)) %>% # remove na values for celex
+  select(-resource.type,-celex)
+
+
+rm(document.key.df1) # remove this bc it takes up a lot of space
+
+reco.test<-array(0) # 
+
+gc()
+for (i in 3116:dim(reccomendations.titles)[1]) {
+  httr::handle_reset("http://publications.europa.eu/")
+  reco.test[i]<-elx_fetch_data(reccomendations.titles$work[i],type="title")
+  print(i)
+  flush.console()
+  gc()
+}
+
+i<-104
+reco.test[i]<-elx_fetch_data(reccomendations.titles$work[i],type="title")
+i<-535
+reco.test[i]<-elx_fetch_data(reccomendations.titles$work[i],type="title")
+i<-568
+reco.test[i]<-""
+i<-654
+reco.test[i]<-""
+i<-2474
+reco.test[i]<-elx_fetch_data(reccomendations.titles$work[i],type="title")
+i<-2787
+reco.test[i]<-""
+i<-3115
+reco.test[i]<-""
+
+reccomendations.titles1 <- 
+  reccomendations.titles
+
+reccomendations.titles1$titles<-reco.test
+
+write.csv(reccomendations.titles1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.reccomendations.titles.csv", row.names=FALSE) 
+
+
+# Archived ---------------------------
+
 regulation.titles <- 
   document.key.df1 %>%
   filter(resource.type == "REG")%>%
@@ -378,19 +466,143 @@ rm(document.key.df1) # remove this bc it takes up a lot of space
 
 reg.test<-array(0) # 
 
-gc()
-for (i in 1:dim(regulation.titles)[1]) {
+
+# this was our firrst try .... now archival
+for (i in 4937:dim(regulation.titles)[1]) {
   httr::handle_reset("http://publications.europa.eu/")
   reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
   print(i)
   flush.console()
+  gc()
 }
 
+i<-4625
+reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
+i<-4671
+reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
+i<-4736
+reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
+i<-4936
+reg.test[i]<-elx_fetch_data(regulation.titles$work[i],type="title")
+
+regulation.titles <- 
+  regulation.titles %>%
+  slice(1:5038)
+
+regulation.titles$titles<-reg.test
+
+write.csv(regulation.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/regulation.titles.1.5038.csv", row.names=FALSE) 
+
+# --- second try --- #
+
+regulation.titles <- 
+  document.key.df1 %>%
+  filter(resource.type == "REG")%>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(!is.na(.$celex)) %>% # remove na values for celex
+  select(-resource.type,-celex)
+
+# Working on this one first
+regulation.titles.5039.35041 <- 
+  slice(regulation.titles,5039:35041)
+
+rm(document.key.df1) # remove this bc it takes up a lot of space
+rm(regulation.titles) # remove this bc it takes up a lot of space
+
+reg.test<-array(0) # 
+
+gc()
+for (i in 4434:dim(regulation.titles.5039.35041)[1]) {
+  httr::handle_reset("http://publications.europa.eu/")
+  reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+  print(i)
+  flush.console()
+  gc()
+}
+
+i<-579
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-1457
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-1596
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-1756
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-2958
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-3832
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-4099
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-4219
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+i<-4433
+reg.test[i]<-elx_fetch_data(regulation.titles.5039.35041$work[i],type="title")
+
+
+regulation.titles1.5039.10168 <- 
+  regulation.titles.5039.35041 %>%
+  slice(1:5130)
+
+regulation.titles1.5039.10168$titles<-reg.test
+
+write.csv(regulation.titles1.5039.10168, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/regulation.titles.5039.10168.csv", row.names=FALSE) 
+
+
+# --- second try --- #
+
+regulation.titles <- 
+  document.key.df1 %>%
+  filter(resource.type == "REG")%>%
+  distinct(celex, .keep_all = TRUE) %>%
+  filter(!is.na(.$celex)) %>% # remove na values for celex
+  select(-resource.type,-celex)
+
+# Working on this one first
+regulation.titles.10169.15169 <- 
+  slice(regulation.titles,10169:15169)
+
+rm(document.key.df1) # remove this bc it takes up a lot of space
+rm(regulation.titles) # remove this bc it takes up a lot of space
+
+reg.test<-array(0) # 
+
+gc()
+for (i in 352:dim(regulation.titles.10169.15169)[1]) {
+  httr::handle_reset("http://publications.europa.eu/")
+  reg.test[i]<-elx_fetch_data(regulation.titles.10169.15169$work[i],type="title")
+  print(i)
+  flush.console()
+}
+
+i<-32
+reg.test[i]<-elx_fetch_data(regulation.titles.10169.15169$work[i],type="title")
+i<-351
+reg.test[i]<-elx_fetch_data(regulation.titles.10169.15169$work[i],type="title")
 
 
 
 
-# Archived ---------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 gc()
 test <- 
