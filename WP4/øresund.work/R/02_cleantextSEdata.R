@@ -295,12 +295,7 @@ regulation.titles1 <-
   select(celex,type,code)
 
 
-test <-
-  EU.links7 %>%
-  filter(type=="reg" & is.na(celex.reg))%>%
-  mutate(code = as.factor(code)) 
 
-unique(test$code)
 
 EU.links7 <-
   EU.links6 %>%
@@ -423,16 +418,12 @@ EU.links7 <-
                                TRUE ~ celex.dec))
   
 
-  
-  
-#sfs-1980-789	-->(EC) No 2978/941	not a footnote but cannot find a celex for this...
-#sfs.1980.657	--> (EC) No 726/20048	 same with 8
-# sfs.1971.807	 (EC) No 820/974 same as this...
+check1 <-
+  EU.links7 %>%
+  filter(type=="reg" & is.na(celex.reg))%>%
+  mutate(code = as.factor(code)) 
 
-# förordning No 187	 dont think this is EU regulation
-# (EU) 2019/420 is a decision and correctly marked in decision pull
-#(EU) 2018/552	is a decision and correctly marked in decision pull
-
+unique(check1$code)
 
 EU.links8 <-
   EU.links7 %>%
@@ -460,12 +451,14 @@ EU.links9 <-
   filter(delete != "YES")
 
 
-test <-
+check2 <-
   EU.links9  %>%
   filter(is.na(celex.dir) &
              is.na(celex.dec) &
              is.na(celex.rec) &
              is.na(celex.reg))
+
+
 
 # directives
 #  89/106/EC  real title with EEC	
@@ -475,9 +468,45 @@ test <-
 # 4064/89/EEC	 not a decision but the regulation pull got it but with the No at the beginning
 # 2344/90/n	and 3976/87/n	a regulation and got pulled correctly 
 
+# other notes 
+
+#sfs-1980-789	-->(EC) No 2978/941	not a footnote but cannot find a celex for this...
+#sfs.1980.657	--> (EC) No 726/20048	 same with 8
+# sfs.1971.807	 (EC) No 820/974 same as this...
+
+# förordning No 187	 dont think this is EU regulation
+# (EU) 2019/420 is a decision and correctly marked in decision pull
+#(EU) 2018/552	is a decision and correctly marked in decision pull
+
 unique(test$code)
 
 
+# chang from wide to long formate:
+EU.links10 <- 
+  EU.links9 %>%
+  select(-dup.first,-dup.last,-delete) %>%
+  pivot_longer(cols =  starts_with("celex"),
+               names_to = "type2",
+               values_to = "celex",
+               values_drop_na = TRUE) %>% # here we are drioping those that are NA %>%
+ filter(type2 != "celex.dec" | code != "2000/60/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
+ filter(celex != "32012R0684" | code != "(EU) No 648/2012") %>% # filter this one out bc it is not referencing a implementing reg. 
+ filter(type2 != "celex.reg"  | code != "(EU) 2020/262") %>% # filter this one out bc it is not referencing a reg it is a dir. 
+ filter(doc.id != "sfs-2009-400" | type2 != "celex.dec"  | code != "98/79/EC") %>% # all of these below were dir not dec
+ filter(doc.id != "sfs.2009.400" | type2 != "celex.dec"  | code != "98/79/EC") %>%
+ filter(doc.id != "sfs.1998.944" | type2 != "celex.dec"  | code != "98/79/EC")%>%
+ filter(doc.id != "sfs.2009.641" | type2 != "celex.dec"  | code != "98/79/EC")%>%
+ filter(doc.id != "sfs-2009-641" | type2 != "celex.dec"  | code != "98/79/EC") %>%
+ filter(ref != "beslut" | code != "2004/27/EC") # filter this one out bc it is not referencing a dec it is a dir. 
+  
+	
+check2 <-
+  EU.links10  %>%
+  group_by(doc.id,element_id,sentence_id,code) %>%
+  summarise(n=n_distinct(celex)) %>%
+  filter(n>1)
+
+#(EU) 2020/262	directive in text so delete celex.reg that has these codes for the doc id sfs-1994-1776 also with sfs.1994.1776
 
 # STOPPED HERE WAIT To Proceed---
 # remove those that reference nothing
@@ -488,8 +517,6 @@ EU.links2 <-
              is.na(Reg.3) &
              is.na(Reg.4)&
              is.na(Reg.)))
-
-
 
 
 # archival -----------------------
