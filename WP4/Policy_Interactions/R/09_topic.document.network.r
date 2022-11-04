@@ -7,6 +7,7 @@ Sys.setenv(LANG = "en") # change the language to english
 
 library("igraph")
 library("tidyverse")
+library("stm")
 
 # Load data ---------------------------------------------------------------
 
@@ -99,15 +100,15 @@ cloud(Q1C1.stm, topic = 7)  # biodiversity theme... **documentbreak is odd look 
 cloud(Q1C1.stm, topic = 26) # waste treatment/managment theme
 cloud(Q1C1.stm, topic = 39) # hmm... names of countries/govermnets
 cloud(Q1C1.stm, topic = 53) # marine species theme
-
+  
 
 # all other topics 
 cloud(Q1C1.stm, topic = 1) 
 cloud(Q1C1.stm, topic = 2) 
 cloud(Q1C1.stm, topic = 3) 
 cloud(Q1C1.stm, topic = 4) 
-cloud(Q1C1.stm, topic = 5) 
-cloud(Q1C1.stm, topic = 6) 
+cloud(Q1C1.stm, topic = 5) # strange... 
+cloud(Q1C1.stm, topic = 6) # climate change and food production (agricultiure/farm/aquaculture)
 cloud(Q1C1.stm, topic = 7) 
 cloud(Q1C1.stm, topic = 8) 
 cloud(Q1C1.stm, topic = 9) 
