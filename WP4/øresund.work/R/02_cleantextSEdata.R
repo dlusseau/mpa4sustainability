@@ -145,13 +145,13 @@ SEtext.dk1 %>%
 EU.links <- 
   SEtext.dk %>%
   get_sentences() %>%
-  mutate(dir =  str_extract(text, "direktiv")) %>% 
+  mutate(dir =  str_extract(text, "direktiv|Direktiv")) %>% 
   unnest(dir,keep_empty = TRUE) %>%
-  mutate(reg =  str_extract(text, "förordning")) %>% 
+  mutate(reg =  str_extract(text, "förordning|Förordning")) %>% 
   unnest(reg,keep_empty = TRUE) %>%
-  mutate(dec =  str_extract(text, "beslut|genomförandebeslut")) %>% 
+  mutate(dec =  str_extract(text, "beslut|Beslut|genomförandebeslut|Genomförandebeslut")) %>% 
   unnest(dec,keep_empty = TRUE) %>%
-  mutate(rec =  str_extract(text, "rekommendation"))%>% 
+  mutate(rec =  str_extract(text, "rekommendation|Rekommendation"))%>% 
   unnest(rec,keep_empty = TRUE)
 
 EU.links2 <-
@@ -169,11 +169,16 @@ EU.links2 <-
 
 EU.links3 <-
   EU.links2 %>%
-  mutate(code = case_when(ref == "direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")), # change this one to both since it is second order referenced. 
+  mutate(code = case_when(ref == "direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
+                          ref == "Direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
                           ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?=\\s)")),
+                          ref == "Förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?=\\s)")),
                           ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
                           ref == "genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
-                          ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
+                          ref == "Beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
+                          ref == "Genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
+                          ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
+                          ref == "Rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
   mutate(code = str_replace_all(code,"c\\(",""),
          code = str_replace_all(code,"(?<!G|0|U)\\)",""),
          code = str_replace_all(code,'\\"',"")) %>%
@@ -182,7 +187,7 @@ EU.links3 <-
   mutate(code = strsplit(code, ",")) %>%
   unnest(code) %>%
   mutate(code = str_trim(code, side = c("both")))%>%
-  mutate(code = str_replace_all(code, "EG", "EC"),
+  mutate(code = str_replace_all(code, "EG", "EC"), # change from SE to EN language 
          code = str_replace_all(code, "nr", "No"),
          code = str_replace_all(code, "RIF", "JHA"))
 
@@ -331,6 +336,11 @@ EU.links7 <-
                                type == "reg" & code == "(EEC) No 3975/8" ~	"31987R3975",# 87
                                type == "reg" & code == "(EU) 1380/2013" ~	"32013R1380",# 
                                type == "reg" & code == "No 3975/87/n" ~	"31987R3975",#  n is how they refe a section in the SE leg. 
+                               type == "reg" & code == "(EC) 1907/2006" ~	"32006R1907",# 
+                               type == "reg" & code == "(EEC) No 3976/8" ~	"31987R3976",# 87
+                               type == "reg" & code == "(EU) 297/2008" ~	"32008R0297",# 
+                               type == "reg" & code == "(EU) No 2016/425" ~	"32016R0425",# 
+                               
                                TRUE ~ celex.reg)) %>%
   mutate(celex.rec = case_when(type == "rec" & code == "2003/361/EC" ~ "32003H0361", # all recos are done!
                                TRUE ~ celex.rec)) %>%
@@ -376,6 +386,26 @@ EU.links7 <-
                          TRUE ~ ref))%>%
   mutate(ref = case_when(doc.id == "sfs.2020.614" & code == "(EU) 2018/851" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
                          TRUE ~ ref))%>%
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/849" ~ "32015L0849", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2015/849" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2015/849" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))%>%
+  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2017/1132" ~ "32017L1132", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "reg" & code == "(EU) 2017/1132" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs-2009-400" & code == "(EU) 2017/1132" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))%>%
+  mutate(ref = case_when(doc.id == "sfs.2009.400" & code == "(EU) 2017/1132" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))%>%
+  mutate(celex.dir = case_when(type == "dec" & code == "(EU) 2018/2001" ~ "32018L2001", # this is a directive but didnt follow the directive coding and 
+                               TRUE ~ celex.dir))%>%
+  mutate(type = case_when(type == "dec" & code == "(EU) 2018/2001" ~ "dir", # this is a directive but didnt follow the directive coding and 
+                          TRUE ~ type)) %>%
+  mutate(ref = case_when(doc.id == "sfs.2011.1088" & code == "(EU) 2018/2001" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+                         TRUE ~ ref))%>%
   filter(code != "No 529/2013/EU") %>% # No 529/2013/EU No 280/2004/EC	No 1313/2013/EU		 these are decisions but dec pulled it without No so remove row when type ==reg
   filter(code != "No 280/2004/EC") %>% 
   filter(code != "No 1313/2013/EU") %>% 
@@ -386,9 +416,13 @@ EU.links7 <-
   mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2017/302" ~ "32017D0302", # 
                                TRUE ~ celex.dec))%>%
   mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2017/1442" ~ "32017D1442", # 
+                               TRUE ~ celex.dec)) %>%
+  mutate(celex.dec = case_when(type == "dir" & code == "2004/27/EC" ~ "32004L0027", #  this was mising from the title key pull dont know why
+                               TRUE ~ celex.dec))%>%
+  mutate(celex.dec = case_when(type == "dec" & code == "2009/371/JHA" ~ "32009D0371", #  this offcical title didnt have its code so missing from the key and did not come out of the eurlex pull?
                                TRUE ~ celex.dec))
-
   
+
   
   
 #sfs-1980-789	-->(EC) No 2978/941	not a footnote but cannot find a celex for this...
@@ -396,13 +430,9 @@ EU.links7 <-
 # sfs.1971.807	 (EC) No 820/974 same as this...
 
 # förordning No 187	 dont think this is EU regulation
+# (EU) 2019/420 is a decision and correctly marked in decision pull
+#(EU) 2018/552	is a decision and correctly marked in decision pull
 
-
-# DONE FIXING 
-# sfs-2014-1102	Directive (EU) 2019/713 of the European Parliament and of the Council of 17 April 2019 on combating fraud and counterfeiting of non-cash means of payment and replacing Council Framework Decision 2001/413/JHA
-#sfs-2014-1102	 Directive (EU) 2018/843 of the European Parliament and of the Council of 30 May 2018 amending Directive (EU) 2015/849 on the prevention of the use of the financial system for the purposes of money laundering or terrorist financing, and amending Directives 2009/138/EC and 2013/36/EU (Text with EEA relevance)
-# (EU) 2020/262	directive...sfs.1994.1776	
-# (EU) 2015/413	
 
 EU.links8 <-
   EU.links7 %>%
@@ -425,7 +455,31 @@ EU.links8 <-
                        TRUE ~ "NO" 
                           ))   
   
+EU.links9 <-
+  EU.links8 %>%
+  filter(delete != "YES")
 
+
+test <-
+  EU.links9  %>%
+  filter(is.na(celex.dir) &
+             is.na(celex.dec) &
+             is.na(celex.rec) &
+             is.na(celex.reg))
+
+# directives
+#  89/106/EC  real title with EEC	
+# 2004/42/EC	real title is CE
+# 2004/36/EC	real title is CE
+# 2004/35/EC	real title is CE
+# 4064/89/EEC	 not a decision but the regulation pull got it but with the No at the beginning
+# 2344/90/n	and 3976/87/n	a regulation and got pulled correctly 
+
+unique(test$code)
+
+
+
+# STOPPED HERE WAIT To Proceed---
 # remove those that reference nothing
 EU.links2 <- 
   EU.links %>%
@@ -435,40 +489,10 @@ EU.links2 <-
              is.na(Reg.4)&
              is.na(Reg.)))
 
-#Reg4 has no hits. 
-unique(EU.links2$Dir.Reg.Rec.Dec)
-unique(EU.links2$Reg.2)
-unique(EU.links2$Reg.3)
-unique(EU.links2$Reg.4)
-unique(EU.links2$Reg.)
-
-# lets remove it 
-EU.links2 <-
-  EU.links2 %>%
-  select(-Reg.4)
-
-# OK since it is written in swedish EG --> EC and EEG --> EEC and change nr to No. 
-EU.links3 <- 
-  EU.links2 %>%
-  mutate(Dir.Reg.Rec.Dec = str_replace_all(Dir.Reg.Rec.Dec, "EG", "EC"),
-         Reg.2 = str_replace_all(Reg.2, "EG", "EC"),
-         Reg.3 = str_replace_all(Reg.3, "EG", "EC"),
-         Reg.2 = str_replace_all(Reg.2, "nr", "No"))
-
-#convert wide to long and remove duplicates with distinct function
-EU.links4 <-
-  EU.links3 %>%
-  pivot_longer(.,
-  cols = Dir.Reg.Rec.Dec:Reg.,
-  names_to = "type",
-  values_to = "ref") %>%
-  distinct() %>%
-  filter(!is.na(ref)) # remove na values
 
 
 
-
-
+# archival -----------------------
 
 
 
@@ -635,7 +659,6 @@ EU.links4 %>%
   distinct(doc.id,ref, .keep_all= TRUE)
 
 
-# archival -----------------------
 
 EU.linksTEST <- 
   SEtext.dk %>%
