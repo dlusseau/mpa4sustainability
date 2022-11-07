@@ -16,6 +16,11 @@ library("igraph")
 # Load data --------------------------------------------------------------------
 
 DKEUlinks <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKEUlinks.csv")
+SEEUlinks <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02SE.EU.links.csv")
+
+################################################################################
+###########################        DENMARK         #############################
+################################################################################
 
 # DK to EU document network ----------------------------------------------------
 
@@ -185,5 +190,74 @@ plot(network,
 
 
 
+################################################################################
+###########################        SWEDEN          #############################
+################################################################################
 
+# DK to EU document network ----------------------------------------------------
+
+SEEUlinks1 <-
+  SEEUlinks %>%
+  distinct(doc.id,celex) %>% # make sure no duplicate rows bc of multiple labeles/themes/citations
+  rename("from" = "doc.id",
+         "to" = "celex")  #  Remember documents that dont link to an EU CELEX are not in this dataframe
+
+
+n_distinct(SEEUlinks1$from)
+# 125 dk documents link to an EU doc
+n_distinct(SEEUlinks1$to)
+# 555 EU legal acts link 
+
+
+eu.vertices2 <- 
+  SEEUlinks1%>%
+  distinct(to) %>%
+  rename("vertices" = "to") %>%
+  mutate(source = "EU")
+
+SE.vertices <- 
+  SEEUlinks1%>%
+  distinct(from) %>%
+  rename("vertices" = "from")%>%
+  mutate(source = "SE")
+
+vertices <- rbind(SE.vertices,eu.vertices2)
+
+network <- graph_from_data_frame(d=SEEUlinks1, directed = FALSE, vertices = vertices)
+print(network, e=TRUE, v=TRUE)
+
+
+library(RColorBrewer)
+col  <- brewer.pal(3, "Set2") 
+col <- col[-1]
+V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
+# DK doc are the red ones...
+degree <- degree(network)
+
+median(degree)
+#1
+sort(degree)
+
+eu.documentdegrees <-ifelse( V(network)$source == "EU",
+        degree,NA) %>% na.omit()
+
+quantile(eu.documentdegrees,probs = c(0,.25,.5,.75,.95,1))
+sort(eu.documentdegrees)
+
+quantile(degree,probs = c(0,.25,.5,.75,.95,1))
+#  0%   25%   50%   75%   95%  100% 
+#   1    1     1    3     11    67 
+
+
+l <- layout.fruchterman.reingold(network)
+
+plot(network,
+     vertex.label=ifelse(degree(network) >=7 & V(network)$source == "EU",
+                         V(network)$name,NA),
+     vertex.label.cex = .75,
+     vertex.size= 3,
+     layout = l)
+#labels are those EU docs that are >= the 95% percentile for the degree number
+
+# 31995L0046     32016R0679 31999L0045    
 
