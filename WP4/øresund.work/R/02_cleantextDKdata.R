@@ -125,6 +125,12 @@ DK.text.df3 %>%
 DK.text.df3 %>%
   filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 45 out of 346 hunting documents both mention bird and seal
 
+DK.text.df4 <-  
+  DK.text.df3 %>%
+  select(-text)
+  
+write.csv(DK.text.df4, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKdocmetadata.clean.csv", row.names=FALSE)
+
 # Getting Eurlex links ---------------------------------------------------------
 
 DK.ref.df <- as.data.frame(cbind(DK.text.ref)) 
