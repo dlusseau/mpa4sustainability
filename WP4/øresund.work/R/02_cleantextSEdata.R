@@ -37,7 +37,7 @@ fisk.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske U
 # making into a nice df --------------------------------------------------------
 
 sjofarttext.df <- 
-  as.data.frame(cbind(sjofart.list)) %>% 
+  as.data.frame(unique(cbind(sjofart.list))) %>% #nned to use unique () because some of the results were duplicates
   rownames_to_column(., var = "doc.id") %>%
   rename("text" = "sjofart.list") %>%
   unnest(text, keep_empty=TRUE) %>%
@@ -45,7 +45,7 @@ sjofarttext.df <-
   mutate(country = "SE") 
 
 jakttext.df <- 
-  as.data.frame(cbind(jakttext.list)) %>% 
+  as.data.frame(unique(cbind(jakttext.list))) %>% 
   rownames_to_column(., var = "doc.id") %>%
   rename("text" = "jakttext.list") %>%
   unnest(text, keep_empty=TRUE) %>%
@@ -53,7 +53,7 @@ jakttext.df <-
   mutate(country = "SE") 
 
 fisketext.df <- 
-  as.data.frame(cbind(fisketext.list)) %>% 
+  as.data.frame(unique(cbind(fisketext.list))) %>% 
   rownames_to_column(., var = "doc.id") %>%
   rename("text" = "fisketext.list") %>%
   unnest(text, keep_empty=TRUE) %>%
@@ -65,7 +65,8 @@ SEtext.dk <- rbind(sjofarttext.df,jakttext.df,fisketext.df)
 
 SEmeta.dk <- 
   rbind(sjofart.metadata,jakt.metadata,fisk.metadata)%>%
-  mutate(id = str_replace_all(id, "-", "."))  %>%
+  mutate(id = str_replace_all(id, "-", "."),
+         id = str_replace_all(id, " ", "."))  %>%
   mutate(id=as.factor(id)) %>%
   distinct(id, .keep_all=TRUE)
 
@@ -95,13 +96,20 @@ SEtext.dk1 <-
 n_distinct(SEtext.dk1$doc.id)
 
 SEtext.dk1 %>%
-  mutate(doc.id = str_replace_all(doc.id, "-", ".")) %>%
+  mutate(doc.id = str_replace_all(doc.id, "-", "."),
+         doc.id = str_replace_all(doc.id, " ", "."))%>%
   group_by(search.term) %>%
   summarise(n=n_distinct(doc.id))
 
-# fiske         260
-# jakt           94
+# fiske         257
+# jakt           93
 # sjofart       199
+
+SEtext.dk1 %>%
+  mutate(doc.id = str_replace_all(doc.id, "-", "."),
+         doc.id = str_replace_all(doc.id, " ", ".")) %>%
+  summarise(n=n_distinct(doc.id))
+#444
 
 SEtext.dk1 %>%
   filter(search.term == "fiske" & harpun == "TRUE") # 0 mention harpun
@@ -134,11 +142,12 @@ SEtext.dk1 %>%
   filter(search.term == "jakt" & seal == "TRUE") # 62 mention säl fisk
 
 SEtext.dk1 %>%
-  filter(search.term == "sjofart" & boat.traffic == "TRUE") # 62 mention säl fisk
+  filter(search.term == "sjofart" & boat.traffic == "TRUE") # 3 mention båtstrafik
 
 
 SEtext.dk1 %>%
-  mutate(doc.id = str_replace_all(doc.id, "-", ".")) %>%
+  mutate(doc.id = str_replace_all(doc.id, "-", "."),
+         doc.id = str_replace_all(doc.id, " ", ".")) %>%
   select(-text) %>%
   mutate(doc.id=as.factor(doc.id)) %>%
   left_join(.,SEmeta.dk, by = c("doc.id"="id") ) %>%
@@ -248,6 +257,7 @@ EU.links4 <-
   EU.links3 %>%
   left_join(., directive.titles1, by = c("type", "code")) %>%
   rename(celex.dir = celex)
+
 
 
 decision.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv") 
@@ -579,7 +589,7 @@ EU.links11 <-
   mutate(doc.id = str_replace_all(doc.id, "-", "."))
 
 # ok now we have to remove codes that are parts of othe celex titles that label which it is ammending...
-
+#   mutate(amendtitle = str_extract_all(titles,"amending.+")) 
 EU.links12 <-
   EU.links11 %>%
   mutate(amending.dir = str_extract(text, "ändring av direktiv [:digit:]+/[:digit:]+/[:alpha:]+|ändring av direktiv \\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"),
@@ -601,6 +611,9 @@ EU.links12 <-
                        # if not...
                        TRUE ~ "NO" 
            ))   
+
+#  mutate(amending.dir = str_extract(text, "ändring[\\s\\S]*")),
+# amending.dir = str_extract(amending.dir,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) 
 
 
 EU.links13 <-
