@@ -82,7 +82,8 @@ DK.text.df3 <-
            lystfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "lystfiske|Lystfiske")), 
            fritidsfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "fritidsfiske|Fritidsfiske")), 
            sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl|Sæl")),
-           fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")))
+           fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")),
+           boat.traffic = case_when(search.term == "sotrafik" ~ str_detect(text, "bådtraffik|Bådtraffik")))
 
 DK.text.df3 %>%
   group_by(search.term) %>%
@@ -91,6 +92,9 @@ DK.text.df3 %>%
 # fiskeri      1011
 # jagt          346
 # sotrafik        8
+
+DK.text.df3 %>% summarise(n=n_distinct(url))
+# 1212
     
 DK.text.df3 %>%
   filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1011 fisheries documents mention harpun
@@ -124,6 +128,9 @@ DK.text.df3 %>%
 
 DK.text.df3 %>%
   filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 45 out of 346 hunting documents both mention bird and seal
+
+DK.text.df3 %>%
+  filter(search.term == "sotrafik" & boat.traffic == "TRUE") # 0
 
 DK.text.df4 <-  
   DK.text.df3 %>%
