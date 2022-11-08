@@ -62,6 +62,7 @@ print(network, e=TRUE, v=TRUE)
 library(RColorBrewer)
 col  <- brewer.pal(3, "Set2") 
 col <- col[-1]
+col <- c("#d1050c", "#FFCC00")
 V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
 # DK doc are the red ones...
 degree <- degree(network)
@@ -73,14 +74,53 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #1.00  1.00  2.00  3.00  7.05 82.00 
 
 l <- layout.fruchterman.reingold(network)
+sort(degree)
+
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/DK.eu.network.png",
+    width = 1500, height = 1675)
 
 plot(network,
      vertex.label=ifelse(degree(network) >=7.05 & V(network)$source == "EU",
                          V(network)$name,NA),
-     vertex.label.cex = .75,
-     vertex.size= 3,
+     vertex.frame.color = "white",
+     vertex.label.cex = 1,
+     vertex.size= 3.5,
+     vertex.label.color = "black",
+   #  vertex.size=degree,
+     #vertex.shape = ifelse(V(network)$source == "EU",
+                    #       "square","circle"),
+     vertex.label.family = "sans",
      layout = l)
 #labels are those EU docs that are >= the 95% percentile for the degree number
+
+legend(x=-1.15,y=-.85, legend = c("Danish Legislation","EU Legislation"), pch=21,
+       
+       col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+
+ifelse(degree(network) >=7.05 & V(network)$source == "EU",
+       V(network)$name,NA) %>% na.omit()
+
+legend(x=-1.2,y=-1.025, c("31992L0043: Protecting Europe’s biodiversity (Natura 2000)",
+                      "32009L0147: Conservation of wild birds",
+                      "32004L0035: The polluter-pays principle and environmental liability",
+                      "32006L0123: The EU’s services directive",
+                      "32011L0092: Assessment of the effects of projects on the environment (EIA)",
+                      "31979L0409: Council Directive 79/409/EEC of 2 April 1979 on the conservation of wild birds",
+                      "32000L0060: Good-quality water in Europe (EU water directive)",
+                      " ",
+                      "32013R1303: Provisions on the European Regional Development Fund, European Social Fund, Cohesion Fund,",
+                      "European Agricultural Fund for Rural Development and European Maritime and Fisheries Fund...",
+                      "31991L0676: Fighting water pollution from agricultural nitrates",
+                      "32014R0508: European Maritime and Fisheries Fund (2014-2020)",
+                      "32021R1060: Common rules on EU funds (2021–2027)",
+                      "32021R1139: European Maritime, Fisheries and Aquaculture Fund (2021–2027)"),
+                       cex=1.25,
+                       ncol=2,
+                       col="#777777",
+                       bty="n", # no box around the legend
+                      )
+
+dev.off()
 
 # network stats ----------------------------------
 
