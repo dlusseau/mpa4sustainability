@@ -103,16 +103,56 @@ cloud(Q1C1.stm, topic = 53) # marine species theme
   
 
 # all other topics 
-cloud(Q1C1.stm, topic = 1) 
-cloud(Q1C1.stm, topic = 2) 
-cloud(Q1C1.stm, topic = 3) 
-cloud(Q1C1.stm, topic = 4) 
+cloud(Q1C1.stm, topic = 1) # financial payments and fees?
+cloud(Q1C1.stm, topic = 2) # Not sure
+cloud(Q1C1.stm, topic = 3) # data catagorization topic? 
+cloud(Q1C1.stm, topic = 4) # not sure 
 cloud(Q1C1.stm, topic = 5) # strange... 
 cloud(Q1C1.stm, topic = 6) # climate change and food production (agricultiure/farm/aquaculture)
-cloud(Q1C1.stm, topic = 7) 
-cloud(Q1C1.stm, topic = 8) 
-cloud(Q1C1.stm, topic = 9) 
-
+cloud(Q1C1.stm, topic = 7) # biodiversity theme
+cloud(Q1C1.stm, topic = 8) # financial administration
+cloud(Q1C1.stm, topic = 9) # prohibited fishing areas
+cloud(Q1C1.stm, topic = 10) # managment plan/action
+cloud(Q1C1.stm, topic = 11) # not clear
+cloud(Q1C1.stm, topic = 12) 
+cloud(Q1C1.stm, topic = 13) # prevention for harazrous and emergency events
+cloud(Q1C1.stm, topic = 14) # productc use/intent?
+cloud(Q1C1.stm, topic = 15) # environmental resource protection
+cloud(Q1C1.stm, topic = 16) # european council ??
+cloud(Q1C1.stm, topic = 17) # research/technological policy and support
+cloud(Q1C1.stm, topic = 18) # energy and network infrastructure access
+cloud(Q1C1.stm, topic = 19) 
+cloud(Q1C1.stm, topic = 20) # data collection and processing protection and laws 
+cloud(Q1C1.stm, topic = 21) # refering to a particular point within the docuiment  
+cloud(Q1C1.stm, topic = 22) # member state
+cloud(Q1C1.stm, topic = 23) # traces/levels of XYZ in a product or animal
+cloud(Q1C1.stm, topic = 24) # no idea
+cloud(Q1C1.stm, topic = 25) # financial investment, grants, and aid projects
+cloud(Q1C1.stm, topic = 26) # waste treatment (and managment?)
+cloud(Q1C1.stm, topic = 27) # substance quality/characteristics
+cloud(Q1C1.stm, topic = 28) # emissions/GHG
+cloud(Q1C1.stm, topic = 29) # regional development stratagies/managment
+cloud(Q1C1.stm, topic = 30) # not clear... lots of roman numericals maybe should remove in pre-processing?
+cloud(Q1C1.stm, topic = 31) # total allowable catch (tac), international waters/zones
+cloud(Q1C1.stm, topic = 32) # animal health and diseases
+cloud(Q1C1.stm, topic = 33)
+cloud(Q1C1.stm, topic = 34) # target/goals setting, objectives, and achievment
+cloud(Q1C1.stm, topic = 35)
+cloud(Q1C1.stm, topic = 36) # fisheries vessel managment topic
+cloud(Q1C1.stm, topic = 37) # public opinium, forum, particupation
+cloud(Q1C1.stm, topic = 38) # operating control systems function and compliance
+cloud(Q1C1.stm, topic = 39)# hmm... names of countries/govermnets
+cloud(Q1C1.stm, topic = 40) # third party/international organizational  agreement, cooperation, 
+cloud(Q1C1.stm, topic = 41) # inspections emph. on cross boarders
+cloud(Q1C1.stm, topic = 42) # health and safety
+cloud(Q1C1.stm, topic = 43)
+cloud(Q1C1.stm, topic = 44)
+cloud(Q1C1.stm, topic = 45) # tuna topic
+cloud(Q1C1.stm, topic = 46)
+cloud(Q1C1.stm, topic = 47)
+cloud(Q1C1.stm, topic = 48)
+cloud(Q1C1.stm, topic = 49)
+cloud(Q1C1.stm, topic = 50)
 
 ########### Query 1 Citation 2 ##################
 
@@ -208,6 +248,55 @@ cloud(Q1C2.stm, topic = 21) #
 cloud(Q1C2.stm, topic = 6)  # energy resources (i.e. gas, oil, carbon, petrolium)
 cloud(Q1C2.stm, topic = 24) # managing bodies  (i.e. depatments/insitutes/offices/nations)
 cloud(Q1C2.stm, topic = 17) # chemical substances/qualities
+
+
+cloud(Q1C2.stm, topic = 1)  # substance classifications (i.e. hazardous, toxic, dangerous, concentration)
+cloud(Q1C2.stm, topic = 2)
+cloud(Q1C2.stm, topic = 3) # EU theme (councile parliament) same as Q1C1
+cloud(Q1C2.stm, topic = 4) # information requests and reports
+cloud(Q1C2.stm, topic = 5)
+cloud(Q1C2.stm, topic = 6) # energy resources (i.e. gas, oil, carbon, petrolium)
+cloud(Q1C2.stm, topic = 7) # consumer/commercial markets
+cloud(Q1C2.stm, topic = 8)
+cloud(Q1C2.stm, topic = 9) #member states
+cloud(Q1C2.stm, topic = 10) # fishing vessel manament topic
+cloud(Q1C2.stm, topic = 11) # research and development theme
+cloud(Q1C2.stm, topic = 12) # cosmetic irratant/sensitivity theme
+cloud(Q1C2.stm, topic = 13) 
+cloud(Q1C2.stm, topic = 14) # aquatic toxicity
+cloud(Q1C2.stm, topic = 15) # tac and economic zone 
+cloud(Q1C2.stm, topic = 16) 
+cloud(Q1C2.stm, topic = 17) # chemical substances/qualities
+cloud(Q1C2.stm, topic = 18) 
+cloud(Q1C2.stm, topic = 19) 
+cloud(Q1C2.stm, topic = 20)  
+cloud(Q1C2.stm, topic = 21) 
+cloud(Q1C2.stm, topic = 22) # financial, funds, grants, aid
+cloud(Q1C2.stm, topic = 23)
+cloud(Q1C2.stm, topic = 24)# managing bodies  (i.e. depatments/insitutes/offices/nations)
+cloud(Q1C2.stm, topic = 25)
+cloud(Q1C2.stm, topic = 26) # packaging
+cloud(Q1C2.stm, topic = 27)
+cloud(Q1C2.stm, topic = 28) # financial transactions
+cloud(Q1C2.stm, topic = 29) # emission assessment, risk, credits
+cloud(Q1C2.stm, topic = 30)
+cloud(Q1C2.stm, topic = 31)
+cloud(Q1C2.stm, topic = 32)
+cloud(Q1C2.stm, topic = 33)
+cloud(Q1C2.stm, topic = 34) # animal health and diseases
+cloud(Q1C2.stm, topic = 35)
+cloud(Q1C2.stm, topic = 36)
+cloud(Q1C2.stm, topic = 37)
+cloud(Q1C2.stm, topic = 38)
+cloud(Q1C2.stm, topic = 39)
+cloud(Q1C2.stm, topic = 40) # water quaily/ characterisitics
+cloud(Q1C2.stm, topic = 41) # transportation across borders
+cloud(Q1C2.stm, topic = 42)
+cloud(Q1C2.stm, topic = 43)
+cloud(Q1C2.stm, topic = 44)
+cloud(Q1C2.stm, topic = 45) # # skin theme - term of toxins/sensitivity
+cloud(Q1C2.stm, topic = 46)
+cloud(Q1C2.stm, topic = 47)
 
 
 ########### Query 2 Citation 1 ##################
