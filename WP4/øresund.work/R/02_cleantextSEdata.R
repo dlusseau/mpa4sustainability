@@ -205,10 +205,10 @@ EU.links3 <-
                           ref == "Direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
                           ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?=\\s)")),
                           ref == "Förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?=\\s)")),
-                          ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
-                          ref == "genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
-                          ref == "Beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
-                          ref == "Genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
+                          ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
+                          ref == "genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
+                          ref == "Beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
+                          ref == "Genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
                           ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
                           ref == "Rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
   mutate(code = str_replace_all(code,"c\\(",""),
@@ -244,15 +244,27 @@ document.dir.key.df1 <-
 directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
 
 
-directive.titles1 <-
+directive.titles.cut <-
   directive.titles %>%
   select(-X) %>% 
   left_join(.,document.dir.key.df1, by = c("work")) %>%
   mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
-  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>%
-  mutate(type = "dir")  %>%
-  select(celex,type,code)
+  mutate(code =  str_extract(titles, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>%
+  mutate(type = "dir")  
 
+directive.titles1 <-
+  directive.titles.cut%>%
+  select(celex,type,code) # those with NA just dont have a title code within the title...
+
+
+directive.removalcodes <-
+  directive.titles.cut %>%
+  select(-title2) %>%
+  mutate(title.woCode =  str_remove(.$titles, .$code)) %>%
+  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
+  unnest(codes.to.remove) %>%
+  select(celex,code,codes.to.remove,type)
+  
 EU.links4 <-
   EU.links3 %>%
   left_join(., directive.titles1, by = c("type", "code")) %>%
@@ -263,13 +275,23 @@ EU.links4 <-
 decision.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv") 
 
 
-decision.titles1 <-
+decision.titles.cut <-
   decision.titles %>%
   mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
-  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>%
-  mutate(type = "dec")  %>%
-  select(celex,type,code) 
+  mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
+  mutate(type = "dec") 
 
+decision.titles1 <-
+  decision.titles.cut  %>%
+  select(celex,type,code) 
+  
+decision.removalcodes <-
+  decision.titles.cut %>%
+  select(-title2) %>%
+  mutate(title.woCode =  str_remove(.$titles, .$code)) %>%
+  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
+  unnest(codes.to.remove) %>%
+  select(celex,code,codes.to.remove,type)
 
 EU.links5 <-
   EU.links4 %>%
@@ -288,13 +310,25 @@ document.rec.key.df1 <-
   filter(resource.type == "RECO") %>%
   select(work,celex)
 
-reccomendation.titles1 <-
+reccomendation.titles.cut <-
   reccomendation.titles %>%
   left_join(.,document.rec.key.df1, by = c("work")) %>%
   mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
   mutate(code =  str_extract(title2, "[:digit:]+/[:digit:]+/[:alpha:]+")) %>%
-  mutate(type = "rec")  %>%
-  select(celex,type,code)
+  mutate(type = "rec") 
+
+reccomendation.titles1 <-
+  reccomendation.titles.cut  %>%
+  select(celex,type,code) 
+
+reccomendation.removalcodes <-
+  reccomendation.titles.cut %>%
+  select(-title2) %>%
+  mutate(title.woCode =  str_remove(.$titles, .$code)) %>%
+  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
+  unnest(codes.to.remove) %>%
+  select(celex,code,codes.to.remove,type)
+
 
 EU.links6 <-
   EU.links5 %>%
@@ -307,7 +341,7 @@ regulation.titles.yr2020.2022 <-
 
 regulation.titles <-  read_excel("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/EurLex_regulations_no_text_all.xlsx") 
 
-regulation.titles1 <-
+regulation.titles.cut <-
   regulation.titles %>%
   select(CELEX, Act_name)%>%
   distinct(CELEX, .keep_all=TRUE) %>%
@@ -324,9 +358,34 @@ regulation.titles1 <-
   mutate(title8 = str_trunc(title7,75,side = c("right")),
          title9 = str_replace_all(title8,"\\(\\sEEC\\s\\)", "\\(EEC\\)")) %>%
   mutate(code =  str_extract(title9, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|Regulation\\sNo\\s[:digit:]+(?=\\s)")) %>%
-    mutate(type = "reg")  %>%
-  select(celex,type,code)
+    mutate(type = "reg") 
 
+regulation.titles1 <-
+  regulation.titles.cut  %>%
+  select(celex,type,code) 
+
+
+regulation.removalcodes <-
+  regulation.titles.cut %>%
+  select(title9,code,type,celex) %>%
+  mutate(titles.woCode =  str_remove(.$title9, .$code)) %>%
+  mutate(codes.to.remove =  str_extract_all(titles.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|Regulation\\sNo\\s[:digit:]+(?=\\s)")) %>%
+  unnest(codes.to.remove) %>%
+  select(celex,code,codes.to.remove,type)
+
+
+Removal.code.list <-
+  rbind(directive.removalcodes,decision.removalcodes,regulation.removalcodes,reccomendation.removalcodes)
+#the str_remove is not working for the all the dfs (i.e. regulations)... no idea why instead I will extract all codes and make a case when title code = remove code then remove from df...
+
+Removal.code.list <-
+  Removal.code.list %>%
+  mutate(delete = 
+           case_when(  code == codes.to.remove ~ "YES",
+                       # if not...
+                       TRUE ~ "NO" 
+           )) %>%
+  filter(delete=="NO")
 
 
 
@@ -589,82 +648,9 @@ EU.links11 <-
   mutate(doc.id = str_replace_all(doc.id, "-", "."))
 
 # ok now we have to remove codes that are parts of othe celex titles that label which it is ammending...
-#   mutate(amendtitle = str_extract_all(titles,"amending.+")) 
-EU.links12 <-
-  EU.links11 %>%
-  mutate(amending.dir = str_extract(text, "ändring av direktiv [:digit:]+/[:digit:]+/[:alpha:]+|ändring av direktiv \\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"),
-         amending.dir = str_extract(amending.dir,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>%
-  mutate(repealing.dir = str_extract(text, "upphävande av direktiv [:digit:]+/[:digit:]+/[:alpha:]+|upphävande av direktiv \\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"),
-         repealing.dir = str_extract(repealing.dir,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"))%>%
-  mutate(amending.dir = str_trim(amending.dir, side = c("both")))%>%
-  mutate(amending.dir = str_replace_all(amending.dir, "EG", "EC"), # change from SE to EN language 
-         amending.dir = str_replace_all(amending.dir, "nr", "No"),
-         amending.dir = str_replace_all(amending.dir, "RIF", "JHA"))%>%
-  mutate(repealing.dir = str_replace_all(repealing.dir, "EG", "EC"), # change from SE to EN language 
-         repealing.dir = str_replace_all(repealing.dir, "nr", "No"),
-         repealing.dir = str_replace_all(repealing.dir, "RIF", "JHA")) %>%
-  mutate(repealing.dir = str_trim(repealing.dir, side = c("both")))%>%
-  mutate(delete = 
-           case_when(  amending.dir == code | 
-                         # OR
-                         repealing.dir == code ~ "YES",
-                       # if not...
-                       TRUE ~ "NO" 
-           ))   
-
-#  mutate(amending.dir = str_extract(text, "ändring[\\s\\S]*")),
-# amending.dir = str_extract(amending.dir,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) 
 
 
-EU.links13 <-
-  EU.links12 %>%
-  mutate(amending.reg = str_extract(text, "ändring av förordning [:digit:]+/[:digit:]+/[:alpha:]+|ändring av förordning \\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|ändring av förordning \\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|ändring av förordning \\([:alpha:]+\\,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|ändring av förordning \\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|ändring av förordning EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|ändring av förordning EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|ändring av förordning nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|ändring av förordning\\snr\\s[:digit:]+(?=\\s)"),
-         amending.reg = str_extract(amending.reg,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|Regulation\\snr\\s[:digit:]+(?=\\s)")) %>%
-  mutate(repealing.reg = str_extract(text, "upphävande av förordning [:digit:]+/[:digit:]+/[:alpha:]+|upphävande av förordning \\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|upphävande av förordning \\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|upphävande av förordning \\([:alpha:]+\\,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|upphävande av förordning \\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|upphävande av förordning EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|upphävande av förordning EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|upphävande av förordning nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|upphävande av förordning\\snr\\s[:digit:]+(?=\\s)"),
-         repealing.reg = str_extract(repealing.reg,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|Regulation\\snr\\s[:digit:]+(?=\\s)"))%>%
-  mutate(amending.reg = str_trim(amending.reg, side = c("both")))%>%
-  mutate(amending.reg = str_replace_all(amending.reg, "EG", "EC"), # change from SE to EN language 
-         amending.reg = str_replace_all(amending.reg, "nr", "No"),
-         amending.reg = str_replace_all(amending.reg, "RIF", "JHA"))%>%
-  mutate(repealing.reg = str_replace_all(repealing.reg, "EG", "EC"), # change from SE to EN language 
-         repealing.reg = str_replace_all(repealing.reg, "nr", "No"),
-         repealing.reg = str_replace_all(repealing.reg, "RIF", "JHA")) %>%
-  mutate(repealing.reg = str_trim(repealing.reg, side = c("both")))%>%
-  mutate(delete2 = 
-           case_when(  repealing.reg == code | 
-                         # OR
-                         repealing.reg == code ~ "YES",
-                       # if not...
-                       TRUE ~ "NO" 
-           ))   
 
-
-EU.links14 <-
-  EU.links13 %>%
-  mutate(amending.dec = str_extract(text, "ändring av beslut [:digit:]+/[:digit:]+/[:alpha:]+|ändring av beslut \\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"),
-         amending.dec = str_extract(amending.dec,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>%
-  mutate(repealing.dec = str_extract(text, "upphävande av beslut [:digit:]+/[:digit:]+/[:alpha:]+|upphävande av beslut \\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"),
-         repealing.dec = str_extract(repealing.dec,"[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)"))%>%
-  mutate(amending.dec = str_trim(amending.dec, side = c("both")))%>%
-  mutate(amending.dec = str_replace_all(amending.dec, "EG", "EC"), # change from SE to EN language 
-         amending.dec = str_replace_all(amending.dec, "nr", "No"),
-         amending.dec = str_replace_all(amending.dec, "RIF", "JHA"))%>%
-  mutate(repealing.dec = str_replace_all(repealing.dec, "EG", "EC"), # change from SE to EN language 
-         repealing.dec = str_replace_all(repealing.dec, "nr", "No"),
-         repealing.dec = str_replace_all(repealing.dec, "RIF", "JHA")) %>%
-  mutate(repealing.dec = str_trim(repealing.dec, side = c("both")))%>%
-  mutate(delete3 = 
-           case_when(  amending.dec == code | 
-                         # OR
-                         repealing.dec == code ~ "YES",
-                       # if not...
-                       TRUE ~ "NO" 
-           ))   
-  
-EU.links15 <- 
-  EU.links14 %>%
-  
-  
 EU.links16 <- 
   EU.links15 %>%
   filter(delete != "YES")%>%
