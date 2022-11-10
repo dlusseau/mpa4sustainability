@@ -378,16 +378,25 @@ Removal.code.list <-
   rbind(directive.removalcodes,decision.removalcodes,regulation.removalcodes,reccomendation.removalcodes)
 #the str_remove is not working for the all the dfs (i.e. regulations)... no idea why instead I will extract all codes and make a case when title code = remove code then remove from df...
 
-Removal.code.list <-
+Removal.code.list.2 <-
   Removal.code.list %>%
   mutate(delete = 
            case_when(  code == codes.to.remove ~ "YES",
                        # if not...
                        TRUE ~ "NO" 
            )) %>%
-  filter(delete=="NO")
+  filter(delete=="NO") %>%
+  select(-code,-delete,-type) %>%
+  filter(!is.na(codes.to.remove))
 
+Removal.code.list.3 <-
+  Removal.code.list.2 %>%
+  distinct() %>%
+  mutate(celex = as.character(celex))
+ # group_by(celex) %>%
+  #summarise(removal.codes = paste(codes.to.remove, collapse = ", "))
 
+write.csv(Removal.code.list.3, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.Removal.codelist.csv", row.names=FALSE)
 
 EU.links7 <-
   EU.links6 %>%
@@ -648,22 +657,49 @@ EU.links11 <-
   mutate(doc.id = str_replace_all(doc.id, "-", "."))
 
 # ok now we have to remove codes that are parts of othe celex titles that label which it is ammending...
-
-
-
-EU.links16 <- 
-  EU.links15 %>%
-  filter(delete != "YES")%>%
-  filter(delete2 != "YES")%>%
-  filter(delete3 != "YES")
   
+text1 <- 
+  EU.links11 %>%
+  mutate(doc.sentence.id = paste(doc.id,element_id,sentence_id, sep = "_"))
+
+se.doc<-unique(text1$doc.sentence.id)
+
+i=1
+temp<-text1[text1$doc.sentence.id==se.doc[i],]
+
+bad.celex<-temp$celex[which(temp$celex%in%code$celex)] #those are the "bad" celex codes in this text?
+remove.temp<-unique(Removal.code.list.3$codes.to.remove[which(Removal.code.list.3$celex%in%bad.celex)]) #those are the associated removal codes
+
+#text.clean<-temp[-which(temp$code%in%remove.temp),] #we find the codes that match the removal codes and remove those rows
+
+#Anna's edits:
+# ok if none of the bad codes were found it returns empty so made an if else statment to put in the loop
+
+if(dim(temp[-which(temp$code%in%remove.temp),])[1]==0){
+  text.clean <-temp
+}else{
+  text.clean<-temp[-which(temp$code%in%remove.temp),] #we find the codes that match the removal codes and remove those rows
+}
+
+#data frame initialised
+
+for (i in 2:length(se.doc)) {
   
-EU.links16 <- 
-  EU.links14 %>%
-
-
-
-
+  temp<-text1[text1$doc.sentence.id==se.doc[i],]
+  
+  bad.celex<-temp$celex[which(temp$celex%in%code$celex)] #those are the "bad" celex codes in this text?
+  remove.temp<-unique(Removal.code.list.3$codes.to.remove[which(Removal.code.list.3$celex%in%bad.celex)]) #those are the associated removal codes
+  
+  if(dim(temp[-which(temp$code%in%remove.temp),])[1]==0){
+    text.clean <-rbind(text.clean,temp)
+  }else{
+    
+    text.clean<-rbind(text.clean,temp[-which(temp$code%in%remove.temp),]) #we find the codes that match the removal codes and remove those rows
+  }
+  
+}
+  
+## stop here and finish everthing tomorrow :) Nov. 11th when I have the big screen. 
 
 ## final df
 
