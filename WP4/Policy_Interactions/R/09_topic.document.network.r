@@ -14,6 +14,9 @@ library("stm")
 Q1C1.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q1C1.edgelist.topics.csv")
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1C1_stm.Rdata")
 
+Q1C1.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q1C1.preptext.rds")
+Q1C2.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q1C2.preptext.rds")
+
 Q1C2.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/08.Q1C2.edgelist.topics.csv")
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1C2_stm.Rdata")
 
@@ -250,15 +253,16 @@ cloud(Q1C2.stm, topic = 24) # managing bodies  (i.e. depatments/insitutes/office
 cloud(Q1C2.stm, topic = 17) # chemical substances/qualities
 
 
-cloud(Q1C2.stm, topic = 1)  # substance classifications (i.e. hazardous, toxic, dangerous, concentration)
-cloud(Q1C2.stm, topic = 2)
-cloud(Q1C2.stm, topic = 3) # EU theme (councile parliament) same as Q1C1
-cloud(Q1C2.stm, topic = 4) # information requests and reports
+cloud(Q1C2.stm, topic = 1)  # substance categories/classifications (i.e. hazardous, toxic, dangerous, concentration)
+cloud(Q1C2.stm, topic = 2) # doesnt look relevent (writing terms/descriptions)
+cloud(Q1C2.stm, topic = 3) # European councile parliament same as all other networks
+cloud(Q1C2.stm, topic = 4) # information requests and reports reviews
 cloud(Q1C2.stm, topic = 5)
+findThoughts(Q1C2.stm,texts=Q1C2.text$documents,topics = 5,n=3)
 cloud(Q1C2.stm, topic = 6) # energy resources (i.e. gas, oil, carbon, petrolium)
 cloud(Q1C2.stm, topic = 7) # consumer/commercial markets
 cloud(Q1C2.stm, topic = 8)
-cloud(Q1C2.stm, topic = 9) #member states
+cloud(Q1C2.stm, topic = 9)  # member states
 cloud(Q1C2.stm, topic = 10) # fishing vessel manament topic
 cloud(Q1C2.stm, topic = 11) # research and development theme
 cloud(Q1C2.stm, topic = 12) # cosmetic irratant/sensitivity theme
@@ -295,8 +299,30 @@ cloud(Q1C2.stm, topic = 42)
 cloud(Q1C2.stm, topic = 43)
 cloud(Q1C2.stm, topic = 44)
 cloud(Q1C2.stm, topic = 45) # # skin theme - term of toxins/sensitivity
-cloud(Q1C2.stm, topic = 46)
-cloud(Q1C2.stm, topic = 47)
+cloud(Q1C2.stm, topic = 46) # hmm maybe about marine boundaries or location/geography discriptors
+cloud(Q1C2.stm, topic = 47) # contracts, rules, and conditions 
+cloud(Q1C2.stm, topic = 48) # languages
+cloud(Q1C2.stm, topic = 49) # data processing and protection
+cloud(Q1C2.stm, topic = 50) # public participation, interest
+cloud(Q1C2.stm, topic = 51) 
+cloud(Q1C2.stm, topic = 52) # product type and design
+cloud(Q1C2.stm, topic = 53) # # fisheries regulations more specifically - catch limits and gear reg.
+cloud(Q1C2.stm, topic = 54) 
+cloud(Q1C2.stm, topic = 55) # energy sources and efficency
+cloud(Q1C2.stm, topic = 56)
+cloud(Q1C2.stm, topic = 57) # operating systems and functions
+cloud(Q1C2.stm, topic = 58) # security and safety (emphasis on vesses/ships)
+cloud(Q1C2.stm, topic = 59)
+cloud(Q1C2.stm, topic = 60) # procceding and completion timing
+cloud(Q1C2.stm, topic = 61) # good/product imports and customs
+cloud(Q1C2.stm, topic = 62) 
+cloud(Q1C2.stm, topic = 63) # technical standards
+cloud(Q1C2.stm, topic = 64) # species 
+cloud(Q1C2.stm, topic = 65)
+cloud(Q1C2.stm, topic = 66) # managment/conservation/protected area
+cloud(Q1C2.stm, topic = 67)
+cloud(Q1C2.stm, topic = 68)
+cloud(Q1C2.stm, topic = 69)
 
 
 ########### Query 2 Citation 1 ##################
