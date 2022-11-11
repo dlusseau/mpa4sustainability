@@ -29,7 +29,7 @@ sjofart.list <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Uni
 jakttext.list <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.jakttext.list" )
 fisketext.list <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.fisketext.list" )
 
-
+# document metadata
 sjofart.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.sjofart.df.csv")
 jakt.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.jakt.df.csv")
 fisk.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01SE.full.fisk.df.csv")
@@ -37,7 +37,7 @@ fisk.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske U
 # making into a nice df --------------------------------------------------------
 
 sjofarttext.df <- 
-  as.data.frame(unique(cbind(sjofart.list))) %>% #nned to use unique () because some of the results were duplicates
+  as.data.frame(unique(cbind(sjofart.list))) %>% # need to use unique () because some of the results were duplicates (jakt and fisk)
   rownames_to_column(., var = "doc.id") %>%
   rename("text" = "sjofart.list") %>%
   unnest(text, keep_empty=TRUE) %>%
@@ -45,7 +45,7 @@ sjofarttext.df <-
   mutate(country = "SE") 
 
 jakttext.df <- 
-  as.data.frame(unique(cbind(jakttext.list))) %>% 
+  as.data.frame(unique(cbind(jakttext.list))) %>% # need to use unique () because some of the results were duplicates
   rownames_to_column(., var = "doc.id") %>%
   rename("text" = "jakttext.list") %>%
   unnest(text, keep_empty=TRUE) %>%
@@ -53,7 +53,7 @@ jakttext.df <-
   mutate(country = "SE") 
 
 fisketext.df <- 
-  as.data.frame(unique(cbind(fisketext.list))) %>% 
+  as.data.frame(unique(cbind(fisketext.list))) %>% # need to use unique () because some of the results were duplicates
   rownames_to_column(., var = "doc.id") %>%
   rename("text" = "fisketext.list") %>%
   unnest(text, keep_empty=TRUE) %>%
@@ -62,16 +62,29 @@ fisketext.df <-
 
 SEtext.dk <- rbind(sjofarttext.df,jakttext.df,fisketext.df)
 
+# now combine the meta data: 
+
+sjofart.metadata <-
+  sjofart.metadata  %>%
+  distinct(id, .keep_all=TRUE)%>%
+  mutate(search.term = "sjofart")
+
+fisk.metadata <-
+  fisk.metadata  %>%
+  distinct(id, .keep_all=TRUE)%>%
+  mutate(search.term = "fiske")
+
+jakt.metadata <-
+  jakt.metadata  %>%
+  distinct(id, .keep_all=TRUE)%>%
+  mutate(search.term = "jakt")
 
 SEmeta.dk <- 
-  rbind(sjofart.metadata,jakt.metadata,fisk.metadata)%>%
-  mutate(id = str_replace_all(id, "-", "."),
-         id = str_replace_all(id, " ", "."))  %>%
-  mutate(id=as.factor(id)) %>%
-  distinct(id, .keep_all=TRUE)
+  rbind(sjofart.metadata,jakt.metadata,fisk.metadata)
 
 n_distinct(SEtext.dk$doc.id)
-
+n_distinct(SEmeta.dk$id)
+# unique ids there are 444 documents
 
 #looking for the other forms of hunting and fishing 
 #fisheries (commercial, recreational and spear fishing) : fiske (yrkesfiske, fritidsfiske, harpunfiske). 
@@ -93,11 +106,8 @@ SEtext.dk1 <-
          seal = case_when(search.term == "jakt" ~ str_detect(text, "säl|Säl")),
          boat.traffic = case_when(search.term == "sjofart" ~ str_detect(text, "båtstrafik|Båtstrafik")))
 
-n_distinct(SEtext.dk1$doc.id)
 
 SEtext.dk1 %>%
-  mutate(doc.id = str_replace_all(doc.id, "-", "."),
-         doc.id = str_replace_all(doc.id, " ", "."))%>%
   group_by(search.term) %>%
   summarise(n=n_distinct(doc.id))
 
@@ -106,8 +116,6 @@ SEtext.dk1 %>%
 # sjofart       199
 
 SEtext.dk1 %>%
-  mutate(doc.id = str_replace_all(doc.id, "-", "."),
-         doc.id = str_replace_all(doc.id, " ", ".")) %>%
   summarise(n=n_distinct(doc.id))
 #444
 
@@ -135,9 +143,6 @@ SEtext.dk1 %>%
 SEtext.dk1 %>%
   filter(search.term == "jakt" & birdhunt == "TRUE") # 7 fågel
 
-#SEtext.dk1 %>%
- # filter(search.term == "jakt" & waterfowl == "TRUE") # 1 sjöfågel
-
 SEtext.dk1 %>%
   filter(search.term == "jakt" & seal == "TRUE") # 62 mention säl fisk
 
@@ -146,11 +151,9 @@ SEtext.dk1 %>%
 
 
 SEtext.dk1 %>%
-  mutate(doc.id = str_replace_all(doc.id, "-", "."),
-         doc.id = str_replace_all(doc.id, " ", ".")) %>%
   select(-text) %>%
-  mutate(doc.id=as.factor(doc.id)) %>%
-  left_join(.,SEmeta.dk, by = c("doc.id"="id") ) %>%
+  #mutate(doc.id=as.factor(doc.id)) %>%
+  left_join(.,SEmeta.dk, by = c("doc.id"="dok_id", "search.term") ) %>%
   write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv", row.names=FALSE)
 
 # Getting Eurlex links ---------------------------------------------------------
@@ -195,7 +198,7 @@ EU.links2 <-
   distinct() %>%
   mutate(ref=as.factor(ref),
          text=as.character(text)) %>%
-  filter(!is.na(ref)) # remove na values
+  filter(!is.na(ref)) # remove na values (sentences that dont reference a legislation type)
 
 # then lets pull all the codes in those sentences...
 
@@ -205,21 +208,22 @@ EU.links3 <-
                           ref == "Direktiv" ~  as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")),
                           ref == "förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?=\\s)")),
                           ref == "Förordning" ~ as.character(str_extract_all(text, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\snr\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|EG+\\snr\\s[:digit:]+/[:digit:]+(?!/)|nr\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\snr\\s[:digit:]+(?=\\s)")),
-                          ref == "beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
+                          ref == "beslut"             ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
                           ref == "genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
-                          ref == "Beslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
+                          ref == "Beslut"             ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
                           ref == "Genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
                           ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
                           ref == "Rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
-  mutate(code = str_replace_all(code,"c\\(",""),
+  # if it is a Character vector string edit it to just be the codes to be cleaner
+  mutate(code = str_replace_all(code,"c\\(",""), 
          code = str_replace_all(code,"(?<!G|0|U)\\)",""),
          code = str_replace_all(code,'\\"',"")) %>%
-  mutate(code = na_if(code,"character(0)")) %>% #change these values to NA
+  mutate(code = na_if(code,"character(0)")) %>% # change these values (none of the codes were detected) to NA
   filter(!is.na(code)) %>% # remove the NAs
   mutate(code = strsplit(code, ",")) %>%
   unnest(code) %>%
   mutate(code = str_trim(code, side = c("both")))%>%
-  mutate(code = str_replace_all(code, "EG", "EC"), # change from SE to EN language 
+  mutate(code = str_replace_all(code, "EG", "EC"), # change from SE to EN language so can match celex and title key that is in english
          code = str_replace_all(code, "nr", "No"),
          code = str_replace_all(code, "RIF", "JHA"))
 
@@ -261,7 +265,7 @@ directive.removalcodes <-
   directive.titles.cut %>%
   select(-title2) %>%
   mutate(title.woCode =  str_remove(.$titles, .$code)) %>%
-  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
+  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|regulation\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
   unnest(codes.to.remove) %>%
   select(celex,code,codes.to.remove,type)
   
@@ -289,7 +293,7 @@ decision.removalcodes <-
   decision.titles.cut %>%
   select(-title2) %>%
   mutate(title.woCode =  str_remove(.$titles, .$code)) %>%
-  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
+  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|regulation\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
   unnest(codes.to.remove) %>%
   select(celex,code,codes.to.remove,type)
 
@@ -325,7 +329,7 @@ reccomendation.removalcodes <-
   reccomendation.titles.cut %>%
   select(-title2) %>%
   mutate(title.woCode =  str_remove(.$titles, .$code)) %>%
-  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|förordning\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
+  mutate(codes.to.remove =  str_extract_all(title.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|regulation\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
   unnest(codes.to.remove) %>%
   select(celex,code,codes.to.remove,type)
 
@@ -335,11 +339,12 @@ EU.links6 <-
   left_join(., reccomendation.titles1, by = c("type", "code")) %>%
   rename(celex.rec = celex)
 
+#load the data from Harvard that has all Eurlex infor up until 2019
+regulation.titles <-  read_excel("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/EurLex_regulations_no_text_all.xlsx") 
+#load the years that are not in harvard data
 regulation.titles.yr2020.2022 <- 
   read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.regulation.titles.yr2020.2022.csv") %>%
   select(-work) 
-
-regulation.titles <-  read_excel("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/EurLex_regulations_no_text_all.xlsx") 
 
 regulation.titles.cut <-
   regulation.titles %>%
@@ -357,8 +362,8 @@ regulation.titles.cut <-
   mutate(title7 = str_replace(title6,"\\(EEC ", "\\(EEC\\)")) %>%
   mutate(title8 = str_trunc(title7,75,side = c("right")),
          title9 = str_replace_all(title8,"\\(\\sEEC\\s\\)", "\\(EEC\\)")) %>%
-  mutate(code =  str_extract(title9, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|Regulation\\sNo\\s[:digit:]+(?=\\s)")) %>%
-    mutate(type = "reg") 
+  mutate(code =  str_extract(title9, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|regulation\\sNo\\s[:digit:]+(?=\\s)")) %>%
+    mutate(type = "reg")
 
 regulation.titles1 <-
   regulation.titles.cut  %>%
@@ -369,14 +374,14 @@ regulation.removalcodes <-
   regulation.titles.cut %>%
   select(title9,code,type,celex) %>%
   mutate(titles.woCode =  str_remove(.$title9, .$code)) %>%
-  mutate(codes.to.remove =  str_extract_all(titles.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\,\\s[:alpha:]+,\\s[:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EG+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|Regulation\\sNo\\s[:digit:]+(?=\\s)")) %>%
+  mutate(codes.to.remove =  str_extract_all(titles.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|regulation\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
   unnest(codes.to.remove) %>%
   select(celex,code,codes.to.remove,type)
 
 
 Removal.code.list <-
   rbind(directive.removalcodes,decision.removalcodes,regulation.removalcodes,reccomendation.removalcodes)
-#the str_remove is not working for the all the dfs (i.e. regulations)... no idea why instead I will extract all codes and make a case when title code = remove code then remove from df...
+#the str_remove is not working for the all the dfs... no idea why... so I will also make a case when title code = remove code then remove from df...
 
 Removal.code.list.2 <-
   Removal.code.list %>%
@@ -392,11 +397,8 @@ Removal.code.list.2 <-
 Removal.code.list.3 <-
   Removal.code.list.2 %>%
   distinct() %>%
-  mutate(celex = as.character(celex))
- # group_by(celex) %>%
-  #summarise(removal.codes = paste(codes.to.remove, collapse = ", "))
+  mutate(celex = as.character(celex)) # here we have a row for every "bad" code within a celex title code 
 
-write.csv(Removal.code.list.3, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.Removal.codelist.csv", row.names=FALSE)
 
 EU.links7 <-
   EU.links6 %>%
@@ -437,7 +439,6 @@ EU.links7 <-
                                type == "reg" & code == "(EU) 297/2008" ~	"32008R0297",# 
                                type == "reg" & code == "(EU) No 2016/425" ~	"32016R0425",# 
                                type == "reg" & code == "(EC) No 820/974" ~	"31997R0820",# typo (EC) No 820/974 it is (EC) No 820/97
-                               
                                TRUE ~ celex.reg)) %>%
   mutate(celex.rec = case_when(type == "rec" & code == "2003/361/EC" ~ "32003H0361", # all recos are done!
                                TRUE ~ celex.rec)) %>%
@@ -470,9 +471,7 @@ EU.links7 <-
   mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/652" ~ "32015L0652", # this is a directive but didnt follow the directive coding and 
                                TRUE ~ celex.dir))%>%
   mutate(type = case_when(type == "reg" & code == "(EU) 2015/652" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs.2014.1434" & code == "(EU) 2015/652" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))  %>%
+                          TRUE ~ type))%>%
   mutate(ref = case_when(doc.id == "sfs-2014-1434" & code == "(EU) 2015/652" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
                          TRUE ~ ref))%>%
   mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2018/851" ~ "32018L0851", # this is a directive but didnt follow the directive coding and 
@@ -480,8 +479,6 @@ EU.links7 <-
   mutate(type = case_when(type == "reg" & code == "(EU) 2018/851" ~ "dir", # this is a directive but didnt follow the directive coding and 
                           TRUE ~ type)) %>%
   mutate(ref = case_when(doc.id == "sfs-2020-614" & code == "(EU) 2018/851" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))%>%
-  mutate(ref = case_when(doc.id == "sfs.2020.614" & code == "(EU) 2018/851" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
                          TRUE ~ ref))%>%
   mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/849" ~ "32015L0849", # this is a directive but didnt follow the directive coding and 
                                TRUE ~ celex.dir))%>%
@@ -495,13 +492,11 @@ EU.links7 <-
                           TRUE ~ type)) %>%
   mutate(ref = case_when(doc.id == "sfs-2009-400" & code == "(EU) 2017/1132" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
                          TRUE ~ ref))%>%
-  mutate(ref = case_when(doc.id == "sfs.2009.400" & code == "(EU) 2017/1132" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))%>%
   mutate(celex.dir = case_when(type == "dec" & code == "(EU) 2018/2001" ~ "32018L2001", # this is a directive but didnt follow the directive coding and 
                                TRUE ~ celex.dir))%>%
   mutate(type = case_when(type == "dec" & code == "(EU) 2018/2001" ~ "dir", # this is a directive but didnt follow the directive coding and 
                           TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs.2011.1088" & code == "(EU) 2018/2001" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
+  mutate(ref = case_when(doc.id == "sfs-2011-1088" & code == "(EU) 2018/2001" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
                          TRUE ~ ref))%>%
   filter(code != "No 529/2013/EU") %>% # No 529/2013/EU No 280/2004/EC	No 1313/2013/EU		 these are decisions but dec pulled it without No so remove row when type ==reg
   filter(code != "No 280/2004/EC") %>% 
@@ -522,23 +517,23 @@ EU.links7 <-
                                TRUE ~ celex.dec))%>%
   mutate(celex.dec = case_when(type == "dec" & code == "2009/371/JHA" ~ "32009D0371", #  this offcical title didnt have its code so missing from the key and did not come out of the eurlex pull?
                                TRUE ~ celex.dec)) %>%
-  mutate(celex.dir = case_when(doc.id == "sfs.2008.245" & sentence_id == 94 & code == "2004/42/EC" ~ "32004L0042", # # 2004/42/EC	real title is CE --> for sfs.2008.245	sentence 94 it is def the code with CE (32004L0042) but others not clear even in the sentences
+  mutate(celex.dir = case_when(doc.id == "sfs-2008-245" & sentence_id == 94 & code == "2004/42/EC" ~ "32004L0042", # # 2004/42/EC	real title is CE --> for sfs.2008.245	sentence 94 it is def the code with CE (32004L0042) but others not clear even in the sentences
                                TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs.2010.770" & sentence_id == 98 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+  mutate(celex.dir = case_when(doc.id == "sfs-2010-770" & sentence_id == 98 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
                                TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs.2010.770" & sentence_id == 394 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+  mutate(celex.dir = case_when(doc.id == "sfs-2010-770" & sentence_id == 394 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
                                TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs.2010.770" & sentence_id == 406 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+  mutate(celex.dir = case_when(doc.id == "sfs-2010-770" & sentence_id == 406 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
                                TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs.1986.171" & sentence_id == 533 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+  mutate(celex.dir = case_when(doc.id == "sfs-1986-171" & sentence_id == 533 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
                                TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs.1986.171" & sentence_id == 105 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+  mutate(celex.dir = case_when(doc.id == "sfs-1986-171" & sentence_id == 105 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
                                TRUE ~ celex.dir))%>%
   mutate(celex.dir = case_when(doc.id == "sfs-1999-1229" & sentence_id == 2908 & code == "(EU) 2016/1164" ~ "32016L1164", 
-                               TRUE ~ celex.dir))
+                               TRUE ~ celex.dir)) %>%
+  mutate(celex.reg = case_when(type == "reg" & code == "(EC) No 726/20048" ~ "32004R0726", # is a typo it is 2004 not 20048
+                               TRUE ~ celex.reg))
 
-
-  
 
 check1 <-
   EU.links7 %>%
@@ -593,10 +588,7 @@ n_distinct(check2$code)
 
 # other notes 
 
-#sfs-1980-789	-->(EC) No 2978/941	--> repealed leg. 
-#sfs.1980.657	--> (EC) No 726/20048	 --> from the sentence also cannot tell if it is a typo
-
-
+#sfs-1980-789	-->(EC) No 2978/941	--> cannot find this in eurlex....
 
 
 # chang from wide to long formate:
@@ -641,8 +633,9 @@ EU.links10 <-
  filter(ref != "beslut" | code != "96/23/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
  filter(ref != "beslut" | code != "93/42/EEC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
  filter(ref != "beslut" | code != "2012/19/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2009/16/EC")   # filter this one out bc it is not referencing a dec it is a dir. 
-
+ filter(ref != "beslut" | code != "2009/16/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+ filter(ref != "direktiv" | code != "90/425/EEC"| celex != "31991L0628") %>%
+ filter(ref != "beslut" | code != "98/79/EC")
 #check if cele codes have mutiple resource types within a sentence...
 check2 <-
   EU.links10  %>%
@@ -653,8 +646,7 @@ check2 <-
 n_distinct(check2$code)
 
 EU.links11 <-
-  EU.links10 %>%
-  mutate(doc.id = str_replace_all(doc.id, "-", "."))
+  EU.links10 
 
 # ok now we have to remove codes that are parts of othe celex titles that label which it is ammending...
   
@@ -667,7 +659,7 @@ se.doc<-unique(text1$doc.sentence.id)
 i=1
 temp<-text1[text1$doc.sentence.id==se.doc[i],]
 
-bad.celex<-temp$celex[which(temp$celex%in%code$celex)] #those are the "bad" celex codes in this text?
+bad.celex<-temp$celex[which(temp$celex%in%Removal.code.list.3$celex)] #those are the "bad" celex codes in this text?
 remove.temp<-unique(Removal.code.list.3$codes.to.remove[which(Removal.code.list.3$celex%in%bad.celex)]) #those are the associated removal codes
 
 #text.clean<-temp[-which(temp$code%in%remove.temp),] #we find the codes that match the removal codes and remove those rows
@@ -687,7 +679,7 @@ for (i in 2:length(se.doc)) {
   
   temp<-text1[text1$doc.sentence.id==se.doc[i],]
   
-  bad.celex<-temp$celex[which(temp$celex%in%code$celex)] #those are the "bad" celex codes in this text?
+  bad.celex<-temp$celex[which(temp$celex%in%Removal.code.list.3$celex)] #those are the "bad" celex codes in this text?
   remove.temp<-unique(Removal.code.list.3$codes.to.remove[which(Removal.code.list.3$celex%in%bad.celex)]) #those are the associated removal codes
   
   if(dim(temp[-which(temp$code%in%remove.temp),])[1]==0){
@@ -703,27 +695,27 @@ for (i in 2:length(se.doc)) {
 
 ## final df
 
-SEtext.dk2 <-
-  SEtext.dk1 %>%
-  mutate(doc.id = str_replace_all(doc.id, "-", ".")) %>%
+cleantext.df2 <-
+  text.clean %>%
   select(-text, -search.term, -country)
 
-n_distinct(EU.links15$doc.id) # 126 SE documents are linked to an EU legislation
-n_distinct(EU.links15$celex) # 560 EU legislation is linked
-unique(EU.links15$type)
+n_distinct(cleantext.df2$doc.id) # 123 SE documents are linked to an EU legislation
+n_distinct(cleantext.df2$celex) # 528 EU legislation is linked
+unique(cleantext.df2$type)
 
 # which keywords link to which EU documents:
 SE.EU.links <- 
-  EU.links15 %>%
+  cleantext.df2 %>%
   ungroup() %>%
-  select(-text, -element_id, -sentence_id) %>%
+  select(-element_id, -sentence_id, -type2, -doc.sentence.id) %>%
   distinct(doc.id,celex, .keep_all = TRUE) %>%
   left_join(.,document.key.df, by = c("celex")) %>%
-  left_join(.,SEtext.dk2, by = c("doc.id"))
+  left_join(.,SEtext.dk1, by = c("doc.id")) %>%
+  select(-text)
 
 
-n_distinct(SE.EU.links$doc.id) # 125 SE documents are linked to an EU legislation
-n_distinct(SE.EU.links$celex) # 555 EU legislation is linked
+n_distinct(SE.EU.links$doc.id) # 123 SE documents are linked to an EU legislation
+n_distinct(SE.EU.links$celex) # 528 EU legislation is linked
 
 write.csv(SE.EU.links, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02SE.EU.links.csv", row.names=FALSE)
 
