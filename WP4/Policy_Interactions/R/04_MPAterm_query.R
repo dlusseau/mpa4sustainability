@@ -204,7 +204,7 @@ MPA.citations <-
   MPA.citations %>%
   filter(citationcelex %in% leg.citation_info$CELEX) 
 
-citation.info <-  rbind(leg.citation_info) #combine non.leg with the leg data 
+citation.info <-  leg.citation_info 
 
 
 network.attributes <-
@@ -271,6 +271,8 @@ MPA.citations <-
 
 n_distinct(MPA.citations$from)
 # 85
+n_distinct(MPA.citations$to)
+# 317
 
 docs <- unique(MPA.citations$to)
 cit <-  unique(MPA.citations$from)
@@ -364,6 +366,10 @@ edges <- degree(network)
 sum(edges)
 
 V(network)
+
+network.attributes.final %>%
+  group_by( pulled.from) %>%
+  summarise(n=n())
 
 # Save files ---------------------------------------------------------------------
 
