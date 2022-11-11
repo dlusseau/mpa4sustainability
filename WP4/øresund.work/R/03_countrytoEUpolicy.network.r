@@ -9,7 +9,7 @@ library("dplyr")
 library("stringr")
 library("igraph")
 library("patchwork")
-library("viridis")           # Load
+library("viridis")           
 require("graphics")
 
 # Define functions -------------------------------------------------------------
@@ -448,9 +448,9 @@ SEEUlinks1 <-
 
 
 n_distinct(SEEUlinks1$from)
-# 125 dk documents link to an EU doc
+# 123 dk documents link to an EU doc
 n_distinct(SEEUlinks1$to)
-# 555 EU legal acts link 
+# 528 EU legal acts link 
 
 
 eu.vertices2 <- 
@@ -482,21 +482,16 @@ median(degree)
 #1
 sort(degree)
 
-eu.documentdegrees <-ifelse( V(network)$source == "EU",
-        degree,NA) %>% na.omit()
-
-quantile(eu.documentdegrees,probs = c(0,.25,.5,.75,.95,1))
-sort(eu.documentdegrees)
 
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#   1    1     1    3     11    67 
+#   1    1     1    3     11    63 
 
 
 l <- layout.fruchterman.reingold(network)
 
 plot(network,
-     vertex.label=ifelse(degree(network) >=7 & V(network)$source == "EU",
+     vertex.label=ifelse(degree(network) >=11 & V(network)$source == "EU",
                          V(network)$name,NA),
      vertex.label.cex = .75,
      vertex.size= 3,
@@ -504,4 +499,276 @@ plot(network,
 #labels are those EU docs that are >= the 95% percentile for the degree number
 
 # 31995L0046     32016R0679 31999L0045    
+
+
+## SWEDEN AND DK WITH EU network
+
+EUlinks <- rbind(SEEUlinks1,DKEUlinks1)
+
+vertices <- rbind(SE.vertices,eu.vertices2,dk.vertices,eu.vertices) %>% distinct()
+
+
+network <- graph_from_data_frame(d=EUlinks, directed = FALSE, vertices = vertices)
+
+print(network, e=TRUE, v=TRUE)
+
+
+library(RColorBrewer)
+
+col <- c("#004B87", "#FFCC00", "#d1050c")
+V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
+# DK doc are the red ones...
+degree <- degree(network)
+
+median(degree)
+#2
+quantile(degree,probs = c(0,.25,.5,.75,.95,1))
+#  0%   25%   50%   75%   95%  100% 
+#     1    1    2    3   11   85 
+
+l <- layout.fruchterman.reingold(network)
+sort(degree)
+
+plot(network,
+     vertex.label=ifelse(degree(network) >=85 & V(network)$source == "EU",
+                         V(network)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = 1,
+     vertex.size= 2,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+     #vertex.shape = ifelse(V(network)$source == "EU",
+     #       "square","circle"),
+     vertex.label.family = "sans",
+     layout = l
+   )
+
+legend(x=-1.15,y=-.85, legend = c("Swedish Legislation","EU Legislation", "Danish Legislation"), pch=21,
+       
+       col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+
+##
+
+
+dk.searchkey <-
+  DKEUlinks %>%
+  distinct(url, .keep_all = TRUE ) %>% # make sure no duplicate rows bc of multiple labeles/themes/citations
+  mutate(url = str_replace_all(url, "https://www.retsinformation.dk","")) %>%
+  select(url, search.term) %>%
+  rename("doc.id" = "url")
+
+se.searchkey <-
+  SEEUlinks %>%
+  distinct(doc.id, .keep_all = TRUE)%>%
+  select(doc.id, search.term)
+
+search.key <- rbind(se.searchkey, dk.searchkey)
+
+EUlinks.terms <- 
+  EUlinks %>%
+  mutate(country = case_when(
+    str_detect(from,"sfs-") ~ "SE",
+    TRUE ~ "DK")) %>%
+  left_join(., search.key, by=c("from"="doc.id"))
+
+
+EUlinks.fisheries <- 
+  EUlinks.terms %>% filter(search.term == "fiske" |
+                             search.term ==  "fiskeri") %>%
+  select(from,to)
+
+
+
+
+fisheries.vertices <- 
+  vertices %>%
+  filter(vertices %in% EUlinks.fisheries$from |
+           vertices %in% EUlinks.fisheries$to  )
+
+network.f <- graph_from_data_frame(d=EUlinks.fisheries, directed = FALSE, vertices = fisheries.vertices)
+
+
+col <- c( "#d1050c", "#FFCC00","#004B87")
+V(network.f)$color <- col[as.numeric(as.factor(V(network.f)$source))]
+degree <- degree(network.f)
+
+median(degree)
+#2
+quantile(degree,probs = c(0,.25,.5,.75,.95,1))
+#  0%   25%   50%   75%   95%  100% 
+#     1    1    2    3    9   47 
+
+l.f <- layout.fruchterman.reingold(network.f)
+sort(degree)
+
+plot(network.f,
+     vertex.label=ifelse(degree(network.f) >=9 & V(network.f)$source == "EU",
+                         V(network.f)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = 1,
+     vertex.size= 2.5,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+     vertex.shape = ifelse(V(network.f)$source == "EU",
+            "square","circle"),
+     vertex.label.family = "sans",
+     layout = l.f
+)
+
+
+legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+       
+       col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+
+# HUNTING NETWORK
+EUlinks.hunting <- 
+  EUlinks.terms %>% filter(search.term == "jakt" |
+                             search.term ==  "jagt") %>%
+  select(from,to)
+
+
+
+
+hunting.vertices <- 
+  vertices %>%
+  filter(vertices %in% EUlinks.hunting$from |
+           vertices %in% EUlinks.hunting$to  )
+
+network.h <- graph_from_data_frame(d=EUlinks.hunting, directed = FALSE, vertices = hunting.vertices)
+
+
+col <- c( "#d1050c", "#FFCC00","#004B87")
+V(network.h)$color <- col[as.numeric(as.factor(V(network.h)$source))]
+degree <- degree(network.h)
+
+median(degree)
+#1
+quantile(degree,probs = c(0,.25,.5,.75,.95,1))
+#  0%   25%   50%   75%   95%  100% 
+#    1    1    1    2    4   60
+
+l.h <- layout.fruchterman.reingold(network.h)
+sort(degree)
+
+plot(network.h,
+     vertex.label=ifelse(degree(network.h) >=4 & V(network.h)$source == "EU",
+                         V(network.h)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = 1,
+     vertex.size= 2.5,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+     vertex.shape = ifelse(V(network.h)$source == "EU",
+                           "square","circle"),
+     vertex.label.family = "sans",
+     layout = l
+)
+
+
+legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+       
+       col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+
+# maritime NETWORK
+EUlinks.maritime <- 
+  EUlinks.terms %>% filter(search.term == "sjofart" |
+                             search.term ==  "sotrafik") %>%
+  select(from,to)
+
+
+
+
+maritime.vertices <- 
+  vertices %>%
+  filter(vertices %in% EUlinks.maritime$from |
+           vertices %in% EUlinks.maritime$to  )
+
+network.m <- graph_from_data_frame(d=EUlinks.maritime, directed = FALSE, vertices = maritime.vertices)
+
+
+col <- c( "#d1050c", "#FFCC00","#004B87")
+V(network.m)$color <- col[as.numeric(as.factor(V(network.m)$source))]
+degree <- degree(network.m)
+
+median(degree)
+#1
+quantile(degree,probs = c(0,.25,.5,.75,.95,1))
+#  0%   25%   50%   75%   95%  100% 
+#    1.0  1.0  1.0  2.0  6.1 63.0
+
+l.m <- layout.fruchterman.reingold(network.m)
+sort(degree)
+
+plot(network.m,
+     vertex.label=ifelse(degree(network.m) >=6.1 & V(network.m)$source == "DK",
+                         V(network.m)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = 1,
+     vertex.size= 2.5,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+     vertex.shape = ifelse(V(network.m)$source == "EU",
+                           "square","circle"),
+     vertex.label.family = "sans",
+     layout = l.m
+)
+
+
+legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+       
+       col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+
+
+par(mfrow=c(2,2))
+
+plot(network.h,
+     vertex.label=ifelse(degree(network.h) >=4 & V(network.h)$source == "EU",
+                         V(network.h)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = .75,
+     vertex.size= 3.75,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+   #  vertex.shape = ifelse(V(network.h)$source == "EU",
+    #                       "square","circle"),
+     vertex.label.family = "sans",
+     layout = l.h
+)
+title("Hunting",cex.main=1)
+
+plot(network.m,
+     vertex.label=ifelse(degree(network.m) >=6.1 & V(network.m)$source == "DK",
+                         V(network.m)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = .75,
+     vertex.size= 3.75,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+  #   vertex.shape = ifelse(V(network.m)$source == "EU",
+  #                         "square","circle"),
+     vertex.label.family = "sans",
+     layout = l.m
+)
+title("Maritime Traffic",cex.main=1)
+
+
+plot(network.f,
+     vertex.label=ifelse(degree(network.f) >=9 & V(network.f)$source == "EU",
+                         V(network.f)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = .75,
+     vertex.size= 3.75,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+   #  vertex.shape = ifelse(V(network.f)$source == "EU",
+    #                       "square","circle"),
+     vertex.label.family = "sans",
+     layout = l.f
+)
+title("Fisheries",cex.main=1)
+
+
+legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+       
+       col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
