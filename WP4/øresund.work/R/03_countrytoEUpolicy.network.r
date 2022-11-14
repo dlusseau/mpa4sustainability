@@ -38,7 +38,7 @@ DKEUlinks1 <-
   
 
 n_distinct(DKEUlinks1$from)
-# 206 dk documents link to an EU doc
+# 211 dk documents link to an EU doc
 n_distinct(DKEUlinks1$to)
 # 234 EU legal acts link 
 
@@ -72,19 +72,19 @@ V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
 degree <- degree(network)
 
 median(degree)
-#2
+#1.5
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#1.00  1.00  2.00  3.00  7.05 82.00 
+#    1.0  1.0  1.5  3.0  7.0 82.0
 
 l <- layout.fruchterman.reingold(network)
 sort(degree)
 
-#png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/DK.eu.network.png",
- #   width = 1500, height = 1675)
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/DK.eu.network.png",
+    width = 1500, height = 1675)
 
 plot(network,
-     vertex.label=ifelse(degree(network) >=7.05 & V(network)$source == "EU",
+     vertex.label=ifelse(degree(network) >=7 & V(network)$source == "EU",
                          V(network)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = 1,
@@ -100,9 +100,8 @@ plot(network,
 legend(x=-1.15,y=-.85, legend = c("Danish Legislation","EU Legislation"), pch=21,
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
-
-ifelse(degree(network) >=7.05 & V(network)$source == "EU",
-       V(network)$name,NA) %>% na.omit()
+                                                              
+                               
 
 legend(x=-1.2,y=-1.025, c("31992L0043: Protecting Europe’s biodiversity (Natura 2000)",
                       "32009L0147: Conservation of wild birds",
@@ -111,13 +110,15 @@ legend(x=-1.2,y=-1.025, c("31992L0043: Protecting Europe’s biodiversity (Natur
                       "32011L0092: Assessment of the effects of projects on the environment (EIA)",
                       "31979L0409: Council Directive 79/409/EEC of 2 April 1979 on the conservation of wild birds",
                       "32000L0060: Good-quality water in Europe (EU water directive)",
-                      " ",
                       "32013R1303: Provisions on the European Regional Development Fund, European Social Fund, Cohesion Fund,",
-                      "European Agricultural Fund for Rural Development and European Maritime and Fisheries Fund...",
+                         "European Agricultural Fund for Rural Development and European Maritime and Fisheries Fund...",
                       "31991L0676: Fighting water pollution from agricultural nitrates",
                       "32014R0508: European Maritime and Fisheries Fund (2014-2020)",
                       "32021R1060: Common rules on EU funds (2021–2027)",
-                      "32021R1139: European Maritime, Fisheries and Aquaculture Fund (2021–2027)"),
+                      "32021R1139: European Maritime, Fisheries and Aquaculture Fund (2021–2027)",
+                      "32014L0052: Assessment of the effects of projects on the environment (EIA)",
+                      "32018L2001: Renewable energy",
+                      "32013R1380: The EU’s common fisheries policy"),
                        cex=1.25,
                        ncol=2,
                        col="#777777",
@@ -498,11 +499,11 @@ plot(network,
      layout = l)
 #labels are those EU docs that are >= the 95% percentile for the degree number
 
-# 31995L0046     32016R0679 31999L0045    
+# network stats ----------------------------------
 
-
-## SWEDEN AND DK WITH EU network
-
+################################################################################
+######################        SWEDEN  & DENMARK        #########################
+################################################################################
 EUlinks <- rbind(SEEUlinks1,DKEUlinks1)
 
 vertices <- rbind(SE.vertices,eu.vertices2,dk.vertices,eu.vertices) %>% distinct()
@@ -527,6 +528,7 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #     1    1    2    3   11   85 
 
 l <- layout.fruchterman.reingold(network)
+l <- layout.circle(network)
 sort(degree)
 
 plot(network,
@@ -537,8 +539,8 @@ plot(network,
      vertex.size= 2,
      vertex.label.color = "black",
      #  vertex.size=degree,
-     #vertex.shape = ifelse(V(network)$source == "EU",
-     #       "square","circle"),
+     vertex.shape = ifelse(V(network)$source == "EU",
+            "square","circle"),
      vertex.label.family = "sans",
      layout = l
    )
@@ -547,7 +549,8 @@ legend(x=-1.15,y=-.85, legend = c("Swedish Legislation","EU Legislation", "Danis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
-##
+
+### Now subset via the query search term ###
 
 
 dk.searchkey <-
@@ -571,13 +574,12 @@ EUlinks.terms <-
     TRUE ~ "DK")) %>%
   left_join(., search.key, by=c("from"="doc.id"))
 
+# --- Fisheries network --- #
 
 EUlinks.fisheries <- 
   EUlinks.terms %>% filter(search.term == "fiske" |
                              search.term ==  "fiskeri") %>%
   select(from,to)
-
-
 
 
 fisheries.vertices <- 
@@ -593,10 +595,10 @@ V(network.f)$color <- col[as.numeric(as.factor(V(network.f)$source))]
 degree <- degree(network.f)
 
 median(degree)
-#2
+#1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#     1    1    2    3    9   47 
+#    1    1    1    3    9   47  
 
 l.f <- layout.fruchterman.reingold(network.f)
 sort(degree)
@@ -620,14 +622,12 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
-# HUNTING NETWORK
+# --- Hunting network --- #
+
 EUlinks.hunting <- 
   EUlinks.terms %>% filter(search.term == "jakt" |
                              search.term ==  "jagt") %>%
   select(from,to)
-
-
-
 
 hunting.vertices <- 
   vertices %>%
@@ -669,14 +669,13 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
-# maritime NETWORK
+
+# --- maritime traffic network --- #
+
 EUlinks.maritime <- 
   EUlinks.terms %>% filter(search.term == "sjofart" |
                              search.term ==  "sotrafik") %>%
   select(from,to)
-
-
-
 
 maritime.vertices <- 
   vertices %>%
@@ -694,7 +693,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#    1.0  1.0  1.0  2.0  6.1 63.0
+#    1.0  1.0  1.0  2.0 6.05 63.0
 
 l.m <- layout.fruchterman.reingold(network.m)
 sort(degree)
@@ -718,6 +717,10 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
+# ---plot them all together ---#
+
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/DKSEeu.subset.networks.png",
+       width = 1500, height = 1500)
 
 par(mfrow=c(2,2))
 
@@ -736,6 +739,10 @@ plot(network.h,
 )
 title("Hunting",cex.main=1)
 
+legend(x=.65,y=-.95, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+       
+       col=col, pt.bg=col, pt.cex=2, cex=1, bty="n", ncol=1)
+
 plot(network.m,
      vertex.label=ifelse(degree(network.m) >=6.1 & V(network.m)$source == "DK",
                          V(network.m)$name,NA),
@@ -751,6 +758,10 @@ plot(network.m,
 )
 title("Maritime Traffic",cex.main=1)
 
+
+#legend(x=-1.15,y=-.95, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+#       
+#       col=col, pt.bg=col, pt.cex=2, cex=1, bty="n", ncol=1)
 
 plot(network.f,
      vertex.label=ifelse(degree(network.f) >=9 & V(network.f)$source == "EU",
@@ -768,7 +779,31 @@ plot(network.f,
 title("Fisheries",cex.main=1)
 
 
-legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
-       
-       col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+#legend(x=.65,y=-.95, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+#       
+#      col=col, pt.bg=col, pt.cex=2, cex=1, bty="n", ncol=1)
+
+dev.off()
+
+
+### trying ribbon plot ###
+
+# get data in the right formate
+EUlinks.terms %>%
+  mutate(search.term = case_when( search.term == "jakt"~ "hunting",
+                                  search.term == "jagt"~ "hunting",
+                                  search.term == "fiske"~ "fisheries",
+                                  search.term == "fiskeri"~ "fisheries",
+                                  search.term == "sjofart"~ "maritime traffic",
+                                  search.term == "sotrafik"~ "maritime traffic")) %>%
+  group_by(to, country, search.term) %>%
+  summarise(n=n_distinct(from)) %>%
+  ggplot(.,
+       aes(y = n, axis1 = search.term, axis2 = to)) +
+  geom_alluvium(aes(fill = country), width = 1/12) +
+  geom_stratum(width = 1/12) +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum)),
+            reverse = FALSE) +
+  facet_wrap(~ search.term, scales = "fixed") 
+
 
