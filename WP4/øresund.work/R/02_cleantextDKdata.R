@@ -45,6 +45,9 @@ DK.text.ref <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Univ
 # Our document-data key
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
+document.key.df <- 
+  document.key.df %>%
+  filter(!is.na(celex))
 
 #  lets make it into a df to use -----------------------------------------------
 
@@ -155,6 +158,7 @@ DK.EU.links <-
 n_distinct(DK.EU.links$retsinfo.url) # 450 DK documents link to EU legal acts
 n_distinct(DK.EU.links$EU.link.CELEX) # in total DK documents relates to 244 EU legal acts
 
+
 DK.EU.links1 <-
   DK.EU.links %>%
   left_join(.,document.key.df, by = c("EU.link.CELEX" = "celex"))
@@ -164,23 +168,21 @@ n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
 unique(DK.EU.links1$resource.type)
 #in the proposal we are only looking into documents linking to 
 # Directives, Regulations, Decisions, and recommendations
-DK.EU.links1 <- 
-  DK.EU.links1 %>%
-  filter(resource.type == "DIR" |
-         resource.type == "REG" |
-         resource.type == "DEC" |
-         resource.type == "RECO")
+# looks fin... nas are those that dont have a celex linkage...
 
-n_distinct(DK.EU.links1$retsinfo.url) #445 dk documents are linked to an EU legislation
-n_distinct(DK.EU.links1$EU.link.CELEX) # 235 EU legislation is linked
+n_distinct(DK.EU.links1$retsinfo.url) #450 dk documents are linked to an EU legislation
+n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
 unique(DK.EU.links1$resource.type)
 
 # which keywords link to which EU documents:
 DK.EU.links2 <- 
-  DK.text.df3 %>%
-  select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,sæl,fugle) %>%
+  DK.text.df4 %>%
+  select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,rekreative,lystfiske, fritidsfiske, sæl,fugle,boat.traffic) %>%
   distinct(url, .keep_all = TRUE) %>%
-  right_join(.,DK.EU.links1, by = c("url" = "retsinfo.url"))
+  left_join(.,DK.EU.links1, by = c("url" = "retsinfo.url"))
+
+n_distinct(DK.EU.links2$url) #1212 dk documents 
+n_distinct(DK.EU.links2$EU.link.CELEX) # 244 EU legislation is linked
 
 # Save -------
 
