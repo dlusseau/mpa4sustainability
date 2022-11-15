@@ -21,6 +21,12 @@ require("graphics")
 DKEUlinks <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKEUlinks.csv")
 SEEUlinks <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02SE.EU.links.csv")
 
+# Our document-data key
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+
+document.key.df <- 
+  document.key.df %>%
+  filter(!is.na(celex))
 
 ################################################################################
 ###########################        DENMARK         #############################
@@ -60,7 +66,7 @@ dk.vertices <-
 
 vertices <- rbind(dk.vertices,eu.vertices)
 
-network <- graph_from_data_frame(d=DKEUlinks1, directed = FALSE, vertices = vertices)
+network <- graph_from_data_frame(d=DKEUlinks1, directed = TRUE, vertices = vertices)
 print(network, e=TRUE, v=TRUE)
 
 library(RColorBrewer)
@@ -136,7 +142,7 @@ summary(network.degree)
 
 
 # betweenness
-network.betweenness<-betweenness(network, directed = FALSE, normalized=TRUE)
+network.betweenness<-betweenness(network, directed = TRUE, normalized=TRUE)
 
 summary(network.betweenness)
 
@@ -468,7 +474,7 @@ SE.vertices <-
 
 vertices <- rbind(SE.vertices,eu.vertices2)
 
-network <- graph_from_data_frame(d=SEEUlinks1, directed = FALSE, vertices = vertices)
+network <- graph_from_data_frame(d=SEEUlinks1, directed = TRUE, vertices = vertices)
 print(network, e=TRUE, v=TRUE)
 
 
@@ -509,7 +515,7 @@ EUlinks <- rbind(SEEUlinks1,DKEUlinks1)
 vertices <- rbind(SE.vertices,eu.vertices2,dk.vertices,eu.vertices) %>% distinct()
 
 
-network <- graph_from_data_frame(d=EUlinks, directed = FALSE, vertices = vertices)
+network <- graph_from_data_frame(d=EUlinks, directed = TRUE, vertices = vertices)
 
 print(network, e=TRUE, v=TRUE)
 
@@ -525,10 +531,9 @@ median(degree)
 #2
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#     1    1    2    3   11   85 
+# 1.0  1.0  2.0  3.0 10.8 85.0 
 
 l <- layout.fruchterman.reingold(network)
-l <- layout.circle(network)
 sort(degree)
 
 plot(network,
@@ -549,6 +554,61 @@ legend(x=-1.15,y=-.85, legend = c("Swedish Legislation","EU Legislation", "Danis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
+
+#############
+
+# this can be turned into an adjacency matrix...
+adj.EUlinks <- inner_join(SEEUlinks1,DKEUlinks1, by = "to") %>% 
+  select(-to) %>%
+  mutate(link=1) %>%
+  group_by(from.x, from.y) %>%
+  summarise(n=sum(link))
+mutate(from.x = as.factor(from.x))%>%
+  mutate(from.y = as.factor(from.y))
+
+adj.matrix <- 
+  adj.EUlinks %>%
+  pivot_wider(names_from = from.y, values_from = n, values_fill=0)
+
+adj.dk.vertices <- 
+  dk.vertices %>%
+  filter(vertices %in% adj.EUlinks$from.y)
+
+adj.se.vertices <- 
+  SE.vertices %>%
+  filter(vertices %in% adj.EUlinks$from.x)
+
+adj.vertices <- rbind(adj.se.vertices,adj.dk.vertices )
+
+adj.EUlinks <- 
+  adj.EUlinks %>% rename("from" = "from.x",
+                          "to" = "from.y")
+
+network <- graph_from_data_frame(d=adj.EUlinks, directed = FALSE, vertices = adj.vertices)
+l <- layout.fruchterman.reingold(network)
+
+col <- c("#d1050c", "#004B87")
+V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
+# DK doc are the red ones...
+degree <- degree(network)
+
+median(degree)
+#2
+quantile(degree,probs = c(0,.25,.5,.75,.95,1))
+
+plot(network,
+     edge.width=E(network)$n,
+     
+     vertex.label=ifelse(degree(network) >=13 ,
+                         V(network)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = 1,
+     vertex.size= 3,
+     vertex.label.color = "black",
+     #  vertex.size=degree,
+     vertex.label.family = "sans",
+     layout = l
+)
 
 ### Now subset via the query search term ###
 
@@ -587,7 +647,7 @@ fisheries.vertices <-
   filter(vertices %in% EUlinks.fisheries$from |
            vertices %in% EUlinks.fisheries$to  )
 
-network.f <- graph_from_data_frame(d=EUlinks.fisheries, directed = FALSE, vertices = fisheries.vertices)
+network.f <- graph_from_data_frame(d=EUlinks.fisheries, directed = TRUE, vertices = fisheries.vertices)
 
 
 col <- c( "#d1050c", "#FFCC00","#004B87")
@@ -622,6 +682,45 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
+# fisheries network stats ----------------------------------
+
+# degree_in and degree_out
+# "The degree of a vertex is its most basic structural property, the number of its adjacent edges." -- CRAN PDF
+fisheries.degree.in<-degree(network.f,mode="in")
+fisheries.degree.out<-degree(network.f,mode="out")
+
+plot(fisheries.degree.in ~ fisheries.degree.out)
+
+# betweenness
+# "The vertex and edge betweenness are (roughly) defined by the (shortest paths) going through a vertex or an edge." -- CRAN PDF
+# larger value means a greater bottleneck for the control of information passing between nodes.
+fisheries.betweenness<-betweenness(network.f,directed = TRUE, normalized=TRUE) # normalized so we can compare to different size networks later
+summary(fisheries.betweenness)
+
+plot(fisheries.degree.in ~ fisheries.betweenness)
+plot(fisheries.degree.out ~ fisheries.betweenness )
+
+# module
+# as we have multiple components in the network we first need to identify components
+# first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
+
+fisheries.comp.weak<-components(network.f,mode="weak")
+table(fisheries.comp.weak$membership) # 38 clusters 
+
+fisheries.network.df<-data.frame(name= V(network.f)$name,
+                      degree.in=fisheries.degree.in,
+                      degree.out=fisheries.degree.out,
+                      betweenness=fisheries.betweenness,
+                      component=as.numeric(membership(fisheries.comp.weak))) %>%
+  mutate(search.term = "fisheries" )
+
+
+
+rownames(fisheries.network.df) <- NULL
+
+head(fisheries.network.df)
+
+
 # --- Hunting network --- #
 
 EUlinks.hunting <- 
@@ -634,7 +733,7 @@ hunting.vertices <-
   filter(vertices %in% EUlinks.hunting$from |
            vertices %in% EUlinks.hunting$to  )
 
-network.h <- graph_from_data_frame(d=EUlinks.hunting, directed = FALSE, vertices = hunting.vertices)
+network.h <- graph_from_data_frame(d=EUlinks.hunting, directed = TRUE, vertices = hunting.vertices)
 
 
 col <- c( "#d1050c", "#FFCC00","#004B87")
@@ -669,6 +768,42 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
+# hunting network stats ----------------------------------
+
+# degree_in and degree_out
+# "The degree of a vertex is its most basic structural property, the number of its adjacent edges." -- CRAN PDF
+hunting.degree.in<-degree(network.h,mode="in")
+hunting.degree.out<-degree(network.h,mode="out")
+
+plot(hunting.degree.in ~ hunting.degree.out)
+
+# betweenness
+# "The vertex and edge betweenness are (roughly) defined by the (shortest paths) going through a vertex or an edge." -- CRAN PDF
+# larger value means a greater bottleneck for the control of information passing between nodes.
+hunting.betweenness<-betweenness(network.h,directed = TRUE, normalized=TRUE) # normalized so we can compare to different size networks later
+summary(hunting.betweenness)
+
+plot(hunting.degree.in ~ hunting.betweenness)
+plot(hunting.degree.out ~ hunting.betweenness )
+
+# module
+# as we have multiple components in the network we first need to identify components
+# first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
+
+hunting.comp.weak<-components(network.h,mode="weak")
+table(hunting.comp.weak$membership) # 14 clusters hunting
+
+hunting.network.df<-data.frame(name= V(network.h)$name,
+                                 degree.in=hunting.degree.in,
+                                 degree.out=hunting.degree.out,
+                                 betweenness=hunting.betweenness,
+                                 component=as.numeric(membership(hunting.comp.weak))) %>%
+  mutate(search.term = "hunting" )
+
+rownames(hunting.network.df) <- NULL
+
+head(hunting.network.df)
+
 
 # --- maritime traffic network --- #
 
@@ -682,7 +817,7 @@ maritime.vertices <-
   filter(vertices %in% EUlinks.maritime$from |
            vertices %in% EUlinks.maritime$to  )
 
-network.m <- graph_from_data_frame(d=EUlinks.maritime, directed = FALSE, vertices = maritime.vertices)
+network.m <- graph_from_data_frame(d=EUlinks.maritime, directed = TRUE, vertices = maritime.vertices)
 
 
 col <- c( "#d1050c", "#FFCC00","#004B87")
@@ -699,7 +834,7 @@ l.m <- layout.fruchterman.reingold(network.m)
 sort(degree)
 
 plot(network.m,
-     vertex.label=ifelse(degree(network.m) >=6.1 & V(network.m)$source == "DK",
+     vertex.label=ifelse(degree(network.m) >=6.05 & V(network.m)$source == "DK",
                          V(network.m)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = 1,
@@ -716,6 +851,385 @@ plot(network.m,
 legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+
+
+# maritime network stats ----------------------------------
+
+# degree_in and degree_out
+# "The degree of a vertex is its most basic structural property, the number of its adjacent edges." -- CRAN PDF
+maritime.degree.in<-degree(network.m,mode="in")
+maritime.degree.out<-degree(network.m,mode="out")
+
+plot(maritime.degree.in ~ maritime.degree.out)
+
+# betweenness
+# "The vertex and edge betweenness are (roughly) defined by the (shortest paths) going through a vertex or an edge." -- CRAN PDF
+# larger value means a greater bottleneck for the control of information passing between nodes.
+maritime.betweenness<-betweenness(network.m,directed = TRUE, normalized=TRUE) # normalized so we can compare to different size networks later
+summary(maritime.betweenness)
+
+plot(maritime.degree.in ~ maritime.betweenness)
+plot(maritime.degree.out ~ maritime.betweenness )
+
+# module
+# as we have multiple components in the network we first need to identify components
+# first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
+
+maritime.comp.weak<-components(network.m,mode="weak")
+table(maritime.comp.weak$membership) # 14 clusters 
+
+maritime.network.df<-data.frame(name= V(network.m)$name,
+                               degree.in=maritime.degree.in,
+                               degree.out=maritime.degree.out,
+                               betweenness=maritime.betweenness,
+                               component=as.numeric(membership(maritime.comp.weak))) %>%
+  mutate(search.term = "maritime" )
+
+rownames(maritime.network.df) <- NULL
+
+head(maritime.network.df)
+
+
+
+# Combine all network stats:
+all.networkstats <- rbind(maritime.network.df,fisheries.network.df,hunting.network.df) %>%
+  mutate(country = case_when( str_detect(name,"sfs\\-") == "TRUE"  ~ "se" ,
+                              str_detect(name, "\\/eli\\/")== "TRUE"  ~ "dk",
+                                         TRUE  ~ "EU" ))
+
+n_distinct(all.networkstats$name) # 1025
+
+all.networkstats1 <- 
+  document.key.df%>%
+  select(celex,labels) %>%
+  distinct() %>%
+  right_join(., all.networkstats, by= c("celex" = "name")) %>%
+  rename("name" = "celex")
+
+n_distinct(all.networkstats1$name) # 1025 no losses or additions so passes the check 
+
+
+cluster.labels <- 
+  all.networkstats1 %>%
+  group_by(component, labels, search.term) %>%
+  summarise(degree.in = sum(degree.in)) %>%
+  filter(!is.na(labels))
+
+
+cluster.labels1 <- 
+  all.networkstats1 %>%
+  group_by(component, search.term) %>%
+  summarise( cluster.countries = paste0(unique(country), collapse = ", ")) %>%
+  right_join(.,cluster.labels, by = c("component", "search.term") )
+
+unique(cluster.labels1$cluster.countries)
+
+# fisheries clusters that contain at least all three country sources
+fp.1 <- 
+  cluster.labels1 %>%
+  filter(search.term == "fisheries") %>%
+  filter(cluster.countries == "EU, se, dk") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+  filter(component== 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+#  scale_color_manual(breaks = c( "35", "39", "34",
+#                                 "41", "1", "42", "9",
+#                                 "16", "24", "37"),
+#                     values=c(#"#80B1D3", 
+#                       "#66C2A5", 
+#                       "#984EA3", 
+##                       "#B3E2CD", #
+#                       "#FDDAEC", 
+#                       "#FDB462", 
+#                       "#A65628",
+#3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+  # facet_grid(.~cluster,  scales = "free", space = "free",
+  #          labeller = labeller(cluster = cluster.labs)) +
+#  facet_wrap(~component, nrow = 2,  scales = "free", shrink = FALSE ) #,
+           #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+fp.1
+
+fp.2 <- 
+  cluster.labels1 %>%
+  filter(search.term == "fisheries") %>%
+  filter(cluster.countries == "EU, se, dk") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+  filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+  facet_wrap(~component, ncol  = 2,  scales = "free", shrink = FALSE ) +#,
+#  labeller = labeller(cluster = cluster.labs)) +
+theme( strip.text.x = element_text(face="bold", size = 12)) 
+fp.2
+
+fp.2/fp.1
+
+
+fp.3 <- 
+  cluster.labels1 %>%
+  filter(search.term == "fisheries") %>%
+  filter(cluster.countries == "EU, se") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+#  filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+facet_wrap(~component, ncol  = 2,  scales = "free", shrink = FALSE ) +#,
+  #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+fp.3
+
+
+fp.4 <- 
+  cluster.labels1 %>%
+  filter(search.term == "fisheries") %>%
+  filter(cluster.countries == "EU, dk") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+  #  filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+facet_wrap(~component, ncol  = 4,  scales = "free", shrink = FALSE ) +#,
+  #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+fp.4
+
+# hunting 
+
+hp.1 <- 
+  cluster.labels1 %>%
+  filter(search.term == "hunting") %>%
+  filter(cluster.countries == "EU, se, dk") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+ # filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+facet_wrap(~component, ncol  = 2,  scales = "free", shrink = FALSE ) +#,
+  #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+hp.1
+
+
+
+hp.2 <- 
+  cluster.labels1 %>%
+  filter(search.term == "hunting") %>%
+  filter(cluster.countries == "EU, se") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+  # filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+facet_wrap(~component, ncol  = 3,  scales = "free", shrink = FALSE ) +#,
+  #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+hp.2
+
+hp.3 <- 
+  cluster.labels1 %>%
+  filter(search.term == "hunting") %>%
+  filter(cluster.countries == "EU, dk") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+  # filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+facet_wrap(~component, ncol  = 3,  scales = "free", shrink = FALSE ) +#,
+  #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+hp.3
+
+# maritime 
+mp.1 <- 
+  cluster.labels1 %>%
+  filter(search.term == "maritime") %>%
+  filter(cluster.countries == "EU, se, dk") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+  # filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+facet_wrap(~component, ncol  = 2,  scales = "free", shrink = FALSE ) +#,
+  #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+mp.1
+
+mp.2 <- 
+  cluster.labels1 %>%
+  filter(search.term == "maritime") %>%
+  filter(cluster.countries == "EU, se") %>%
+  group_by(component) %>%
+  slice_max(degree.in, n=25) %>%
+  # filter(component!= 1) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = degree.in, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal() +
+  #  scale_color_manual(breaks = c( "35", "39", "34",
+  #                                 "41", "1", "42", "9",
+  #                                 "16", "24", "37"),
+  #                     values=c(#"#80B1D3", 
+  #                       "#66C2A5", 
+  #                       "#984EA3", 
+  ##                       "#B3E2CD", #
+  #                       "#FDDAEC", 
+  #                       "#FDB462", 
+  #                       "#A65628",
+  #3                       "#FB9A99",
+#                       "#FB8072",
+#                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                       "#CBD5E8"))+
+# facet_grid(.~cluster,  scales = "free", space = "free",
+#          labeller = labeller(cluster = cluster.labs)) +
+facet_wrap(~component, ncol  = 3,  scales = "free", shrink = FALSE ) +#,
+  #  labeller = labeller(cluster = cluster.labs)) +
+  theme( strip.text.x = element_text(face="bold", size = 12)) 
+mp.2
 
 # ---plot them all together ---#
 
