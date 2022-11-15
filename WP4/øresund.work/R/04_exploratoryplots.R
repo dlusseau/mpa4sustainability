@@ -84,3 +84,31 @@ SEplot <-
 DKplot + SEplot + 
   plot_annotation(tag_levels = 'A')
 
+
+
+ 
+DK.metadata %>%
+  group_by(search.term, Ressort) %>%
+  summarise(n=n_distinct(url)) %>%
+  ungroup() %>%
+  mutate(Ressort = as.factor(Ressort)) %>%
+  ggplot(aes( y=n, x=Ressort)) + 
+  geom_bar(position="stack", stat="identity") +
+     facet_wrap(~search.term, ncol = 1) + 
+  theme(axis.text.x = element_text(angle=45,hjust=1),
+        strip.text.x = element_text(face="bold", size = 7),
+        title = element_text(face="bold", size = 12),
+        legend.position = "none")
+
+SE.metadata %>%
+  group_by(search.term, organ) %>%
+  summarise(n=n_distinct(doc.id)) %>%
+  ungroup() %>%
+  mutate(organ = as.factor(organ)) %>%
+  ggplot(aes( y=n, x=organ)) + 
+  geom_bar(position="stack", stat="identity") +
+  facet_wrap(~search.term, ncol = 1) + 
+  theme(axis.text.x = element_text(angle=45,hjust=1),
+        strip.text.x = element_text(face="bold", size = 7),
+        title = element_text(face="bold", size = 12),
+        legend.position = "none")
