@@ -73,28 +73,38 @@ SE.huntinglabels.bird <-
 
 
 spec.hunting.labels <- rbind(DK.huntinglabels.seals, DK.huntinglabels.bird, SE.huntinglabels.bird, SE.huntinglabels.seals)
-  
+
+
 
 cluster.labs <- c(
-  "bird"="Eurovoc descriptors for legislation mentioning bird", 
-  "seal"="Eurovoc descriptors for legislation mentioning seal"
+  "bird"="Eurovoc descriptors for legislation which mentons bird", 
+  "seal"="Eurovoc descriptors for legislation which mentons seal"
   )
 
-ggplot(
-  spec.hunting.labels,
+
+spec.hunting.labels %>%
+  group_by(hunting,country) %>%
+  slice_max(n.docs, n=20) %>%
+ggplot(.,
   aes(
     label = labels, size = n.docs,
     x = country, color = country  )
 ) +
-  geom_text_wordcloud_area() +
+  geom_text_wordcloud_area(show.legend = TRUE) +
   scale_size_area(max_size = 20) +
   theme_minimal() +
-  facet_wrap(~hunting, nrow = 2, labeller = labeller(cluster = cluster.labs)) +
+  facet_wrap(~hunting, ncol = 2, labeller = labeller(hunting = cluster.labs)) +
   scale_color_manual("", 
                      breaks = c("dk", "se"),
-                     values=c("#d1050c", "#004B87")) +
-  theme(line = element_blank()) +
-  theme( strip.text.x = element_text(face="bold", size = 12))
+                     values=c(dk="#d1050c", se ="#004B87")) +
+  guides(size="none") +
+  theme(line = element_blank(),
+        axis.text.x =element_blank(),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.key.size = unit(4, 'line'),
+        strip.text.x = element_text(face="bold", size = 12),
+        legend.position = "bottom")
   
 
 
