@@ -189,11 +189,8 @@ cluster.labels <-
 l2 <- layout.fruchterman.reingold(network)
 
 plot(network.clusters, network, 
-     #vertex.label.color="black",
      vertex.shape="circle",
      vertex.label = NA,
-     # vertex.label.cex=V(Q1.terms.graph)$total.count*.05,
-    # edge.width=E(network.clusters)$n*1,
      rescale = TRUE,
      ylim=c(-.8,.85),xlim=c(-.9,.9),
      vertex.size=3,
@@ -505,7 +502,6 @@ plot(network,
      layout = l)
 #labels are those EU docs that are >= the 95% percentile for the degree number
 
-# network stats ----------------------------------
 
 ################################################################################
 ######################        SWEDEN  & DENMARK        #########################
@@ -557,15 +553,16 @@ legend(x=-1.15,y=-.85, legend = c("Swedish Legislation","EU Legislation", "Danis
 
 #############
 
-# this can be turned into an adjacency matrix...
+# this can be turned into an adjacency matrix... linking the country legislation direclty
 adj.EUlinks <- inner_join(SEEUlinks1,DKEUlinks1, by = "to") %>% 
   select(-to) %>%
   mutate(link=1) %>%
   group_by(from.x, from.y) %>%
   summarise(n=sum(link))
-mutate(from.x = as.factor(from.x))%>%
-  mutate(from.y = as.factor(from.y))
+#mutate(from.x = as.factor(from.x))%>%
+#  mutate(from.y = as.factor(from.y))
 
+library("tidyr")
 adj.matrix <- 
   adj.EUlinks %>%
   pivot_wider(names_from = from.y, values_from = n, values_fill=0)
@@ -584,23 +581,24 @@ adj.EUlinks <-
   adj.EUlinks %>% rename("from" = "from.x",
                           "to" = "from.y")
 
-network <- graph_from_data_frame(d=adj.EUlinks, directed = FALSE, vertices = adj.vertices)
-l <- layout.fruchterman.reingold(network)
+network.SEDK.adj <- graph_from_data_frame(d=adj.EUlinks, directed = FALSE, vertices = adj.vertices)
+l <- layout.fruchterman.reingold(network.SEDK.adj)
 
 col <- c("#d1050c", "#004B87")
-V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
+V(network.SEDK.adj)$color <- col[as.numeric(as.factor(V(network.SEDK.adj)$source))]
 # DK doc are the red ones...
-degree <- degree(network)
+degree <- degree(network.SEDK.adj)
 
 median(degree)
-#2
+#3
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
+# 1.00  2.00  3.00  5.25 13.05 97.00
 
-plot(network,
-     edge.width=E(network)$n,
+plot(network.SEDK.adj,
+     edge.width=E(network.SEDK.adj)$n,
      
-     vertex.label=ifelse(degree(network) >=13 ,
-                         V(network)$name,NA),
+     vertex.label=ifelse(degree(network.SEDK.adj) >=13 ,
+                         V(network.SEDK.adj)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = 1,
      vertex.size= 3,
@@ -610,7 +608,158 @@ plot(network,
      layout = l
 )
 
-### Now subset via the query search term ###
+# network stats ---------------
+
+# degree 
+network.SEDK.adj.degree<-degree(network.SEDK.adj)
+
+summary(network.SEDK.adj.degree)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1.000   2.000   3.000   5.518   5.250  97.000
+
+# betweenness
+network.SEDK.adj.betweenness<-betweenness(network.SEDK.adj, directed = TRUE, normalized=TRUE)
+
+summary(network.SEDK.adj.betweenness)
+#     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+# 0.0000000 0.0000508 0.0000508 0.0118061 0.0088919 0.4233065
+plot(network.SEDK.adj.degree ~ network.SEDK.adj.betweenness)
+
+# term clusters/groups
+# cluster_leading_eigen: 
+
+#   "Community structure detecting based on the leading eigenvector of the community matrix" 
+#   "This function tries to find densely connected subgraphs in a graph by calculating the leading nonnegative 
+#    eigenvector of the modularity matrix of the graph." - CRAN PDF
+E(network.SEDK.adj)
+
+network.SEDK.adj.clusters <-cluster_leading_eigen(network.SEDK.adj,
+                                         weights = E(network.SEDK.adj)$n)
+
+sort(table(network.SEDK.adj.clusters$membership))
+# 5 clsuters
+#  2  5  1  4  3 
+#  3 35 41 48 93 
+
+quantile(table(network.SEDK.adj.clusters$membership),probs = c(0,.25,.5,.75,.95,1))
+
+
+adj.network.df<-data.frame(name= V(network.SEDK.adj)$name,
+                                degree=network.SEDK.adj.degree,
+                                betweenness=network.SEDK.adj.betweenness,
+                                component=as.numeric(membership(network.SEDK.adj.clusters))) 
+
+rownames(adj.network.df) <- NULL
+
+head(adj.network.df)
+summary(adj.network.df)
+
+plot_dendrogram(network.SEDK.adj.clusters)
+
+plot(network.SEDK.adj.clusters, network.SEDK.adj, 
+     vertex.shape="circle",
+     vertex.label = NA,
+     rescale = TRUE,
+     ylim=c(-.8,.85),xlim=c(-.9,.9),
+     vertex.size=3
+)
+
+
+color <- rainbow(5)
+
+network.SEDK.adj1 <- network.SEDK.adj
+V(network.SEDK.adj1)$color <- color[as.numeric(as.factor(membership(network.SEDK.adj.clusters)))]
+color[membership(network.SEDK.adj1)]
+
+
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/DKSEeu.networks.clusters.png",
+    width = 1750, height = 1250)
+
+par(mfrow=c(1,2))
+
+set.seed(1)
+plot(network.SEDK.adj,
+     edge.width=E(network.SEDK.adj)$n,
+     
+     vertex.label= NA, #ifelse(degree(network.SEDK.adj) >=13.05 ,
+     #                     V(network.SEDK.adj)$name,NA),
+     vertex.frame.color = "white",
+     vertex.label.cex = .75,
+     vertex.size= 4,
+     vertex.label.color = "black",
+     vertex.label.family = "sans"
+)
+title("(A)",cex.main=2)
+
+set.seed(1)
+plot(network.SEDK.adj1, mark.groups=communities(network.SEDK.adj.clusters), #network.SEDK.adj,
+     mark.col = rainbow(5,alpha =.25),
+     edge.width=E(network.SEDK.adj1)$n,
+     mark.border = color,
+     vertex.label = NA,
+     vertex.label.cex = .75,
+     vertex.size= 4)
+title("(B)",cex.main=2)
+
+dev.off()
+
+
+# ok lets see what discussions are similar between the countries: 
+SE.adj.EUlinkscelexs <- 
+  inner_join(SEEUlinks1,DKEUlinks1, by = "to") %>% 
+  select(-from.y) %>%
+  distinct() %>%
+  rename("from" = "from.x",
+         "to" = "to")
+colnames(SE.adj.EUlinkscelexs)
+
+DK.adj.EUlinkscelexs <- 
+  inner_join(SEEUlinks1,DKEUlinks1, by = "to") %>% 
+  select(-from.x) %>% 
+  distinct() %>%
+  rename("from" = "from.y",
+         "to" = "to") %>%
+  select(from, to)
+colnames(DK.adj.EUlinkscelexs)
+
+document.label.key.df <- 
+  document.key.df %>%
+  select(celex, labels) %>%
+  distinct() 
+
+adj.network.df1 <-
+  adj.network.df %>%
+  left_join(., SE.adj.EUlinkscelexs, by = c("name" = "from")) %>%
+  left_join(., DK.adj.EUlinkscelexs, by = c("name" = "from")) %>%
+  mutate(to = coalesce(to.x,to.y)) %>%
+  select(-to.x, -to.y) %>%
+  left_join(., document.label.key.df, by = c("to" = "celex"))
+
+
+cluster.labels <- 
+  adj.network.df1 %>%
+  group_by(component,labels) %>%
+  summarise(n.country.doc = n_distinct(name))
+
+cluster.labs <- c("1" = "Cluster 1: Food health, safety, and quality", 
+                  "2" = "Cluster 2: Defense and customes",
+                  "3" = "Cluster 3: Environmnetal protection", 
+                  "4" = "Cluster 4: Energy, emissions, pollution",
+                  "5" = "Cluster 6: Sustainable fisheries")
+  
+cluster.labels %>%
+  group_by(component) %>%
+  slice_max(n.country.doc, n=20) %>%
+  mutate(component=as.factor(component)) %>%
+  ggplot(., aes( label = labels, size = n.country.doc, color = component)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 40) +
+  theme_minimal() +
+  facet_wrap(~component, nrow = 3,  scales = "free", shrink = FALSE,
+             labeller = labeller(component = cluster.labs))
+
+
+### Now subset via the query search term ### -------------------
 
 
 dk.searchkey <-
@@ -682,12 +831,26 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
+table(V(network.f)$source == "EU") #397
+table(V(network.f)$source == "DK") #155
+table(V(network.f)$source == "SE") #51
+(V(network.f)) # 603 vertices
+
+ifelse(degree(network.f) >=9 & V(network.f)$source == "EU",
+       V(network.f)$name,NA)
+
 # fisheries network stats ----------------------------------
+
+E(network.f)
+sum(degree(network.f))
 
 # degree_in and degree_out
 # "The degree of a vertex is its most basic structural property, the number of its adjacent edges." -- CRAN PDF
 fisheries.degree.in<-degree(network.f,mode="in")
 fisheries.degree.out<-degree(network.f,mode="out")
+
+sum(fisheries.degree.in)
+sum(fisheries.degree.out)
 
 plot(fisheries.degree.in ~ fisheries.degree.out)
 
@@ -767,6 +930,11 @@ plot(network.h,
 legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
+
+table(V(network.h)$source == "EU") #175
+table(V(network.h)$source == "DK") #55
+table(V(network.h)$source == "SE") #19
+(V(network.h)) # 249 vertices
 
 # hunting network stats ----------------------------------
 
@@ -853,6 +1021,11 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
 
+table(V(network.m)$source == "EU") #346 
+table(V(network.m)$source == "DK") #1
+table(V(network.m)$source == "SE") #53
+(V(network.m)) # 400 vertices
+
 # maritime network stats ----------------------------------
 
 # degree_in and degree_out
@@ -896,6 +1069,17 @@ all.networkstats <- rbind(maritime.network.df,fisheries.network.df,hunting.netwo
   mutate(country = case_when( str_detect(name,"sfs\\-") == "TRUE"  ~ "se" ,
                               str_detect(name, "\\/eli\\/")== "TRUE"  ~ "dk",
                                          TRUE  ~ "EU" ))
+all.networkstats %>% 
+  filter(search.term == "fisheries") %>% 
+  summary(.)
+
+all.networkstats %>% 
+  filter(search.term == "hunting") %>% 
+  summary(.)
+
+all.networkstats %>% 
+  filter(search.term == "maritime") %>% 
+  summary(.)
 
 n_distinct(all.networkstats$name) # 1025
 
@@ -943,7 +1127,7 @@ fp.1 <-
 #                     values=c(#"#80B1D3", 
 #                       "#66C2A5", 
 #                       "#984EA3", 
-##                       "#B3E2CD", #
+##                       "#B3E2CD", 
 #                       "#FDDAEC", 
 #                       "#FDB462", 
 #                       "#A65628",
@@ -1233,69 +1417,72 @@ mp.2
 
 # ---plot them all together ---#
 
-png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/DKSEeu.subset.networks.png",
-       width = 1500, height = 1500)
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/DKSEeu.subset.networks.png",
+       width = 1750, height = 1750)
 
 par(mfrow=c(2,2))
 
 plot(network.h,
-     vertex.label=ifelse(degree(network.h) >=4 & V(network.h)$source == "EU",
-                         V(network.h)$name,NA),
+     vertex.label= NA, #ifelse(degree(network.h) >=4 & V(network.h)$source == "EU",
+   #                      V(network.h)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = .75,
      vertex.size= 3.75,
      vertex.label.color = "black",
-     #  vertex.size=degree,
-   #  vertex.shape = ifelse(V(network.h)$source == "EU",
-    #                       "square","circle"),
+     arrow.size = .55,
+     arrow.width = .25,
      vertex.label.family = "sans",
      layout = l.h
 )
-title("Hunting",cex.main=1)
+title("(A) Hunting",cex.main=2)
 
-legend(x=.65,y=-.95, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
+legend(x=.55,y=-.95, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
        
-       col=col, pt.bg=col, pt.cex=2, cex=1, bty="n", ncol=1)
+       col=col, pt.bg=col, pt.cex=3, cex=2, bty="n", ncol=1)
 
 plot(network.m,
-     vertex.label=ifelse(degree(network.m) >=6.1 & V(network.m)$source == "DK",
-                         V(network.m)$name,NA),
+     vertex.label= NA, #ifelse(degree(network.m) >=6.1 & V(network.m)$source == "DK",
+   #                      V(network.m)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = .75,
      vertex.size= 3.75,
      vertex.label.color = "black",
-     #  vertex.size=degree,
-  #   vertex.shape = ifelse(V(network.m)$source == "EU",
-  #                         "square","circle"),
+     arrow.size = .55,
+     arrow.width = .25,
      vertex.label.family = "sans",
      layout = l.m
 )
-title("Maritime Traffic",cex.main=1)
+title("(B) Maritime Traffic",cex.main=2)
 
-
-#legend(x=-1.15,y=-.95, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
-#       
-#       col=col, pt.bg=col, pt.cex=2, cex=1, bty="n", ncol=1)
 
 plot(network.f,
-     vertex.label=ifelse(degree(network.f) >=9 & V(network.f)$source == "EU",
-                         V(network.f)$name,NA),
+     vertex.label= NA, #ifelse(degree(network.f) >=9 & V(network.f)$source == "EU",
+    #                     V(network.f)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = .75,
      vertex.size= 3.75,
      vertex.label.color = "black",
-     #  vertex.size=degree,
-   #  vertex.shape = ifelse(V(network.f)$source == "EU",
-    #                       "square","circle"),
+     arrow.size = .15,
+     arrow.width = .15,
      vertex.label.family = "sans",
      layout = l.f
 )
-title("Fisheries",cex.main=1)
+title("(C) Fisheries",cex.main=2)
 
 
-#legend(x=.65,y=-.95, legend = c("Danish Legislation", "EU Legislation","Swedish Legislation"), pch=21,
-#       
-#      col=col, pt.bg=col, pt.cex=2, cex=1, bty="n", ncol=1)
+#plot(network.SEDK.adj,
+#     edge.width=E(network.SEDK.adj)$n,
+     
+#     vertex.label= NA, #ifelse(degree(network.SEDK.adj) >=13.05 ,
+    #                     V(network.SEDK.adj)$name,NA),
+#vertex.frame.color = "white",
+ #    vertex.label.cex = .75,
+ #    vertex.size= 3.75,
+ #    vertex.label.color = "black",
+ #    vertex.label.family = "sans",
+#     layout = l
+#)
+#title("(D) All Legislation",cex.main=2)
 
 dev.off()
 
