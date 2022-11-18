@@ -8,10 +8,9 @@ Sys.setenv(LANG = "en") # change the language to english
 
 library("dplyr")
 library("stringr")
-library("igraph")
+library("ggplot")
 library("patchwork")
-library("viridis")           
-require("graphics")
+library("ggwordcloud")           
 
 # Define functions -------------------------------------------------------------
 
@@ -75,10 +74,9 @@ SE.huntinglabels.bird <-
 spec.hunting.labels <- rbind(DK.huntinglabels.seals, DK.huntinglabels.bird, SE.huntinglabels.bird, SE.huntinglabels.seals)
 
 
-
 cluster.labs <- c(
-  "bird"="Eurovoc descriptors for legislation which mentons bird", 
-  "seal"="Eurovoc descriptors for legislation which mentons seal"
+  "bird"="Top 20 Eurovoc descriptors for legislation which mentons bird", 
+  "seal"="Top 20 Eurovoc descriptors for legislation which mentons seal"
   )
 
 
@@ -171,17 +169,30 @@ SE.fishinglabels.rec <-
 
 spec.fisheries.labels <- rbind(DK.fishinglabels.com, DK.fishinglabels.rec, SE.fishinglabels.com, SE.fishinglabels.rec)
 
-spec.fisheries.labels %>%
- # filter(country == "dk") %>%
-ggplot(. ,
-  aes(
-    label = labels, size = n.docs,
-    x = fisheries, color = fisheries  )
-) +
-  geom_text_wordcloud_area() +
+x <- spec.fisheries.labels %>%
+  group_by(fisheries,country) %>%
+  slice_max(n.docs, n=10) %>%
+  ggplot(.,
+         aes(
+           label = labels, size = n.docs,
+           x = country, color = country  )
+  ) +
+  geom_text_wordcloud_area(show.legend = TRUE) +
   scale_size_area(max_size = 20) +
   theme_minimal() +
-  facet_wrap(~country, nrow = 2)
+  facet_wrap(~fisheries, nrow = 2, ) + #labeller = labeller(hunting = cluster.labs)) +
+  scale_color_manual("", 
+                     breaks = c("dk", "se"),
+                     values=c(dk="#d1050c", se ="#004B87")) +
+  guides(size="none") +
+  theme(line = element_blank(),
+        axis.text.x =element_blank(),
+        axis.title.x = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.key.size = unit(4, 'line'),
+        strip.text.x = element_text(face="bold", size = 12),
+        legend.position = "bottom")
+
 
 
 
