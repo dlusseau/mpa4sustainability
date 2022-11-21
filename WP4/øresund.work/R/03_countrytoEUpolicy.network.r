@@ -555,7 +555,7 @@ cluster.labels %>%
           #   labeller = labeller(module = cluster.labs)) +
   theme( strip.text.x = element_text(face="bold", size = 35)) 
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/sharedclusters.png", 
-       width = 127, height = 57, units = "cm",
+       width = 120, height = 95, units = "cm",
        limitsize = FALSE)
 
 adj.network.df %>%
