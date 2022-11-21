@@ -577,6 +577,7 @@ check2 <-
              is.na(celex.reg))
 
 n_distinct(check2$code)
+n_distinct(check2$doc.id)
 
 # These got deleted since idk if it is a typo or not...
 
