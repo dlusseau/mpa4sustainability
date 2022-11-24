@@ -77,6 +77,8 @@ str(DK.text.df2)
 DK.text.df3 <-
   DK.text.df2 %>%
     mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
+           spearfish1 = case_when(search.term == "fiskeri" ~ str_detect(text, "undervandsfisk|Undervandsfisk")),
+           spearfish2 = case_when(search.term == "fiskeri" ~ str_detect(text, "undervandsjagt|Undervandsjagt")),
            kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk|Kommercielt fisk")),
            erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk|Erhvervsmæssigt fisk")),
            erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfisk|Erhvervsfisk")),
@@ -101,6 +103,12 @@ DK.text.df3 %>% summarise(n=n_distinct(url))
     
 DK.text.df3 %>%
   filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1011 fisheries documents mention harpun
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & spearfish1 == "TRUE") # 3 out of 1011 fisheries documents mention harpun
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & spearfish2 == "TRUE") # 0 out of 1011 fisheries documents mention harpun
 
 DK.text.df3 %>%
   filter(search.term == "fiskeri" & kommercielt == "TRUE") # 3 out of 1011 fisheries documents mention kommercielt fisk
@@ -168,7 +176,7 @@ n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
 unique(DK.EU.links1$resource.type)
 #in the proposal we are only looking into documents linking to 
 # Directives, Regulations, Decisions, and recommendations
-# looks fin... nas are those that dont have a celex linkage...
+# looks fine... nas are those that dont have a celex linkage...
 
 n_distinct(DK.EU.links1$retsinfo.url) #450 dk documents are linked to an EU legislation
 n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
