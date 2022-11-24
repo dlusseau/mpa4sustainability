@@ -96,6 +96,7 @@ n_distinct(SEmeta.dk$id)
 SEtext.dk1 <-
   SEtext.dk %>%
   mutate(harpun = case_when(search.term == "fiske" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
+         harpun2 = case_when(search.term == "fiske" ~ str_detect(text, "undervattensjakt|Undervattensjakt")),
          commercial = case_when(search.term == "fiske" ~ str_detect(text, "yrkesfisk|Yrkesfisk")),
          recreational = case_when(search.term == "fiske" ~ str_detect(text, "fritidsfisk|Fritidsfisk")), 
          angling = case_when(search.term == "fiske" ~ str_detect(text, "handredskapsfisk|Handredskapsfisk")), 
@@ -121,6 +122,9 @@ SEtext.dk1 %>%
 
 SEtext.dk1 %>%
   filter(search.term == "fiske" & harpun == "TRUE") # 0 mention harpun
+
+SEtext.dk1 %>%
+  filter(search.term == "fiske" & harpun2 == "TRUE") # 0 mention harpun
 
 SEtext.dk1 %>%
   filter(search.term == "fiske" & commercial == "TRUE") # 26 fisheries documents mention yrkesfisk
@@ -153,8 +157,8 @@ SEtext.dk1 %>%
 SEtext.dk1 %>%
   select(-text) %>%
   #mutate(doc.id=as.factor(doc.id)) %>%
-  left_join(.,SEmeta.dk, by = c("doc.id"="dok_id", "search.term") ) %>%
-  write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv", row.names=FALSE)
+  left_join(.,SEmeta.dk, by = c("doc.id"="dok_id", "search.term") )# %>%
+ # write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv", row.names=FALSE)
 
 # Getting Eurlex links ---------------------------------------------------------
 
@@ -359,7 +363,7 @@ regulation.titles.cut <-
   mutate(title4 = str_replace(title3,"No\\.", "No")) %>%
   mutate(title5 = str_replace(title3,"no\\.", "No")) %>%
   mutate(title6 = str_replace(title5,"\\(\\sEEC\\)", "\\(EEC\\)")) %>%
-  mutate(title7 = str_replace(title6,"\\(EEC ", "\\(EEC\\)")) %>%
+  mutate(title7 = str_replace(title6,"\\(EEC ", "\\(EEC\\)")) %>% # cleanest full title!
   mutate(title8 = str_trunc(title7,75,side = c("right")),
          title9 = str_replace_all(title8,"\\(\\sEEC\\s\\)", "\\(EEC\\)")) %>%
   mutate(code =  str_extract(title9, "\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|regulation\\sNo\\s[:digit:]+(?=\\s)")) %>%
@@ -372,8 +376,8 @@ regulation.titles1 <-
 
 regulation.removalcodes <-
   regulation.titles.cut %>%
-  select(title9,code,type,celex) %>%
-  mutate(titles.woCode =  str_remove(.$title9, .$code)) %>%
+  select(title7,code,type,celex) %>%
+  mutate(titles.woCode =  str_remove(.$title7, .$code)) %>%
   mutate(codes.to.remove =  str_extract_all(titles.woCode, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|\\([:alpha:]+\\)\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EEC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|EC+\\sNo\\s[:digit:]+/[:digit:]+(?!/)|No\\s[:digit:]+/[:digit:]+/[:alpha:]+|regulation\\sNo\\s[:digit:]+(?=\\s)|[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")) %>%
   unnest(codes.to.remove) %>%
   select(celex,code,codes.to.remove,type)
@@ -539,7 +543,7 @@ check1 <-
   EU.links7 %>%
   filter(type=="reg" & is.na(celex.reg))%>%
   mutate(code = as.factor(code)) 
-
+# one of these codes is a mistake and the others are not regulatiosn so they are cleaned out below: 
 unique(check1$code)
 
 EU.links8 <-
@@ -653,7 +657,7 @@ EU.links11 <-
   
 text1 <- 
   EU.links11 %>%
-  mutate(doc.sentence.id = paste(doc.id,element_id,sentence_id, sep = "_"))
+  mutate(doc.sentence.id = paste(doc.id,element_id, sep = "_")) # ok so if a bad code is in the same document then it is removed. We assume that if it references the amending or repealing legislation the "bad codes are not directly referenced anymore"
 
 se.doc<-unique(text1$doc.sentence.id)
 
@@ -692,7 +696,7 @@ for (i in 2:length(se.doc)) {
   
 }
   
-## stop here and finish everthing tomorrow :) Nov. 11th when I have the big screen. 
+
 
 ## final df
 
@@ -701,7 +705,7 @@ cleantext.df2 <-
   select(-text, -search.term, -country)
 
 n_distinct(cleantext.df2$doc.id) # 123 SE documents are linked to an EU legislation
-n_distinct(cleantext.df2$celex) # 528 EU legislation is linked
+n_distinct(cleantext.df2$celex) # 404 EU legislation is linked
 unique(cleantext.df2$type)
 
 # which keywords link to which EU documents:
@@ -716,7 +720,7 @@ SE.EU.links <-
 
 
 n_distinct(SE.EU.links$doc.id) # 123 SE documents are linked to an EU legislation
-n_distinct(SE.EU.links$celex) # 528 EU legislation is linked
+n_distinct(SE.EU.links$celex) # 404 EU legislation is linked
 
 write.csv(SE.EU.links, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02SE.EU.links.csv", row.names=FALSE)
 
