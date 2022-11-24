@@ -13,6 +13,10 @@ library("viridis")
 require("graphics")
 library("tidyr")
 library("tibble")
+library("ggplot2")
+library("ggwordcloud")
+library("patchwork")
+library("kableExtra")
 
 # Define functions -------------------------------------------------------------
 
@@ -86,12 +90,16 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 l.dk <- layout.fruchterman.reingold(dkeu.network)
 sort(degree)
 
+table(V(dkeu.network)$source == "EU") #243
+table(V(dkeu.network)$source == "DK") #211
+(V(dkeu.network)) # 454 vertices
+
+
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/DK.eu.network.png",
     width = 1500, height = 1675)
 
 plot(dkeu.network,
-     vertex.label=ifelse(degree(dkeu.network) >=7 & V(dkeu.network)$source == "EU",
-                         V(dkeu.network)$name,NA),
+     vertex.label= NA, 
      vertex.frame.color = "white",
      vertex.label.cex = 1,
      vertex.size= 3.5,
@@ -156,6 +164,30 @@ DKEU.CELEX.networkstats <-
                nested.normalised=TRUE)
 
 summary(DKEU.CELEX.networkstats)
+# Min.   : 1.000   Min.   :0.00   Min.   :0.6143  
+#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9952  
+#Median : 1.000   Median :0.50   Median :1.0000  
+#Mean   : 2.498   Mean   :0.50   Mean   :0.9929  
+#3rd Qu.: 2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :82.000   Max.   :1.00   Max.   :1.0000  
+
+DKEU.CELEX.networkstats %>%
+  slice_max(., order_by = nestedrank, n=1)
+#            degree nestedrank PDI
+#32009L0119      1          1   1 # most specialized
+
+DKEU.CELEX.networkstats %>%
+  slice_max(., order_by = PDI, n=1) # specalist
+
+DKEU.CELEX.networkstats %>%
+  slice_min(., order_by = nestedrank, n=1)
+#            degree  nestedrank       PDI # most generalized
+#31992L0043     82          0 0.6142857
+
+
+DKEU.CELEX.networkstats %>%
+  slice_min(., order_by = PDI, n=1)
+# 31992L0043     82          0 0.6142857
 
 
 DKEU.COUNTRY.networkstats <- 
@@ -165,6 +197,12 @@ DKEU.COUNTRY.networkstats <-
                nested.normalised=TRUE)
 
 summary(DKEU.COUNTRY.networkstats)       
+# Min.   : 1.000   Min.   :0.00   Min.   :0.9174  
+#1st Qu.: 1.500   1st Qu.:0.25   1st Qu.:0.9917  
+#Median : 2.000   Median :0.50   Median :0.9959  
+#Mean   : 2.877   Mean   :0.50   Mean   :0.9922  
+#3rd Qu.: 3.000   3rd Qu.:0.75   3rd Qu.:0.9979  
+#Max.   :21.000   Max.   :1.00   Max.   :1.0000 
 
 ################################################################################
 ###########################        SWEDEN          #############################
@@ -182,7 +220,7 @@ SEEUlinks1 <-
 n_distinct(SEEUlinks1$from)
 # 123 dk documents link to an EU doc
 n_distinct(SEEUlinks1$to)
-# 528 EU legal acts link 
+# 404 EU legal acts link 
 
 
 eu.vertices2 <- 
@@ -216,7 +254,7 @@ sort(degree)
 
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#   1    1     1    3     11    63 
+#   1    1    1    2    9   31 
 
 
 l.se <- layout.fruchterman.reingold(seeu.network)
@@ -254,12 +292,17 @@ SEEU.CELEX.networkstats <-
                nested.normalised=TRUE)
 
 summary(SEEU.CELEX.networkstats)
+#Min.   : 1.000   Min.   :0.00   Min.   :0.9262  
+#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9918  
+#Median : 1.000   Median :0.50   Median :1.0000  
+#Mean   : 1.547   Mean   :0.50   Mean   :0.9955  
+#3rd Qu.: 2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :10.000   Max.   :1.00   Max.   :1.0000  
 
 SEEU.CELEX.networkstats %>%
   slice_max(., order_by = nestedrank, n=1)
-#            degree nestedrank PDI
-#32013R0098      1  1.0000000   1 # most specialized
-# Marketing and use of explosives precursors
+#              degree nestedrank PDI
+# 32019R1148      1          1   1 # most specialized
 
 SEEU.CELEX.networkstats %>%
   slice_max(., order_by = PDI, n=1) # specalist
@@ -267,13 +310,12 @@ SEEU.CELEX.networkstats %>%
 SEEU.CELEX.networkstats %>%
   slice_min(., order_by = nestedrank, n=1)
 #            degree  nestedrank       PDI # most generalized
-#31999L0045     12 0.000000000 0.9098361
-# Classification, packaging and labelling of dangerous preparations
+#32016R0679     10          0 0.9262295
 
 
 SEEU.CELEX.networkstats %>%
   slice_min(., order_by = PDI, n=1)
-# 31999L0045     12          0 0.9098361
+# 32016R0679     10          0 0.9262295
 
 
 SEEU.COUNTRY.networkstats <- 
@@ -283,7 +325,12 @@ SEEU.COUNTRY.networkstats <-
                nested.normalised=TRUE)
 
 summary(SEEU.COUNTRY.networkstats)
-
+# Min.   : 1.000   Min.   :0.00   Min.   :0.9256  
+#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9876  
+#Median : 2.000   Median :0.50   Median :0.9975  
+#Mean   : 5.081   Mean   :0.50   Mean   :0.9899  
+#3rd Qu.: 6.000   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :31.000   Max.   :1.00   Max.   :1.0000  
 
 ## plot them side-by-side for the report -----------------
 
@@ -344,23 +391,22 @@ print(network, e=TRUE, v=TRUE)
 
 library(RColorBrewer)
 
-col <- c("#004B87", "#FFCC00", "#d1050c")
+col <- c("#d1050c", "#FFCC00", "#004B87")
 V(network)$color <- col[as.numeric(as.factor(V(network)$source))]
 # DK doc are the red ones...
 degree <- igraph::degree(network)
 
 median(degree)
-#2
+#1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-# 1.0  1.0  2.0  3.0 10.8 85.0 
+#  1    1    1    2    9   85 
 
 l <- layout.fruchterman.reingold(network)
 sort(degree)
 
 plot(network,
-     vertex.label=ifelse(igraph::degree(network) >=85 & V(network)$source == "EU",
-                         V(network)$name,NA),
+     vertex.label= NA,
      vertex.frame.color = "white",
      vertex.label.cex = 1,
      vertex.size= 2,
@@ -385,8 +431,10 @@ adj.EUlinks <- inner_join(SEEUlinks1,DKEUlinks1, by = "to") %>%
   mutate(link=1) %>%
   group_by(from.x, from.y) %>%
   summarise(n=sum(link))
-#mutate(from.x = as.factor(from.x))%>%
-#  mutate(from.y = as.factor(from.y))
+
+summary(adj.EUlinks$n)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#1.00    1.00    1.00    1.37    2.00    3.00 
 
 adj.matrix <- 
   adj.EUlinks %>%
@@ -417,7 +465,7 @@ degree <- igraph::degree(network.SEDK.adj)
 median(degree)
 #3
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
-# 1.00  2.00  3.00  5.25 13.05 97.00
+#   1    2    3    4   11   89 
 
 plot(network.SEDK.adj,
      edge.width=E(network.SEDK.adj)$n,
@@ -441,8 +489,9 @@ adj.matrix <-
   adj.matrix %>%
   column_to_rownames(var = "from.x") 
 
-#SEDK.modules <- computeModules(adj.matrix) #ran nov. 22, 2022
+#SEDK.modules <- computeModules(adj.matrix) #ran nov. 24, 2022
 #saveRDS(SEDK.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS") 
+
 SEDK.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS")
 plotModuleWeb(SEDK.modules)
 
@@ -453,11 +502,11 @@ mod.4 <- listModuleInformation(SEDK.modules)[[2]][[4]] %>% unlist()
 mod.5 <- listModuleInformation(SEDK.modules)[[2]][[5]] %>% unlist()
 mod.6 <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist()
 mod.7 <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist()
-mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist()
+#mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist()
 
 modules <- list(mod.1, mod.2, mod.3, mod.4,
-                 mod.5, mod.6, mod.7, mod.8)
-names(modules) <- c("1","2","3","4","5","6","7","8")
+                 mod.5, mod.6, mod.7)
+names(modules) <- c("1","2","3","4","5","6","7")
 
 plotModuleWeb(SEDK.modules, labsize = .55)
 
@@ -476,7 +525,59 @@ l.SEDK.networkstats <-
                nested.normalised=TRUE)
 
 summary(h.SEDK.networkstats) # dk
+#degree         nestedrank        PDI        
+#  Min.   : 1.000   Min.   :0.00   Min.   :0.8922  
+#1st Qu.: 2.000   1st Qu.:0.25   1st Qu.:0.9608  
+#Median : 3.000   Median :0.50   Median :0.9706  
+#Mean   : 3.229   Mean   :0.50   Mean   :0.9694  
+#3rd Qu.: 4.000   3rd Qu.:0.75   3rd Qu.:0.9804  
+#Max.   :12.000   Max.   :1.00   Max.   :1.0000   
+
+
+h.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=1)
+#                     has    degree nestedrank PDI
+# /eli/lta/2022/1207      1          1   1 # most specialized
+
+h.SEDK.networkstats %>%
+  slice_max(., order_by = PDI, n=1) # specalist
+
+h.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=1)  # generalist
+#              degree nestedrank PDI
+# /eli/lta/2022/100     12          0 0.8954248
+
+h.SEDK.networkstats %>%
+  slice_min(., order_by = PDI, n=1) # # generalist
+
 summary(l.SEDK.networkstats) # se
+# Min.   : 1.00   Min.   :0.00   Min.   :0.6623  
+#1st Qu.: 1.75   1st Qu.:0.25   1st Qu.:0.9605  
+#Median : 4.00   Median :0.50   Median :0.9857  
+#Mean   : 9.50   Mean   :0.50   Mean   :0.9639  
+#3rd Qu.: 8.50   3rd Qu.:0.75   3rd Qu.:0.9967  #
+#Max.   :89.00   Max.   :1.00   Max.   :1.0000  
+
+
+
+l.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=1)
+#                     has    degree nestedrank PDI
+# sfs-2021-194      1          1   1  # most specialized
+
+l.SEDK.networkstats %>%
+  slice_max(., order_by = PDI, n=1) # specalist
+
+
+l.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=1)  # generalist
+#              degree nestedrank PDI
+# sfs-1998-808     89          0 0.6622807
+
+l.SEDK.networkstats %>%
+  slice_min(., order_by = PDI, n=1) # # generalist
+# sfs-1998-808     89          0 0.6622807 
+
 
 SEDK.networkstats <- 
   rbind(l.SEDK.networkstats,h.SEDK.networkstats) %>%
@@ -506,7 +607,7 @@ title("(A)",cex.main=2)
 
 set.seed(1)
 plot(network.SEDK.adj1, mark.groups=modules, #network.SEDK.adj,
-     mark.col = rainbow(8,alpha =.25),
+     mark.col = rainbow(7,alpha =.25),
      mark.border=NA,
      edge.width=E(network.SEDK.adj1)$n,
      vertex.label = NA,
@@ -548,10 +649,10 @@ df.mod.4 <- listModuleInformation(SEDK.modules)[[2]][[4]] %>% unlist() %>% as.da
 df.mod.5 <- listModuleInformation(SEDK.modules)[[2]][[5]] %>% unlist() %>% as.data.frame() %>% mutate(module="5")
 df.mod.6 <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist() %>% as.data.frame() %>% mutate(module="6")
 df.mod.7 <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist() %>% as.data.frame() %>% mutate(module="7")
-df.mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist() %>% as.data.frame() %>% mutate(module="8")
+#df.mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist() %>% as.data.frame() %>% mutate(module="8")
 
 df.modules <- rbind(df.mod.1, df.mod.2, df.mod.3, df.mod.4,
-                df.mod.5, df.mod.6, df.mod.7, df.mod.8)
+                df.mod.5, df.mod.6, df.mod.7)
 
 adj.network.df1 <-
   SEDK.networkstats %>%
@@ -562,19 +663,72 @@ adj.network.df1 <-
   left_join(., document.label.key.df, by = c("to" = "celex")) %>%
   left_join(., df.modules, by = c("name" = ".")) 
 
+adj.network.df1 %>%
+  distinct(name,to,module) %>%
+  group_by(module,to) %>%
+  summarise(n=n_distinct(name)) %>%
+  group_by(module) %>%
+  filter(n == max(n))
+# 1      32017R0625     8
+#2 2      32011L0092    12
+#3 3      32013R1303    15
+#4 4      32014R0651     6
+#5 5      31992L0043    75
+#6 6      32018L2001     9
+#7 7      32002L0059     4
+#8 7      32003L0087     4
+#9 7      32009L0013     4
+#10 7      32009L0016     4
+
+adj.network.df1 %>%
+  distinct(name,to,module) %>%
+  group_by(module,to) %>%
+  summarise(n=n_distinct(name)) %>%
+  group_by(module,n) %>%
+  mutate(EU.Legislation = paste0(to, collapse = ", ")) %>%
+  arrange(module,n) %>% 
+  select(-to) %>%
+  distinct() %>%
+  kable(., "latex")
+  
+
+adj.network.df1 %>%
+  distinct(to,module) %>%
+  group_by(module) %>%
+  mutate(EU.Legislation = paste0(to, collapse = ", ")) %>%
+  select(-to) %>%
+  distinct() %>%
+  arrange(module) %>% 
+  kable(., "latex")
+
+adj.network.df1 %>%
+  distinct(to,module) %>%
+  group_by(module) %>%
+  summarise(n=n_distinct(to)) 
+#  module     n
+#<chr>  <int>
+#1 1         12
+#2 2         19
+#3 3         15
+#4 4          6
+#5 5          8
+#6 6          2
+#7 7         17
+
+
+x <- adj.network.df1 %>%
+  distinct(to,module) %>%
+  group_by(to) %>%
+  summarise(n=n_distinct(module)) %>%
+  arrange(desc(n))
+
 cluster.labels <- 
   adj.network.df1 %>%
   group_by(module,labels) %>%
   summarise(n.country.doc = n_distinct(name))
 
-cluster.labs <- c("1" = "Cluster 1: Food health, safety, and quality", 
-                  "2" = "Cluster 2: Defense and customes",
-                  "3" = "Cluster 3: Environmental protection", 
-                  "4" = "Cluster 4: Energy, emissions, pollution",
-                  "5" = "Cluster 6: Sustainable fisheries")
-  
-rainbow(8,alpha =.25)
-"#FF0000" "#FFBF00" "#80FF00" "#00FF40" "#00FFFF" "#0040FF" "#8000FF" "#FF00BF"
+rainbow(7)
+#""#FF0000" "#FFDB00" "#49FF00" "#00FF92" "#0092FF" "#4900FF" "#FF00DB"
 
 MOD.1.PLOT <- 
   cluster.labels %>%
@@ -584,15 +738,11 @@ MOD.1.PLOT <-
   filter(module == "1") %>%
   ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#FF0000") +
-  ggtitle("Module 1") +
-  theme(plot.title = element_text(hjust = 0.5))
- # facet_wrap(~module, ncol = 3,  scales = "free", shrink = FALSE)#,
-          #   labeller = labeller(module = cluster.labs)) +
-  #theme( strip.text.x = element_text(face="bold", size = 35)) 
-
+  ggtitle("Module 1: Food quality, health, and safety ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.2.PLOT <- 
   cluster.labels %>%
@@ -602,11 +752,11 @@ MOD.2.PLOT <-
   filter(module == "2") %>%
   ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#FFBF00")+
-  ggtitle("Module 2") +
-  theme(plot.title = element_text(hjust = 0.5))
+  scale_color_manual(values = "#FFDB00")+
+  ggtitle("Module 2: Environmnetal impact and protection ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.3.PLOT <- 
   cluster.labels %>%
@@ -616,11 +766,11 @@ MOD.3.PLOT <-
   filter(module == "3") %>%
   ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#80FF00")+
-  ggtitle("Module 3") +
-  theme(plot.title = element_text(hjust = 0.5))
+  scale_color_manual(values = "#49FF00")+
+  ggtitle("Module 3:  Fisheries managment & policy ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.4.PLOT <- 
   cluster.labels %>%
@@ -630,11 +780,11 @@ MOD.4.PLOT <-
   filter(module == "4") %>%
   ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#00FF40") +
-  ggtitle("Module 4") +
-  theme(plot.title = element_text(hjust = 0.5))
+  scale_color_manual(values = "#00FF92") +
+  ggtitle("Module 4: Government aid ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.5.PLOT <- 
   cluster.labels %>%
@@ -644,15 +794,11 @@ MOD.5.PLOT <-
   filter(module == "5") %>%
   ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#00FFFF")+
-  ggtitle("Module 5") +
-  theme(plot.title = element_text(hjust = 0.5))
-# facet_wrap(~module, ncol = 3,  scales = "free", shrink = FALSE)#,
-#   labeller = labeller(module = cluster.labs)) +
-#theme( strip.text.x = element_text(face="bold", size = 35)) 
-
+  scale_color_manual(values = "#0092FF")+
+  ggtitle("Module 5: Species Protection & Biodiversity") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.6.PLOT <- 
   cluster.labels %>%
@@ -662,11 +808,11 @@ MOD.6.PLOT <-
   filter(module == "6") %>%
   ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#0040FF")+
-  ggtitle("Module 6") +
-  theme(plot.title = element_text(hjust = 0.5))
+  scale_color_manual(values = "#4900FF")+
+  ggtitle("Module 6: Energy resources and GHGs ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.7.PLOT <- 
   cluster.labels %>%
@@ -676,32 +822,19 @@ MOD.7.PLOT <-
   filter(module == "7") %>%
   ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#8000FF") +
-  ggtitle("Module 7") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-MOD.8.PLOT <- 
-  cluster.labels %>%
-  group_by(module) %>%
-  slice_max(n.country.doc, n=20) %>%
-  mutate(module=as.factor(module)) %>%
-  filter(module == "8") %>%
-  ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
-  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 10) +
-  theme_minimal() +
-  scale_color_manual(values = "#FF00BF") +
-  ggtitle("Module 8") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-((MOD.1.PLOT + MOD.2.PLOT )+ (MOD.3.PLOT + MOD.4.PLOT ))/ 
-((MOD.5.PLOT + MOD.6.PLOT) + (MOD.7.PLOT + MOD.8.PLOT))
+  scale_color_manual(values = "#FF00DB") +
+  ggtitle("Module 7: Vessel safety and environmental impact") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/sharedclusters.png", 
-       width = 75, height = 35, units = "cm",
+((MOD.1.PLOT + MOD.2.PLOT )+ (MOD.3.PLOT ))/ 
+(( MOD.4.PLOT +MOD.5.PLOT + MOD.6.PLOT) + (MOD.7.PLOT))
+
+
+ ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/sharedclusters.png", 
+       width = 90, height = 55, units = "cm",
        limitsize = FALSE)
 
 adj.network.df1 %>%
@@ -711,9 +844,16 @@ adj.network.df1 %>%
     str_detect(name,"sfs-") ~ "SE",
     TRUE ~ "DK")) %>%
   mutate(module = as.factor(module)) %>%
-  group_by(module) %>%
+  group_by(module,country) %>%
   summarise(n.country = n()) 
-  
+#module n.country
+#   1             20
+#2 2             26
+#3 3             34
+#4 4             15
+#5 5             77
+#6 6             12
+#7 7             21
 
 #################### Now subset via the query search term ######################
 
@@ -738,7 +878,7 @@ EUlinks.terms <-
     TRUE ~ "DK")) %>%
   left_join(., search.key, by=c("from"="doc.id"))
 
-# --- Fisheries network --- #
+# -------- Fisheries network ------------------------
 
 EUlinks.fisheries <- 
   EUlinks.terms %>% filter(search.term == "fiske" |
@@ -762,7 +902,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#    1    1    1    3    9   47  
+#      1    1    1    3    8   47 
 
 l.f <- layout.fruchterman.reingold(network.f)
 sort(degree)
@@ -786,10 +926,10 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
-table(V(network.f)$source == "EU") #397
+table(V(network.f)$source == "EU") #344
 table(V(network.f)$source == "DK") #155
 table(V(network.f)$source == "SE") #51
-(V(network.f)) # 603 vertices
+(V(network.f)) # 550 vertices
 
 ifelse(igraph::degree(network.f) >=9 & V(network.f)$source == "EU",
        V(network.f)$name,NA)
@@ -804,11 +944,11 @@ EUlinks.fisheriesmatrix <-
   pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
   column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
 
-EUfisheries.modules <- computeModules(EUlinks.fisheriesmatrix) #computed Nov 22nd, 2022 
-saveRDS(EUfisheries.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUfisheries.modules.RDS") 
+#EUfisheries.modules <- computeModules(EUlinks.fisheriesmatrix) #computed Nov 22nd, 2022 
+#saveRDS(EUfisheries.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUfisheries.modules.RDS") 
 EUfisheries.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUfisheries.modules.RDS")
-plotModuleWeb(EUfisheries.modules)
-printoutModuleInformation(EUfisheries.modules) # total modules
+plotModuleWeb(EUfisheries.modules, labsize = .5)
+printoutModuleInformation(EUfisheries.modules) # 25 total modules
 
 indices <- c( "degree","PDI","nestedrank")
 
@@ -820,16 +960,16 @@ EUfisheries.CELEX.networkstats <-
 
 summary(EUfisheries.CELEX.networkstats)
 #degree         nestedrank        PDI        
-#Min.   : 1.000   Min.   :0.00   Min.   :0.7756  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9951  
-#Median : 1.000   Median :0.50   Median :1.0000  
-#Mean   : 2.196   Mean   :0.50   Mean   :0.9942  
-#3rd Qu.: 2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :47.000   Max.   :1.00   Max.   :1.0000  
+# Min.   : 1   Min.   :0.00   Min.   :0.7756  
+#1st Qu.: 1   1st Qu.:0.25   1st Qu.:0.9951  
+#Median : 1   Median :0.50   Median :1.0000  
+#Mean   : 2   Mean   :0.50   Mean   :0.9951  
+#3rd Qu.: 2   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :47   Max.   :1.00   Max.   :1.0000 
 
 
 
-# --- Hunting network --- #
+# -------- Hunting network ------------------------------
 
 EUlinks.hunting <- 
   EUlinks.terms %>% filter(search.term == "jakt" |
@@ -852,7 +992,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#    1    1    1    2    4   60
+#    1    1    1    2    5   38
 
 l.h <- layout.fruchterman.reingold(network.h)
 sort(degree)
@@ -876,10 +1016,10 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
-table(V(network.h)$source == "EU") #175
+table(V(network.h)$source == "EU") #105
 table(V(network.h)$source == "DK") #55
 table(V(network.h)$source == "SE") #19
-(V(network.h)) # 249 vertices
+(V(network.h)) # 179 vertices
 
 # hunting network stats ----------------------------------
 
@@ -889,11 +1029,11 @@ EUlinks.huntingmatrix <-
   pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
   column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
 
-EUhunting.modules <- computeModules(EUlinks.huntingmatrix) #computed Nov 22nd, 2022 
-saveRDS(EUhunting.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUhunting.modules.RDS") 
+#EUhunting.modules <- computeModules(EUlinks.huntingmatrix) #computed Nov 22nd, 2022 
+#saveRDS(EUhunting.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUhunting.modules.RDS") 
 EUhunting.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUhunting.modules.RDS")
 plotModuleWeb(EUhunting.modules)
-printoutModuleInformation(EUhunting.modules) # total modules
+printoutModuleInformation(EUhunting.modules) # 13 total modules
 
 indices <- c( "degree","PDI","nestedrank")
 
@@ -904,14 +1044,14 @@ EUhunting.CELEX.networkstats <-
                nested.normalised=TRUE)
 
 summary(EUhunting.CELEX.networkstats)
-#Min.   : 1.000   Min.   :0.00   Min.   :0.4932  
+#  Min.   : 1.000   Min.   :0.00   Min.   :0.4932  
 #1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:1.0000  
 #Median : 1.000   Median :0.50   Median :1.0000  
-#Mean   : 1.669   Mean   :0.50   Mean   :0.9908  
+#Mean   : 1.981   Mean   :0.50   Mean   :0.9866  
 #3rd Qu.: 1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :38.000   Max.   :1.00   Max.   :1.0000
+#Max.   :38.000   Max.   :1.00   Max.   :1.0000 
 
-# --- maritime traffic network --- #
+# ------- maritime traffic network ------- 
 
 EUlinks.maritime <- 
   EUlinks.terms %>% filter(search.term == "sjofart" |
@@ -934,7 +1074,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#    1.0  1.0  1.0  2.0 6.05 63.0
+#   1.00  1.00  1.00  2.00  6.95 31.00 
 
 l.m <- layout.fruchterman.reingold(network.m)
 sort(degree)
@@ -959,10 +1099,10 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
 
-table(V(network.m)$source == "EU") #346 
+table(V(network.m)$source == "EU") #248  
 table(V(network.m)$source == "DK") #1
 table(V(network.m)$source == "SE") #53
-(V(network.m)) # 400 vertices
+(V(network.m)) # 302 vertices
 
 # maritime network stats ----------------------------------
 EUlinks.maritimematrix <- 
@@ -971,11 +1111,11 @@ EUlinks.maritimematrix <-
   pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
   column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
 
-EUmaritime.modules <- computeModules(EUlinks.maritimematrix) #computed Nov 22nd, 2022 
-saveRDS(EUmaritime.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUmaritime.modules.RDS") 
+#EUmaritime.modules <- computeModules(EUlinks.maritimematrix) #computed Nov 22nd, 2022 
+#saveRDS(EUmaritime.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUmaritime.modules.RDS") 
 EUmaritime.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUmaritime.modules.RDS")
 plotModuleWeb(EUmaritime.modules)
-printoutModuleInformation(EUmaritime.modules) # total modules
+printoutModuleInformation(EUmaritime.modules) # 21 total modules
 
 indices <- c( "degree","PDI","nestedrank")
 
@@ -986,41 +1126,12 @@ EUmaritime.CELEX.networkstats <-
                nested.normalised=TRUE)
 
 summary(EUmaritime.CELEX.networkstats)
-#  Min.   :1.000   Min.   :0.00   Min.   :0.9057  
-#st Qu.:1.000   1st Qu.:0.25   1st Qu.:0.9811  
+#  Min.   :1.000   Min.   :0.00   Min.   :0.9245  
+#1st Qu.:1.000   1st Qu.:0.25   1st Qu.:1.0000  
 #Median :1.000   Median :0.50   Median :1.0000  
-#Mean   :1.454   Mean   :0.50   Mean   :0.9914  
-#3rd Qu.:2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :6.000   Max.   :1.00   Max.   :1.0000 
-
-
-# Combine all network stats:
-all.networkstats <- rbind(maritime.network.df,fisheries.network.df,hunting.network.df) %>%
-  mutate(country = case_when( str_detect(name,"sfs\\-") == "TRUE"  ~ "se" ,
-                              str_detect(name, "\\/eli\\/")== "TRUE"  ~ "dk",
-                                         TRUE  ~ "EU" ))
-all.networkstats %>% 
-  filter(search.term == "fisheries") %>% 
-  summary(.)
-
-all.networkstats %>% 
-  filter(search.term == "hunting") %>% 
-  summary(.)
-
-all.networkstats %>% 
-  filter(search.term == "maritime") %>% 
-  summary(.)
-
-n_distinct(all.networkstats$name) # 1025
-
-all.networkstats1 <- 
-  document.key.df%>%
-  select(celex,labels) %>%
-  distinct() %>%
-  right_join(., all.networkstats, by= c("celex" = "name")) %>%
-  rename("name" = "celex")
-
-n_distinct(all.networkstats1$name) # 1025 no losses or additions so passes the check 
+#Mean   :1.355   Mean   :0.50   Mean   :0.9933  
+#3rd Qu.:1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :5.000   Max.   :1.00   Max.   :1.0000  
 
 
 # ---plot them all together ---#
@@ -1097,7 +1208,7 @@ dev.off()
 
 # Archival code ----------------------------------------------------
 
-# network stats (these are wrong since I did it as an undirected network but it is a directed network. BUT this code could be good to reference in the future if i need to do something similar later :) ----------------------------------
+# network stats (these are wrong since I did it as an undirected network but it is a directed network. BUT this code could be good to reference in the future if i need to do something similar later :) 
 
 # degree 
 network.degree<-degree(network)
@@ -1421,3 +1532,30 @@ EUlinks.terms %>%
   facet_wrap(~ search.term, scales = "fixed") 
 
 
+# Combine all network stats:
+all.networkstats <- rbind(maritime.network.df,fisheries.network.df,hunting.network.df) %>%
+  mutate(country = case_when( str_detect(name,"sfs\\-") == "TRUE"  ~ "se" ,
+                              str_detect(name, "\\/eli\\/")== "TRUE"  ~ "dk",
+                              TRUE  ~ "EU" ))
+all.networkstats %>% 
+  filter(search.term == "fisheries") %>% 
+  summary(.)
+
+all.networkstats %>% 
+  filter(search.term == "hunting") %>% 
+  summary(.)
+
+all.networkstats %>% 
+  filter(search.term == "maritime") %>% 
+  summary(.)
+
+n_distinct(all.networkstats$name) # 1025
+
+all.networkstats1 <- 
+  document.key.df%>%
+  select(celex,labels) %>%
+  distinct() %>%
+  right_join(., all.networkstats, by= c("celex" = "name")) %>%
+  rename("name" = "celex")
+
+n_distinct(all.networkstats1$name) # 1025 no losses or additions so passes the check 
