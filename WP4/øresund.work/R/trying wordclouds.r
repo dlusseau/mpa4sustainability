@@ -21,21 +21,36 @@ library("ggwordcloud")
 DKEUlinks <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKEUlinks.csv")
 SEEUlinks <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02SE.EU.links.csv")
 
-
-
+# HUNTING -------------------
 
 # seal hunting word clouds
 # term df
+
+head(DKEUlinks)
+
 DK.huntinglabels.seals <-
   DKEUlinks %>%
   filter(search.term == "jagt") %>%
   distinct(url,EU.link.CELEX, labels, .keep_all= TRUE) %>% # make sure no duplicate rows bc of multiple labeles/themes/citations
-  filter(sæl == "TRUE") %>%
+  filter(sæl == "TRUE" | 
+           sæl2 == "TRUE"  & 
+           sæl3 == "TRUE"  | 
+           sæl4 == "TRUE") %>%
   filter(!is.na(EU.link.CELEX)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(url)) %>%
+  summarise(n.doc = n_distinct(url)) %>%
   mutate(hunting = "seal")%>%
   mutate(country = "dk")
+
+DKEUlinks %>%
+  filter(search.term == "jagt") %>%
+  distinct(url,EU.link.CELEX, labels, .keep_all= TRUE) %>% # make sure no duplicate rows bc of multiple labeles/themes/citations
+  filter(sæl == "TRUE" | 
+           sæl2 == "TRUE"  & 
+           sæl3 == "TRUE"  | 
+           sæl4 == "TRUE") %>%
+  filter(!is.na(EU.link.CELEX)) %>%
+  summarise(n=n_distinct(EU.link.CELEX))
 
 DK.huntinglabels.bird <-
   DKEUlinks %>%
@@ -44,18 +59,24 @@ DK.huntinglabels.bird <-
   filter(fugle == "TRUE") %>%
   filter(!is.na(EU.link.CELEX)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(url)) %>%
+  summarise(n.doc = n_distinct(url)) %>%
   mutate(hunting = "bird")%>%
   mutate(country = "dk")
+
+head(SEEUlinks)
+
 
 SE.huntinglabels.seals <-
   SEEUlinks %>%
   filter(search.term == "jakt") %>%
   distinct(doc.id,celex, labels, .keep_all= TRUE) %>% # make sure no duplicate rows bc of multiple labeles/themes/citations
-  filter(seal == "TRUE") %>%
+  filter(seal == "TRUE" | 
+         seal2 == "TRUE" |
+         seal3 == "TRUE"|
+         seal3 == "TRUE") %>%
   filter(!is.na(celex)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(doc.id)) %>%
+  summarise(n.doc = n_distinct(doc.id)) %>%
   mutate(hunting = "seal")%>%
   mutate(country = "se")
 
@@ -66,47 +87,91 @@ SE.huntinglabels.bird <-
   filter(birdhunt == "TRUE") %>%
   filter(!is.na(celex)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(doc.id)) %>%
+  summarise(n.doc = n_distinct(doc.id)) %>%
   mutate(hunting = "bird")%>%
   mutate(country = "se")
 
 
-spec.hunting.labels <- rbind(DK.huntinglabels.seals, DK.huntinglabels.bird, SE.huntinglabels.bird, SE.huntinglabels.seals)
+seal.hunting.labels <- rbind(DK.huntinglabels.seals, SE.huntinglabels.seals)
+bird.hunting.labels <- rbind(DK.huntinglabels.bird, SE.huntinglabels.bird)
 
 
 cluster.labs <- c(
-  "bird"="Top 20 Eurovoc descriptors for legislation which mentons bird", 
-  "seal"="Top 20 Eurovoc descriptors for legislation which mentons seal"
+  "dk"="Denmark", 
+  "se"="Sweden"
   )
 
 
-spec.hunting.labels %>%
+seal.word.cloud <- 
+  seal.hunting.labels %>%
   group_by(hunting,country) %>%
-  slice_max(n.docs, n=20) %>%
+  slice_max(n.doc, n=20) %>%
 ggplot(.,
   aes(
-    label = labels, size = n.docs,
+    label = labels, size = n.doc,
     x = country, color = country  )
 ) +
   geom_text_wordcloud_area(show.legend = TRUE) +
-  scale_size_area(max_size = 20) +
+  scale_size_area(max_size = 30) +
   theme_minimal() +
-  facet_wrap(~hunting, ncol = 2, labeller = labeller(hunting = cluster.labs)) +
+  facet_wrap(~country, ncol = 2, labeller = labeller(country = cluster.labs)) +
   scale_color_manual("", 
                      breaks = c("dk", "se"),
                      values=c(dk="#d1050c", se ="#004B87")) +
+  ggtitle("(A) Eurovoc descriptors for legislations which mentons seal") +
   guides(size="none") +
   theme(line = element_blank(),
         axis.text.x =element_blank(),
         axis.title.x = element_blank(),
-        legend.text = element_text(size = 15),
-        legend.key.size = unit(4, 'line'),
-        strip.text.x = element_text(face="bold", size = 12),
-        legend.position = "bottom")
-  
+        legend.text = element_blank(),
+      #  legend.key.size = uelement_blank(),
+        strip.text.x = element_text(face="bold", size = 20),
+        legend.position = "none",
+      title = element_text(face="bold", size = 25),
+                           plot.title = element_text(hjust = 0.5))
+seal.word.cloud
+
+cluster.labs <- c(
+  "dk"="", 
+  "se"=""
+)
+
+bird.word.cloud <- 
+  bird.hunting.labels %>%
+  group_by(hunting,country) %>%
+  slice_max(n.doc, n=20) %>%
+  ggplot(.,
+         aes(
+           label = labels, size = n.doc,
+           x = country, color = country  )
+  ) +
+  geom_text_wordcloud_area(show.legend = TRUE) +
+  scale_size_area(max_size = 30) +
+  theme_minimal() +
+  facet_wrap(~country, ncol = 2, labeller = labeller(country = cluster.labs)) +
+  scale_color_manual("", 
+                     breaks = c("dk", "se"),
+                     values=c(dk="#d1050c", se ="#004B87")) +
+  ggtitle("(B) Eurovoc descriptors for legislations which mentons bird") +
+  guides(size="none") +
+  theme(line = element_blank(),
+        axis.text.x =element_blank(),
+        axis.title.x = element_blank(),
+        legend.text = element_blank(),
+        #  legend.key.size = uelement_blank(),
+        strip.text.x = element_text(face="bold", size = 20),
+        legend.position = "none",
+        title = element_text(face="bold", size = 25),
+        plot.title = element_text(hjust = 0.5))
+bird.word.cloud
 
 
+seal.word.cloud/bird.word.cloud
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/hunting.wordclouds.png", 
+       width = 90, height = 55, units = "cm",
+       limitsize = FALSE)
 
+# FISHING -------------------
 
 # fisheries 
 # term df
@@ -119,7 +184,7 @@ DK.fishinglabels.com <-
            erhvervs== "TRUE") %>%
   filter(!is.na(EU.link.CELEX)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(url)) %>%
+  summarise(n.doc = n_distinct(url)) %>%
   mutate(fisheries = "commercial")%>%
   mutate(country = "dk")
 
@@ -133,7 +198,7 @@ DK.fishinglabels.rec <-
            fritidsfiske == "TRUE") %>%
   filter(!is.na(EU.link.CELEX)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(url)) %>%
+  summarise(n.doc = n_distinct(url)) %>%
   mutate(fisheries = "recreational")%>%
   mutate(country = "dk")
 
@@ -146,7 +211,7 @@ SE.fishinglabels.com <-
   filter(commercial == "TRUE") %>%
   filter(!is.na(celex)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(doc.id)) %>%
+  summarise(n.doc = n_distinct(doc.id)) %>%
   mutate(fisheries = "commercial")%>%
   mutate(country = "se")
 
@@ -162,25 +227,30 @@ SE.fishinglabels.rec <-
            houseneeds.fishing2 == "TRUE") %>%
   filter(!is.na(celex)) %>%
   group_by(labels) %>%
-  summarise(n.docs = n_distinct(doc.id)) %>%
+  summarise(n.doc = n_distinct(doc.id)) %>%
   mutate(fisheries = "recreational")%>%
   mutate(country = "se")
 
 
 spec.fisheries.labels <- rbind(DK.fishinglabels.com, DK.fishinglabels.rec, SE.fishinglabels.com, SE.fishinglabels.rec)
 
-x <- spec.fisheries.labels %>%
+cluster.labs <- c(
+  "commercial"="(A) Commercial fisheries", 
+  "recreational"="(B) Recreational fisheries"
+)
+
+spec.fisheries.labels %>%
   group_by(fisheries,country) %>%
-  slice_max(n.docs, n=10) %>%
+  slice_max(n.doc, n=15) %>%
   ggplot(.,
          aes(
-           label = labels, size = n.docs,
+           label = labels, size = n.doc,
            x = country, color = country  )
   ) +
   geom_text_wordcloud_area(show.legend = TRUE) +
   scale_size_area(max_size = 20) +
   theme_minimal() +
-  facet_wrap(~fisheries, nrow = 2, ) + #labeller = labeller(hunting = cluster.labs)) +
+  facet_wrap(~fisheries, nrow = 2,labeller = labeller(fisheries = cluster.labs)) + #labeller = labeller(hunting = cluster.labs)) +
   scale_color_manual("", 
                      breaks = c("dk", "se"),
                      values=c(dk="#d1050c", se ="#004B87")) +
@@ -190,8 +260,12 @@ x <- spec.fisheries.labels %>%
         axis.title.x = element_blank(),
         legend.text = element_text(size = 15),
         legend.key.size = unit(4, 'line'),
-        strip.text.x = element_text(face="bold", size = 12),
-        legend.position = "bottom")
+        strip.text.x = element_text(face="bold", size = 25),
+        legend.position = "none")
+
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/fisheries.wordclouds.png", 
+       width = 80, height = 55, units = "cm",
+       limitsize = FALSE)
 
 
 
