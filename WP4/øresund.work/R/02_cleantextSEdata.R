@@ -104,7 +104,10 @@ SEtext.dk1 <-
          houseneeds.fishing = case_when(search.term == "fiske" ~ str_detect(text, "husbehovsfisk|Husbehovsfisk")), 
          houseneeds.fishing2 = case_when(search.term == "fiske" ~ str_detect(text, "fiske för husbehov|Fiske för husbehov")),
          birdhunt = case_when(search.term == "jakt" ~ str_detect(text, "fågel|Fågel")),
-         seal = case_when(search.term == "jakt" ~ str_detect(text, "säl|Säl")),
+         seal = case_when(search.term == "jakt" ~ str_detect(text, "säljakt|Säljakt")),
+         seal2 = case_when(search.term == "jakt" ~ str_detect(text, "säl\\s|Säl\\s")),
+         seal3 = case_when(search.term == "jakt" ~ str_detect(text, "\\ssäl\\s|\\sSäl\\s")),
+         seal4 = case_when(search.term == "jakt" ~ str_detect(text, "\\ssälar\\s|\\sSälar\\s")),
          boat.traffic = case_when(search.term == "sjofart" ~ str_detect(text, "båtstrafik|Båtstrafik")))
 
 
@@ -148,7 +151,17 @@ SEtext.dk1 %>%
   filter(search.term == "jakt" & birdhunt == "TRUE") # 7 fågel
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal == "TRUE") # 62 mention säl fisk
+  filter(search.term == "jakt" & seal == "TRUE") # 2 mention säl fisk
+
+SEtext.dk1 %>%
+  filter(search.term == "jakt" & seal2 == "TRUE") # 5 mention säl fisk
+
+SEtext.dk1 %>%
+  filter(search.term == "jakt" & seal3 == "TRUE") # 3 mention säl fisk
+
+SEtext.dk1 %>%
+  filter(search.term == "jakt" & seal4 == "TRUE") # 2 mention säl fisk
+
 
 SEtext.dk1 %>%
   filter(search.term == "sjofart" & boat.traffic == "TRUE") # 3 mention båtstrafik
@@ -157,8 +170,8 @@ SEtext.dk1 %>%
 SEtext.dk1 %>%
   select(-text) %>%
   #mutate(doc.id=as.factor(doc.id)) %>%
-  left_join(.,SEmeta.dk, by = c("doc.id"="dok_id", "search.term") )# %>%
- # write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv", row.names=FALSE)
+  left_join(.,SEmeta.dk, by = c("doc.id"="dok_id", "search.term") ) %>%
+  write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv", row.names=FALSE)
 
 # Getting Eurlex links ---------------------------------------------------------
 

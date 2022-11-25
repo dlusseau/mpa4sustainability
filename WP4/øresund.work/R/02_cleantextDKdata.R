@@ -86,7 +86,10 @@ DK.text.df3 <-
            rekreative = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreative fisk|Rekreative fisk")), 
            lystfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "lystfiske|Lystfiske")), 
            fritidsfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "fritidsfiske|Fritidsfiske")), 
-           sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæl|Sæl")),
+           sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæljagt|Sæljagt")),
+           sæl2    = case_when(search.term == "jagt" ~ str_detect(text, "sæl\\s|Sæl\\s")),
+           sæl3    = case_when(search.term == "jagt" ~ str_detect(text, "\\ssæl\\s|Sæl\\s")),
+           sæl4    = case_when(search.term == "jagt" ~ str_detect(text, "\\ssæler\\s|Sæler\\s")),
            fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")),
            boat.traffic = case_when(search.term == "sotrafik" ~ str_detect(text, "bådtraffik|Bådtraffik")))
 
@@ -132,7 +135,23 @@ DK.text.df3 %>%
   filter(search.term == "fiskeri" & fritidsfiske == "TRUE") # 10 out of 1011 fisheries documents mention fritidsfiske fisk
 
 DK.text.df3 %>%
-  filter(search.term == "jagt" & sæl == "TRUE") # 142 out of 346 hunting documents mention seal
+  filter(search.term == "jagt" & sæl == "TRUE") # 0 out of 346 hunting documents mention seal hunting
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl2 == "TRUE") # 6 out of 346 hunting documents mention seal
+
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl3 == "TRUE") # 4
+
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl4 == "TRUE") # 8
+
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl2 == "TRUE" & sæl3 == "TRUE") # 45 out of 346 hunting documents both mention bird and seal
+
 
 DK.text.df3 %>%
   filter(search.term == "jagt" & fugle == "TRUE") # 175 out of 346 hunting documents mention bird
@@ -185,7 +204,7 @@ unique(DK.EU.links1$resource.type)
 # which keywords link to which EU documents:
 DK.EU.links2 <- 
   DK.text.df4 %>%
-  select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,rekreative,lystfiske, fritidsfiske, sæl,fugle,boat.traffic) %>%
+  select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,rekreative,lystfiske, fritidsfiske, sæl,sæl2, sæl3, sæl4,fugle,boat.traffic) %>%
   distinct(url, .keep_all = TRUE) %>%
   left_join(.,DK.EU.links1, by = c("url" = "retsinfo.url"))
 
