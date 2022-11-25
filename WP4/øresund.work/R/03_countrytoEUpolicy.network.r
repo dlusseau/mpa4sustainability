@@ -148,12 +148,12 @@ DKEU.matrix <-
   pivot_wider(names_from = from, values_from = links,values_fill = 0) %>%
   column_to_rownames(var = "to") #higher trophic level (country docs) is the columns
 
-#DKEU.modules <- computeModules(DKEU.matrix) # ran and saved on Nov. 22nd 2022
+#DKEU.modules <- computeModules(DKEU.matrix) # ran and saved on Nov. 24th 2022
 #saveRDS(DKEU.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.DKEU.modules.RDS") 
 DKEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.DKEU.modules.RDS")
 plotModuleWeb(DKEU.modules)
 listModuleInformation(DKEU.modules)
-printoutModuleInformation(DKEU.modules) # total 13 modules
+printoutModuleInformation(DKEU.modules) # total 18 modules
 
 indices <- c( "degree","PDI","nestedrank")
 
@@ -277,11 +277,11 @@ SEEU.matrix <-
   pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
   column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
 
-#SEEU.modules <- computeModules(SEEU.matrix) #computed Nov 22nd, 2022 
+#SEEU.modules <- computeModules(SEEU.matrix) #computed Nov 24th, 2022 
 #saveRDS(SEEU.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEEU.modules.RDS") 
 SEEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEEU.modules.RDS")
 plotModuleWeb(SEEU.modules)
-printoutModuleInformation(SEEU.modules) # total 17 modules
+printoutModuleInformation(SEEU.modules) # total 22 modules
 
 indices <- c( "degree","PDI","nestedrank")
 
@@ -549,6 +549,7 @@ h.SEDK.networkstats %>%
 
 h.SEDK.networkstats %>%
   slice_min(., order_by = PDI, n=1) # # generalist
+# /eli/lta/2019/1165     11 0.006578947 0.8921569
 
 summary(l.SEDK.networkstats) # se
 # Min.   : 1.00   Min.   :0.00   Min.   :0.6623  
@@ -948,7 +949,7 @@ EUlinks.fisheriesmatrix <-
 #saveRDS(EUfisheries.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUfisheries.modules.RDS") 
 EUfisheries.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUfisheries.modules.RDS")
 plotModuleWeb(EUfisheries.modules, labsize = .5)
-printoutModuleInformation(EUfisheries.modules) # 25 total modules
+printoutModuleInformation(EUfisheries.modules) # 36 total modules
 
 indices <- c( "degree","PDI","nestedrank")
 
@@ -1033,7 +1034,7 @@ EUlinks.huntingmatrix <-
 #saveRDS(EUhunting.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUhunting.modules.RDS") 
 EUhunting.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUhunting.modules.RDS")
 plotModuleWeb(EUhunting.modules)
-printoutModuleInformation(EUhunting.modules) # 13 total modules
+printoutModuleInformation(EUhunting.modules) # 12 total modules
 
 indices <- c( "degree","PDI","nestedrank")
 
@@ -1115,7 +1116,7 @@ EUlinks.maritimematrix <-
 #saveRDS(EUmaritime.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUmaritime.modules.RDS") 
 EUmaritime.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUmaritime.modules.RDS")
 plotModuleWeb(EUmaritime.modules)
-printoutModuleInformation(EUmaritime.modules) # 21 total modules
+printoutModuleInformation(EUmaritime.modules) # 24 total modules
 
 indices <- c( "degree","PDI","nestedrank")
 
