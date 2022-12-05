@@ -213,7 +213,9 @@ SE.metadata %>%
         legend.position = "none",
         axis.title.x=element_blank())
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/ministry.plots.png")
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/ministry.plots.png", 
+       width = 55, height = 35, units = "cm",
+       limitsize = FALSE)
 
 
 SE.metadata %>%
@@ -256,5 +258,127 @@ SE.metadata %>%
                                   search.term == "sjofart"~ "maritime traffic" )) %>%
   group_by(search.term, country) %>%
   summarise(n=sum(n))
+
+
+SE.metadata %>%
+  mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
+  mutate(organ.cut = as.character(organ.cut)) %>%
+  mutate(ministry.english = case_when( organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
+                                       organ.cut == "Civildepartementet" ~ "Ministry of Civil Affairs",
+                                       organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
+                                       #   organ.cut == "Fiskeristyrelsen" ~ "The Fisheries Board",
+                                       organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
+                                       organ.cut == "Industridepartementet" ~ "The Ministry of Business and Industry", # sewden just industry this is the name of DK
+                                       organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Infrastructure",
+                                       organ.cut == "Inrikesdepartementet" ~ "Ministry of the Interior",
+                                       organ.cut == "Jordbruksdepartementet" | organ.cut == "Fiskeristyrelsen" ~ "Ministry of Food, Agriculture and Fisheries",
+                                       organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
+                                       organ.cut == "Kammarkollegiet" ~ "Chamber college",
+                                       organ.cut == "Kommunikationsdepartementet" ~ "Ministry of Communications",
+                                       organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
+                                       organ.cut == "Landsbygdsdepartementet" ~ "Ministry of Rural Affairs",
+                                       #  organ.cut == "Miljö" ~ "Ministry of the Environment and Community Development",
+                                       organ.cut == "Miljödepartementet" | organ.cut == "Miljö"  ~ "Ministry of the Environment",
+                                       organ.cut == "Näringsdepartementet" ~ "Ministry of Commerce",
+                                       organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs",
+                                       organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
+                                       organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
+                                       organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                       organ.cut == "NA" ~ "NA",
+                                       organ.cut == "riksb" ~ "riksb")) %>%
+  mutate(country = "Sweden") %>%
+  group_by(search.term, ministry.english, country) %>%
+  summarise(n=n_distinct(doc.id)) %>%
+  rbind(dep.leg.dek) %>%
+  mutate(ministry.english = as.factor(ministry.english)) %>%
+  ungroup() %>%
+  mutate(search.term = case_when( search.term == "fiske"  ~ "Fisheries" ,
+                                  search.term == "fiskeri"  ~ "Fisheries",
+                                  search.term == "jagt"  ~ "Hunting",
+                                  search.term == "jakt" ~ "Hunting",
+                                  search.term == "sotrafik"  ~ "Maritime traffic",
+                                  search.term == "sjofart"~ "Maritime traffic" )) %>%
+  group_by(country, search.term) %>%
+  mutate(total.n = sum(n)) %>%
+  mutate('Proplegislation' = n/total.n) %>%
+  group_by(search.term, country) %>%
+  summarise(n=n_distinct(ministry.english))
+
+SE.metadata %>%
+  mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
+  mutate(organ.cut = as.character(organ.cut)) %>%
+  mutate(ministry.english = case_when( organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
+                                       organ.cut == "Civildepartementet" ~ "Ministry of Civil Affairs",
+                                       organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
+                                       #   organ.cut == "Fiskeristyrelsen" ~ "The Fisheries Board",
+                                       organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
+                                       organ.cut == "Industridepartementet" ~ "The Ministry of Business and Industry", # sewden just industry this is the name of DK
+                                       organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Infrastructure",
+                                       organ.cut == "Inrikesdepartementet" ~ "Ministry of the Interior",
+                                       organ.cut == "Jordbruksdepartementet" | organ.cut == "Fiskeristyrelsen" ~ "Ministry of Food, Agriculture and Fisheries",
+                                       organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
+                                       organ.cut == "Kammarkollegiet" ~ "Chamber college",
+                                       organ.cut == "Kommunikationsdepartementet" ~ "Ministry of Communications",
+                                       organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
+                                       organ.cut == "Landsbygdsdepartementet" ~ "Ministry of Rural Affairs",
+                                       #  organ.cut == "Miljö" ~ "Ministry of the Environment and Community Development",
+                                       organ.cut == "Miljödepartementet" | organ.cut == "Miljö"  ~ "Ministry of the Environment",
+                                       organ.cut == "Näringsdepartementet" ~ "Ministry of Commerce",
+                                       organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs",
+                                       organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
+                                       organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
+                                       organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                       organ.cut == "NA" ~ "NA",
+                                       organ.cut == "riksb" ~ "riksb")) %>%
+  mutate(country = "Sweden") %>%
+  group_by(search.term, ministry.english, country) %>%
+  summarise(n=n_distinct(doc.id)) %>%
+  rbind(dep.leg.dek) %>%
+  mutate(ministry.english = as.factor(ministry.english)) %>%
+  ungroup() %>%
+  mutate(search.term = case_when( search.term == "fiske"  ~ "Fisheries" ,
+                                  search.term == "fiskeri"  ~ "Fisheries",
+                                  search.term == "jagt"  ~ "Hunting",
+                                  search.term == "jakt" ~ "Hunting",
+                                  search.term == "sotrafik"  ~ "Maritime traffic",
+                                  search.term == "sjofart"~ "Maritime traffic" )) %>%
+  group_by(country, search.term) %>%
+  mutate(total.n = sum(n)) %>%
+  mutate('Proplegislation' = n/total.n) %>%
+  group_by(search.term, country) %>%
+  slice_max(Proplegislation, n=1) %>%
+  select(-n,-total.n)%>%
+  kable(., "latex")
   
-  
+
+
+
+
+# now the governing authority for DK 
+
+DK.metadata %>%
+  mutate(country = "Denmark")  %>%
+  group_by(search.term, AdministrerendeMyndighed, country) %>%
+  summarise(n=n_distinct(url)) %>%
+  ungroup() %>%
+  group_by(country, search.term) %>%
+  mutate(total.n = sum(n)) %>%
+  mutate('Proportion of legislation' = n/total.n) %>%
+  mutate(search.term = case_when( search.term == "fiskeri"  ~ "Fisheries",
+                                  search.term == "jagt"  ~ "Hunting",
+                                  search.term == "sotrafik"  ~ "Maritime traffic")) %>%
+  group_by(country, search.term) %>%
+  filter(!is.na(AdministrerendeMyndighed)) %>% # remove NAs for the plot
+  ggplot(aes( y=`Proportion of legislation`, x=AdministrerendeMyndighed,  fill = country)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_wrap(~search.term, ncol = 1) + 
+  scale_fill_manual(values = c("#d1050c", "#004B87")) +
+  theme(axis.text.x = element_text(angle=80,hjust=1,size = 12),
+        axis.text.y = element_text(size = 12),
+        title = element_text(face="bold", size = 12),
+        legend.position = "none",
+        axis.title.x=element_blank())
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/DK authority.plots.png", 
+       width = 55, height =55, units = "cm",
+       limitsize = FALSE)
+
