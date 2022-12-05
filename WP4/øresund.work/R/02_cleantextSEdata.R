@@ -108,8 +108,9 @@ SEtext.dk1 <-
          seal2 = case_when(search.term == "jakt" ~ str_detect(text, "säl\\s|Säl\\s")),
          seal3 = case_when(search.term == "jakt" ~ str_detect(text, "\\ssäl\\s|\\sSäl\\s")),
          seal4 = case_when(search.term == "jakt" ~ str_detect(text, "\\ssälar\\s|\\sSälar\\s")),
-         boat.traffic = case_when(search.term == "sjofart" ~ str_detect(text, "båtstrafik|Båtstrafik")))
+         boat.traffic = case_when(search.term == "sjofart" ~ str_detect(text, "båttrafik|Båttrafik")))
 
+head(SEtext.dk1)
 
 SEtext.dk1 %>%
   group_by(search.term) %>%
@@ -166,12 +167,17 @@ SEtext.dk1 %>%
 SEtext.dk1 %>%
   filter(search.term == "sjofart" & boat.traffic == "TRUE") # 3 mention båtstrafik
 
+SEtext.dk1 %>%
+  write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdoctags.csv", row.names=FALSE)
 
 SEtext.dk1 %>%
   select(-text) %>%
   #mutate(doc.id=as.factor(doc.id)) %>%
   left_join(.,SEmeta.dk, by = c("doc.id"="dok_id", "search.term") ) %>%
   write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv", row.names=FALSE)
+
+
+
 
 # Getting Eurlex links ---------------------------------------------------------
 
