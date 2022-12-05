@@ -94,6 +94,7 @@ table(V(dkeu.network)$source == "EU") #243
 table(V(dkeu.network)$source == "DK") #211
 (V(dkeu.network)) # 454 vertices
 
+saveRDS(dkeu.network, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/dkeu.networkigraph.rds")
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/DK.eu.network.png",
     width = 1500, height = 1675)
@@ -172,21 +173,23 @@ summary(DKEU.CELEX.networkstats)
 #Max.   :82.000   Max.   :1.00   Max.   :1.0000  
 
 DKEU.CELEX.networkstats %>%
-  slice_max(., order_by = nestedrank, n=1)
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
 #            degree nestedrank PDI
 #32009L0119      1          1   1 # most specialized
 
 DKEU.CELEX.networkstats %>%
-  slice_max(., order_by = PDI, n=1) # specalist
+  slice_max(., order_by = PDI, n=3) # specalist
 
 DKEU.CELEX.networkstats %>%
-  slice_min(., order_by = nestedrank, n=1)
+  slice_min(., order_by = nestedrank, n=3) %>%
+  kable(., "latex")
 #            degree  nestedrank       PDI # most generalized
 #31992L0043     82          0 0.6142857
 
 
 DKEU.CELEX.networkstats %>%
-  slice_min(., order_by = PDI, n=1)
+  slice_min(., order_by = PDI, n=3)
 # 31992L0043     82          0 0.6142857
 
 
@@ -259,6 +262,14 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 
 l.se <- layout.fruchterman.reingold(seeu.network)
 
+
+table(V(seeu.network)$source == "EU") #404
+table(V(seeu.network)$source == "SE") #123
+(V(seeu.network)) # 527 vertices
+
+saveRDS(seeu.network, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/seeu.networkigraph.rds")
+
+
 plot(seeu.network,
      vertex.label=ifelse(igraph::degree(seeu.network) >=11 & V(seeu.network)$source == "EU",
                          V(seeu.network)$name,NA),
@@ -300,7 +311,8 @@ summary(SEEU.CELEX.networkstats)
 #Max.   :10.000   Max.   :1.00   Max.   :1.0000  
 
 SEEU.CELEX.networkstats %>%
-  slice_max(., order_by = nestedrank, n=1)
+  slice_max(., order_by = nestedrank, n=3)%>%
+     kable(., "latex")
 #              degree nestedrank PDI
 # 32019R1148      1          1   1 # most specialized
 
@@ -308,13 +320,14 @@ SEEU.CELEX.networkstats %>%
   slice_max(., order_by = PDI, n=1) # specalist
 
 SEEU.CELEX.networkstats %>%
-  slice_min(., order_by = nestedrank, n=1)
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
 #            degree  nestedrank       PDI # most generalized
 #32016R0679     10          0 0.9262295
 
 
 SEEU.CELEX.networkstats %>%
-  slice_min(., order_by = PDI, n=1)
+  slice_min(., order_by = PDI, n=3)
 # 32016R0679     10          0 0.9262295
 
 
@@ -359,8 +372,8 @@ legend(x=-1.15,y=1.25, legend = c("Danish Legislation", "EU Legislation"), pch=2
 
 set.seed(1)
 plot(seeu.network,
-     vertex.label= NA, #ifelse(igraph::degree(seeu.network) >=11 & V(seeu.network)$source == "EU",
-                       #  V(seeu.network)$name,NA),
+     vertex.label=  ifelse(igraph::degree(seeu.network) >=10 & V(seeu.network)$source == "EU",
+                         V(seeu.network)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = 1,
      vertex.size= 3.5,
@@ -467,6 +480,8 @@ median(degree)
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #   1    2    3    4   11   89 
 
+saveRDS(network.SEDK.adj, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/network.SEDK.igraph.rds")
+
 plot(network.SEDK.adj,
      edge.width=E(network.SEDK.adj)$n,
      
@@ -489,6 +504,7 @@ adj.matrix <-
   adj.matrix %>%
   column_to_rownames(var = "from.x") 
 
+
 #SEDK.modules <- computeModules(adj.matrix) #ran nov. 24, 2022
 #saveRDS(SEDK.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS") 
 
@@ -501,12 +517,20 @@ mod.3 <- listModuleInformation(SEDK.modules)[[2]][[3]] %>% unlist()
 mod.4 <- listModuleInformation(SEDK.modules)[[2]][[4]] %>% unlist()
 mod.5 <- listModuleInformation(SEDK.modules)[[2]][[5]] %>% unlist()
 mod.6 <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist()
+# mow split mod 6 into two mod 6 and create new mod 8
+mod.6 <- c( "sfs-2011-1088", "sfs-2010-598" , "/eli/lta/2021/1352", 
+            "/eli/lta/2021/2167", "/eli/lta/2021/2237" ,
+            "/eli/lta/2021/2520" , "/eli/lta/2021/2536",
+            "/eli/lta/2021/923" , "/eli/lta/2022/642")
+
+mod.8 <- c("sfs-1992-1300", "sfs-1992-1303", "/eli/lta/2021/1736")
+
 mod.7 <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist()
 #mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist()
 
 modules <- list(mod.1, mod.2, mod.3, mod.4,
-                 mod.5, mod.6, mod.7)
-names(modules) <- c("1","2","3","4","5","6","7")
+                 mod.5, mod.6, mod.7, mod.8)
+names(modules) <- c("1","2","3","4","5","6","7", "8")
 
 plotModuleWeb(SEDK.modules, labsize = .55)
 
@@ -517,6 +541,8 @@ h.SEDK.networkstats <-
                nested.weighted=FALSE,  PDI.normalise=TRUE,
                nested.method="NODF", 
                nested.normalised=TRUE)
+
+
 
 l.SEDK.networkstats <- 
   specieslevel(adj.matrix, index=  indices, level = "lower",
@@ -533,6 +559,13 @@ summary(h.SEDK.networkstats) # dk
 #3rd Qu.: 4.000   3rd Qu.:0.75   3rd Qu.:0.9804  
 #Max.   :12.000   Max.   :1.00   Max.   :1.0000   
 
+h.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+
+h.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
 
 h.SEDK.networkstats %>%
   slice_max(., order_by = nestedrank, n=1)
@@ -560,6 +593,14 @@ summary(l.SEDK.networkstats) # se
 #Max.   :89.00   Max.   :1.00   Max.   :1.0000  
 
 
+
+l.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+
+l.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
 
 l.SEDK.networkstats %>%
   slice_max(., order_by = nestedrank, n=1)
@@ -608,7 +649,7 @@ title("(A)",cex.main=2)
 
 set.seed(1)
 plot(network.SEDK.adj1, mark.groups=modules, #network.SEDK.adj,
-     mark.col = rainbow(7,alpha =.25),
+     mark.col = rainbow(8,alpha =.25),
      mark.border=NA,
      edge.width=E(network.SEDK.adj1)$n,
      vertex.label = NA,
@@ -648,12 +689,15 @@ df.mod.2 <- listModuleInformation(SEDK.modules)[[2]][[2]] %>% unlist() %>% as.da
 df.mod.3 <- listModuleInformation(SEDK.modules)[[2]][[3]] %>% unlist() %>% as.data.frame() %>% mutate(module="3")
 df.mod.4 <- listModuleInformation(SEDK.modules)[[2]][[4]] %>% unlist() %>% as.data.frame() %>% mutate(module="4")
 df.mod.5 <- listModuleInformation(SEDK.modules)[[2]][[5]] %>% unlist() %>% as.data.frame() %>% mutate(module="5")
-df.mod.6 <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist() %>% as.data.frame() %>% mutate(module="6")
+df.mod.6.edit <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist() %>% as.data.frame() %>% mutate(module="6")
 df.mod.7 <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist() %>% as.data.frame() %>% mutate(module="7")
 #df.mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist() %>% as.data.frame() %>% mutate(module="8")
+df.mod.6 <- df.mod.6.edit[-c(1,2,5),]
+df.mod.8 <- df.mod.6.edit[c(1,2,5),]%>%
+  mutate(module = "8")
 
 df.modules <- rbind(df.mod.1, df.mod.2, df.mod.3, df.mod.4,
-                df.mod.5, df.mod.6, df.mod.7)
+                df.mod.5, df.mod.6, df.mod.7,df.mod.8) 
 
 adj.network.df1 <-
   SEDK.networkstats %>%
@@ -670,7 +714,9 @@ adj.network.df1 %>%
   summarise(n=n_distinct(name)) %>%
   group_by(module) %>%
   filter(n == max(n))
-# 1      32017R0625     8
+#   module to             n
+#<chr>  <chr>      <int>
+#  1 1      32017R0625     8
 #2 2      32011L0092    12
 #3 3      32013R1303    15
 #4 4      32014R0651     6
@@ -680,6 +726,7 @@ adj.network.df1 %>%
 #8 7      32003L0087     4
 #9 7      32009L0013     4
 #10 7      32009L0016     4
+#11 8      32009L0043     3
 
 adj.network.df1 %>%
   distinct(name,to,module) %>%
@@ -713,8 +760,9 @@ adj.network.df1 %>%
 #3 3         15
 #4 4          6
 #5 5          8
-#6 6          2
+#6 6          1
 #7 7         17
+#8 8          1
 
 
 x <- adj.network.df1 %>%
@@ -728,9 +776,8 @@ cluster.labels <-
   group_by(module,labels) %>%
   summarise(n.country.doc = n_distinct(name))
 
-rainbow(7)
-#""#FF0000" "#FFDB00" "#49FF00" "#00FF92" "#0092FF" "#4900FF" "#FF00DB"
-
+rainbow(8)
+#"#FF0000" "#FFBF00" "#80FF00" "#00FF40" "#00FFFF" "#0040FF" "#8000FF" "#FF00BF"
 MOD.1.PLOT <- 
   cluster.labels %>%
   group_by(module) %>%
@@ -755,7 +802,7 @@ MOD.2.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#FFDB00")+
+  scale_color_manual(values = "#FFBF00")+
   ggtitle("Module 2: Environmnetal impact and protection ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
@@ -769,7 +816,7 @@ MOD.3.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#49FF00")+
+  scale_color_manual(values = "#80FF00")+
   ggtitle("Module 3:  Fisheries managment & policy ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
@@ -783,7 +830,7 @@ MOD.4.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#00FF92") +
+  scale_color_manual(values = "#00FF40") +
   ggtitle("Module 4: Government aid ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
@@ -797,7 +844,7 @@ MOD.5.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#0092FF")+
+  scale_color_manual(values = "#00FFFF")+
   ggtitle("Module 5: Species Protection & Biodiversity") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
@@ -811,7 +858,7 @@ MOD.6.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#4900FF")+
+  scale_color_manual(values = "#0040FF")+
   ggtitle("Module 6: Energy resources and GHGs ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
@@ -825,17 +872,30 @@ MOD.7.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#FF00DB") +
+  scale_color_manual(values = "#8000FF") +
   ggtitle("Module 7: Vessel safety and environmental impact") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
+MOD.8.PLOT <- 
+  cluster.labels %>%
+  group_by(module) %>%
+  slice_max(n.country.doc, n=20) %>%
+  mutate(module=as.factor(module)) %>%
+  filter(module == "8") %>%
+  ggplot(., aes( label = labels, size = n.country.doc, color = module)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#FF00BF") +
+  ggtitle("Module 8: defense and customes") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-((MOD.1.PLOT + MOD.2.PLOT )+ (MOD.3.PLOT ))/ 
-(( MOD.4.PLOT +MOD.5.PLOT + MOD.6.PLOT) + (MOD.7.PLOT))
+((MOD.1.PLOT + MOD.2.PLOT)+(MOD.3.PLOT + MOD.4.PLOT))/ 
+((MOD.5.PLOT + MOD.6.PLOT) + (MOD.7.PLOT+MOD.8.PLOT))
 
 
  ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/sharedclusters.png", 
-       width = 90, height = 55, units = "cm",
+       width = 125, height = 55, units = "cm",
        limitsize = FALSE)
 
 adj.network.df1 %>%
@@ -908,6 +968,8 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 l.f <- layout.fruchterman.reingold(network.f)
 sort(degree)
 
+saveRDS(network.f, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/network.fisheries.igraph.rds")
+
 plot(network.f,
      vertex.label=ifelse(igraph::degree(network.f) >=9 & V(network.f)$source == "EU",
                          V(network.f)$name,NA),
@@ -970,6 +1032,15 @@ summary(EUfisheries.CELEX.networkstats)
 
 
 
+EUfisheries.CELEX.networkstats %>%
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+
+EUfisheries.CELEX.networkstats %>%
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+
+
 # -------- Hunting network ------------------------------
 
 EUlinks.hunting <- 
@@ -997,6 +1068,8 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 
 l.h <- layout.fruchterman.reingold(network.h)
 sort(degree)
+
+saveRDS(network.h, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/network.hunting.igraph.rds")
 
 plot(network.h,
      vertex.label=ifelse(igraph::degree(network.h) >=4 & V(network.h)$source == "EU",
@@ -1052,6 +1125,15 @@ summary(EUhunting.CELEX.networkstats)
 #3rd Qu.: 1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
 #Max.   :38.000   Max.   :1.00   Max.   :1.0000 
 
+
+EUhunting.CELEX.networkstats %>%
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+
+EUhunting.CELEX.networkstats %>%
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+
 # ------- maritime traffic network ------- 
 
 EUlinks.maritime <- 
@@ -1079,6 +1161,9 @@ quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 
 l.m <- layout.fruchterman.reingold(network.m)
 sort(degree)
+
+saveRDS(network.m, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/network.maritime.igraph.rds")
+
 
 plot(network.m,
      vertex.label=ifelse(igraph::degree(network.m) >=6.05 & V(network.m)$source == "DK",
@@ -1134,8 +1219,15 @@ summary(EUmaritime.CELEX.networkstats)
 #3rd Qu.:1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
 #Max.   :5.000   Max.   :1.00   Max.   :1.0000  
 
+EUmaritime.CELEX.networkstats %>%
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
 
-# ---plot them all together ---#
+EUmaritime.CELEX.networkstats %>%
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+
+# -------- plot them all together -----------
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/DKSEeu.subset.networks.png",
        width = 1750, height = 1750)
@@ -1212,17 +1304,17 @@ dev.off()
 # network stats (these are wrong since I did it as an undirected network but it is a directed network. BUT this code could be good to reference in the future if i need to do something similar later :) 
 
 # degree 
-network.degree<-degree(network)
+#network.degree<-degree(network)
 
-summary(network.degree)
+#summary(network.degree)
 
 
 # betweenness
-network.betweenness<-betweenness(network, directed = TRUE, normalized=TRUE)
+#network.betweenness<-betweenness(network, directed = TRUE, normalized=TRUE)
 
-summary(network.betweenness)
+#summary(network.betweenness)
 
-plot(network.degree ~ network.betweenness)
+#plot(network.degree ~ network.betweenness)
 
 # term clusters/groups
 # cluster_leading_eigen: 
@@ -1230,333 +1322,333 @@ plot(network.degree ~ network.betweenness)
 #   "Community structure detecting based on the leading eigenvector of the community matrix" 
 #   "This function tries to find densely connected subgraphs in a graph by calculating the leading nonnegative 
 #    eigenvector of the modularity matrix of the graph." - CRAN PDF
-E(network)
-
-network.clusters <-cluster_leading_eigen(network,
-                                         weights = NULL)
-
-sort(table(network.clusters$membership))
-# cluster 33 is the largest!
-
-quantile(table(network.clusters$membership),probs = c(0,.25,.5,.75,.95,1))
-
-plot_dendrogram(network.clusters)
-
-# make a df of the network plots ---
-DK.network.stats <- data.frame(name= V(network)$name,
-                               degree=network.degree,
-                               betweenness=network.betweenness,
-                               cluster=as.numeric(membership(network.clusters)))
-
-DK.network.stats.1 <- 
-  DKEUlinks %>%
-  select(EU.link.CELEX,labels) %>%
-  distinct() %>%
-  right_join(., DK.network.stats, by= c("EU.link.CELEX" = "name"))
-
-cluster.labels <- 
-  DK.network.stats.1 %>%
-  group_by(cluster, labels) %>%
-  mutate(total.labelcluster.degree = sum(degree)/2) %>%
-  distinct(cluster,labels,total.labelcluster.degree) %>%
-  na.omit()
-
-
-l2 <- layout.fruchterman.reingold(network)
-
-plot(network.clusters, network, 
-     vertex.shape="circle",
-     vertex.label = NA,
-     rescale = TRUE,
-     ylim=c(-.8,.85),xlim=c(-.9,.9),
-     vertex.size=3,
-     layout=l2
-)
-
-
-# solution to the color issue here:
-# https://statisticsglobe.com/create-distinct-color-palette-in-r
-palette3_info <- brewer.pal.info[brewer.pal.info$category == "qual", ]  # Extract color info
-palette3_all <- unlist(mapply(brewer.pal,                     # Create vector with all colors
-                              palette3_info$maxcolors,
-                              rownames(palette3_info)))
-palette3_all   
-
-set.seed(1)                                             # Set random seed
-palette3 <- sample(palette3_all, 42)                    # Sample colors
-palette3 
-
-V(network)$color <- palette3[as.numeric(as.factor(membership(network.clusters)))]
-
-plot(network,
-     vertex.color=V(network)$color,
-     vertex.label=ifelse(degree(network) >7.05 & V(network)$source == "EU",
-                         V(network)$name,NA),
-     vertex.label.cex = .75,
-     vertex.shape = ifelse(V(network)$source == "EU",
-                           "circle","square"),
-     vertex.size= 2,
-     layout = l2)
-
-legend(
-  "bottomleft",
-  legend=levels(as.factor(membership(network.clusters))) ,
-  col = palette3,
-  pch    = 20,
-  cex    = 1,
-  bty    = "n",
-  title  = "",
-  horiz = FALSE
-)
-
-plot(network,
-     vertex.label=ifelse(degree(network) >7.05 & V(network)$source == "EU",
-                         V(network)$name,NA),
-     vertex.label.cex = .75,
-     vertex.size= 2,
-     layout = l)
-
-# Word clouds of cluster eurovoc discriptors: 
-
-cluster.labels %>%
-  filter(cluster==33 | cluster==35 |
-           cluster==39 | cluster==34 |
-           cluster==41 | cluster==1  ) %>%
-  mutate(cluster=as.factor(cluster)) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  theme_minimal() +
-  facet_wrap(~cluster, nrow = 3)
-
-cluster.labels %>%
-  filter(cluster==42 | cluster==9 |
-           cluster==16 | cluster==24 |
-           cluster==37 ) %>%
-  mutate(cluster=as.factor(cluster)) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  theme_minimal() +
-  facet_wrap(~cluster, nrow = 3)
-
-cluster.labs <- c(#"33" = "Cluster 33: Environmental Protection/Biodiversity", 
-  "35"="Cluster 35: Common Fisheries Policy", 
-  "39"="Cluster 39: Work safety and health",
-  "34" = "Cluster 34: Occupational services/markets", 
-  "41"="Cluster 41: Water resources (emph. pollution)", 
-  "1"="Cluster 1: EU development funds", 
-  "42"= "Cluster 42: Sector environmental impact", 
-  "9"= "Cluster 9: Emissions/GHG",
-  "16" = "Cluster 16: Food import risks and regulations", 
-  "24"= "Cluster 24: Taxes", 
-  "37"= "Cluster 37: Food inspection (safety/quality)")
-
-x <-as.data.frame(cbind(
-  V(network)$color,
-  as.numeric(as.factor(membership(network.clusters))) 
-)
-) %>% distinct()
-
-
-p1 <- 
-  cluster.labels %>%
-  filter(  cluster==35) %>%
-  mutate(cluster=as.factor(cluster)) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 15) +
-  theme_minimal() +
-  scale_color_manual(values=c("#80B1D3"))+
-  # facet_grid(.~cluster,  scales = "free", space = "free",
-  #          labeller = labeller(cluster = cluster.labs)) +
-  #facet_wrap(~cluster, nrow = 3,  scales = "free", shrink = FALSE,
-  #         labeller = labeller(cluster = cluster.labs)) +
-  labs(title = "Cluster 33: Environmental Protection/Biodiversity") +
-  theme(plot.title = element_text(face="bold", size = 12, hjust=0.5)) 
-p1
-
-p2 <- 
-  cluster.labels %>%
-  filter(  cluster==35 |
-             cluster==39 | cluster==34 |
-             cluster==41 | cluster==1  |
-             cluster==42 | cluster==9  |
-             cluster==16 | cluster==24 |
-             cluster==37 ) %>%
-  mutate(cluster=as.factor(cluster)) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 15) +
-  theme_minimal() +
-  scale_color_manual(breaks = c( "35", "39", "34",
-                                 "41", "1", "42", "9",
-                                 "16", "24", "37"),
-                     values=c(#"#80B1D3", 
-                       "#66C2A5", 
-                       "#984EA3", 
-                       "#B3E2CD", 
-                       "#FDDAEC", 
-                       "#FDB462", 
-                       "#A65628",
-                       "#FB9A99",
-                       "#FB8072",
-                       "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
-                       "#CBD5E8"))+
-  # facet_grid(.~cluster,  scales = "free", space = "free",
-  #          labeller = labeller(cluster = cluster.labs)) +
-  facet_wrap(~cluster, nrow = 2,  scales = "free", shrink = FALSE,
-             labeller = labeller(cluster = cluster.labs)) +
-  theme( strip.text.x = element_text(face="bold", size = 12)) 
-p2
-
-p2/p1
-
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/03.DKclusterwordclouds.png",
-       width = 75,
-       height = 50,
-       units = c( "cm"),
-       limitsize = FALSE)
-
-# these are the word clouds for the largest (>75%) clusters in term of number of verticies (documents acssociated)
-sort(table(network.clusters$membership))
-# cluster 33 is the largest!
-
-quantile(table(network.clusters$membership),probs = c(0,.25,.5,.75,.95,1))
-
-# inspecting them individually: 
-cluster.labels %>%
-  filter(cluster==33) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==35) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==39) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==34) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==41) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==1) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==37) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==24) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==16) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==9) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-
-cluster.labels %>%
-  filter(cluster==42) %>%
-  ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
-  geom_text_wordcloud_area() +
-  scale_size_area(max_size = 20) +
-  scale_x_discrete(breaks = NULL) +
-  theme_minimal()
-### trying ribbon plot ###
-
-# get data in the right formate
-EUlinks.terms %>%
-  mutate(search.term = case_when( search.term == "jakt"~ "hunting",
-                                  search.term == "jagt"~ "hunting",
-                                  search.term == "fiske"~ "fisheries",
-                                  search.term == "fiskeri"~ "fisheries",
-                                  search.term == "sjofart"~ "maritime traffic",
-                                  search.term == "sotrafik"~ "maritime traffic")) %>%
-  group_by(to, country, search.term) %>%
-  summarise(n=n_distinct(from)) %>%
-  ggplot(.,
-       aes(y = n, axis1 = search.term, axis2 = to)) +
-  geom_alluvium(aes(fill = country), width = 1/12) +
-  geom_stratum(width = 1/12) +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum)),
-            reverse = FALSE) +
-  facet_wrap(~ search.term, scales = "fixed") 
-
-
-# Combine all network stats:
-all.networkstats <- rbind(maritime.network.df,fisheries.network.df,hunting.network.df) %>%
-  mutate(country = case_when( str_detect(name,"sfs\\-") == "TRUE"  ~ "se" ,
-                              str_detect(name, "\\/eli\\/")== "TRUE"  ~ "dk",
-                              TRUE  ~ "EU" ))
-all.networkstats %>% 
-  filter(search.term == "fisheries") %>% 
-  summary(.)
-
-all.networkstats %>% 
-  filter(search.term == "hunting") %>% 
-  summary(.)
-
-all.networkstats %>% 
-  filter(search.term == "maritime") %>% 
-  summary(.)
-
-n_distinct(all.networkstats$name) # 1025
-
-all.networkstats1 <- 
-  document.key.df%>%
-  select(celex,labels) %>%
-  distinct() %>%
-  right_join(., all.networkstats, by= c("celex" = "name")) %>%
-  rename("name" = "celex")
-
-n_distinct(all.networkstats1$name) # 1025 no losses or additions so passes the check 
+#E(network)
+# 
+# network.clusters <-cluster_leading_eigen(network,
+#                                          weights = NULL)
+# 
+# sort(table(network.clusters$membership))
+# # cluster 33 is the largest!
+# 
+# quantile(table(network.clusters$membership),probs = c(0,.25,.5,.75,.95,1))
+# 
+# plot_dendrogram(network.clusters)
+# 
+# # make a df of the network plots ---
+# DK.network.stats <- data.frame(name= V(network)$name,
+#                                degree=network.degree,
+#                                betweenness=network.betweenness,
+#                                cluster=as.numeric(membership(network.clusters)))
+# 
+# DK.network.stats.1 <- 
+#   DKEUlinks %>%
+#   select(EU.link.CELEX,labels) %>%
+#   distinct() %>%
+#   right_join(., DK.network.stats, by= c("EU.link.CELEX" = "name"))
+# 
+# cluster.labels <- 
+#   DK.network.stats.1 %>%
+#   group_by(cluster, labels) %>%
+#   mutate(total.labelcluster.degree = sum(degree)/2) %>%
+#   distinct(cluster,labels,total.labelcluster.degree) %>%
+#   na.omit()
+# 
+# 
+# l2 <- layout.fruchterman.reingold(network)
+# 
+# plot(network.clusters, network, 
+#      vertex.shape="circle",
+#      vertex.label = NA,
+#      rescale = TRUE,
+#      ylim=c(-.8,.85),xlim=c(-.9,.9),
+#      vertex.size=3,
+#      layout=l2
+# )
+# 
+# 
+# # solution to the color issue here:
+# # https://statisticsglobe.com/create-distinct-color-palette-in-r
+# palette3_info <- brewer.pal.info[brewer.pal.info$category == "qual", ]  # Extract color info
+# palette3_all <- unlist(mapply(brewer.pal,                     # Create vector with all colors
+#                               palette3_info$maxcolors,
+#                               rownames(palette3_info)))
+# palette3_all   
+# 
+# set.seed(1)                                             # Set random seed
+# palette3 <- sample(palette3_all, 42)                    # Sample colors
+# palette3 
+# 
+# V(network)$color <- palette3[as.numeric(as.factor(membership(network.clusters)))]
+# 
+# plot(network,
+#      vertex.color=V(network)$color,
+#      vertex.label=ifelse(degree(network) >7.05 & V(network)$source == "EU",
+#                          V(network)$name,NA),
+#      vertex.label.cex = .75,
+#      vertex.shape = ifelse(V(network)$source == "EU",
+#                            "circle","square"),
+#      vertex.size= 2,
+#      layout = l2)
+# 
+# legend(
+#   "bottomleft",
+#   legend=levels(as.factor(membership(network.clusters))) ,
+#   col = palette3,
+#   pch    = 20,
+#   cex    = 1,
+#   bty    = "n",
+#   title  = "",
+#   horiz = FALSE
+# )
+# 
+# plot(network,
+#      vertex.label=ifelse(degree(network) >7.05 & V(network)$source == "EU",
+#                          V(network)$name,NA),
+#      vertex.label.cex = .75,
+#      vertex.size= 2,
+#      layout = l)
+# 
+# # Word clouds of cluster eurovoc discriptors: 
+# 
+# cluster.labels %>%
+#   filter(cluster==33 | cluster==35 |
+#            cluster==39 | cluster==34 |
+#            cluster==41 | cluster==1  ) %>%
+#   mutate(cluster=as.factor(cluster)) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   theme_minimal() +
+#   facet_wrap(~cluster, nrow = 3)
+# 
+# cluster.labels %>%
+#   filter(cluster==42 | cluster==9 |
+#            cluster==16 | cluster==24 |
+#            cluster==37 ) %>%
+#   mutate(cluster=as.factor(cluster)) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   theme_minimal() +
+#   facet_wrap(~cluster, nrow = 3)
+# 
+# cluster.labs <- c(#"33" = "Cluster 33: Environmental Protection/Biodiversity", 
+#   "35"="Cluster 35: Common Fisheries Policy", 
+#   "39"="Cluster 39: Work safety and health",
+#   "34" = "Cluster 34: Occupational services/markets", 
+#   "41"="Cluster 41: Water resources (emph. pollution)", 
+#   "1"="Cluster 1: EU development funds", 
+#   "42"= "Cluster 42: Sector environmental impact", 
+#   "9"= "Cluster 9: Emissions/GHG",
+#   "16" = "Cluster 16: Food import risks and regulations", 
+#   "24"= "Cluster 24: Taxes", 
+#   "37"= "Cluster 37: Food inspection (safety/quality)")
+# 
+# x <-as.data.frame(cbind(
+#   V(network)$color,
+#   as.numeric(as.factor(membership(network.clusters))) 
+# )
+# ) %>% distinct()
+# 
+# 
+# p1 <- 
+#   cluster.labels %>%
+#   filter(  cluster==35) %>%
+#   mutate(cluster=as.factor(cluster)) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 15) +
+#   theme_minimal() +
+#   scale_color_manual(values=c("#80B1D3"))+
+#   # facet_grid(.~cluster,  scales = "free", space = "free",
+#   #          labeller = labeller(cluster = cluster.labs)) +
+#   #facet_wrap(~cluster, nrow = 3,  scales = "free", shrink = FALSE,
+#   #         labeller = labeller(cluster = cluster.labs)) +
+#   labs(title = "Cluster 33: Environmental Protection/Biodiversity") +
+#   theme(plot.title = element_text(face="bold", size = 12, hjust=0.5)) 
+# p1
+# 
+# p2 <- 
+#   cluster.labels %>%
+#   filter(  cluster==35 |
+#              cluster==39 | cluster==34 |
+#              cluster==41 | cluster==1  |
+#              cluster==42 | cluster==9  |
+#              cluster==16 | cluster==24 |
+#              cluster==37 ) %>%
+#   mutate(cluster=as.factor(cluster)) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, color = cluster)) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 15) +
+#   theme_minimal() +
+#   scale_color_manual(breaks = c( "35", "39", "34",
+#                                  "41", "1", "42", "9",
+#                                  "16", "24", "37"),
+#                      values=c(#"#80B1D3", 
+#                        "#66C2A5", 
+#                        "#984EA3", 
+#                        "#B3E2CD", 
+#                        "#FDDAEC", 
+#                        "#FDB462", 
+#                        "#A65628",
+#                        "#FB9A99",
+#                        "#FB8072",
+#                        "#c9dba4", # --> changed to be slightly darker bc the other color was very hard to read the text
+#                        "#CBD5E8"))+
+#   # facet_grid(.~cluster,  scales = "free", space = "free",
+#   #          labeller = labeller(cluster = cluster.labs)) +
+#   facet_wrap(~cluster, nrow = 2,  scales = "free", shrink = FALSE,
+#              labeller = labeller(cluster = cluster.labs)) +
+#   theme( strip.text.x = element_text(face="bold", size = 12)) 
+# p2
+# 
+# p2/p1
+# 
+# ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/03.DKclusterwordclouds.png",
+#        width = 75,
+#        height = 50,
+#        units = c( "cm"),
+#        limitsize = FALSE)
+# 
+# # these are the word clouds for the largest (>75%) clusters in term of number of verticies (documents acssociated)
+# sort(table(network.clusters$membership))
+# # cluster 33 is the largest!
+# 
+# quantile(table(network.clusters$membership),probs = c(0,.25,.5,.75,.95,1))
+# 
+# # inspecting them individually: 
+# cluster.labels %>%
+#   filter(cluster==33) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==35) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==39) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==34) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==41) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==1) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==37) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==24) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==16) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==9) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# 
+# cluster.labels %>%
+#   filter(cluster==42) %>%
+#   ggplot(., aes( label = labels, size = total.labelcluster.degree, x = cluster, color = cluster )) +
+#   geom_text_wordcloud_area() +
+#   scale_size_area(max_size = 20) +
+#   scale_x_discrete(breaks = NULL) +
+#   theme_minimal()
+# ### trying ribbon plot ###
+# 
+# # get data in the right formate
+# EUlinks.terms %>%
+#   mutate(search.term = case_when( search.term == "jakt"~ "hunting",
+#                                   search.term == "jagt"~ "hunting",
+#                                   search.term == "fiske"~ "fisheries",
+#                                   search.term == "fiskeri"~ "fisheries",
+#                                   search.term == "sjofart"~ "maritime traffic",
+#                                   search.term == "sotrafik"~ "maritime traffic")) %>%
+#   group_by(to, country, search.term) %>%
+#   summarise(n=n_distinct(from)) %>%
+#   ggplot(.,
+#        aes(y = n, axis1 = search.term, axis2 = to)) +
+#   geom_alluvium(aes(fill = country), width = 1/12) +
+#   geom_stratum(width = 1/12) +
+#   geom_text(stat = "stratum", aes(label = after_stat(stratum)),
+#             reverse = FALSE) +
+#   facet_wrap(~ search.term, scales = "fixed") 
+# 
+# 
+# # Combine all network stats:
+# all.networkstats <- rbind(maritime.network.df,fisheries.network.df,hunting.network.df) %>%
+#   mutate(country = case_when( str_detect(name,"sfs\\-") == "TRUE"  ~ "se" ,
+#                               str_detect(name, "\\/eli\\/")== "TRUE"  ~ "dk",
+#                               TRUE  ~ "EU" ))
+# all.networkstats %>% 
+#   filter(search.term == "fisheries") %>% 
+#   summary(.)
+# 
+# all.networkstats %>% 
+#   filter(search.term == "hunting") %>% 
+#   summary(.)
+# 
+# all.networkstats %>% 
+#   filter(search.term == "maritime") %>% 
+#   summary(.)
+# 
+# n_distinct(all.networkstats$name) # 1025
+# 
+# all.networkstats1 <- 
+#   document.key.df%>%
+#   select(celex,labels) %>%
+#   distinct() %>%
+#   right_join(., all.networkstats, by= c("celex" = "name")) %>%
+#   rename("name" = "celex")
+# 
+# n_distinct(all.networkstats1$name) # 1025 no losses or additions so passes the check 
