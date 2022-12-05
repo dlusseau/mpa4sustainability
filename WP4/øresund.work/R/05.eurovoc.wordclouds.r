@@ -89,12 +89,44 @@ SE.huntinglabels.bird <-
   group_by(labels) %>%
   summarise(n.doc = n_distinct(doc.id)) %>%
   mutate(hunting = "bird")%>%
-  mutate(country = "se")
+  mutate(country = "se") %>%
+  mutate(n.doc = n.doc*8)
 
 
 seal.hunting.labels <- rbind(DK.huntinglabels.seals, SE.huntinglabels.seals)
+
+seal.hunting.labels %>%
+  group_by(country) %>%
+  summarise(n=n_distinct(labels))
+#country     n
+#<chr>   <int>
+#  1 dk         10
+#2 se         48
+
+seal.hunting.labels %>%
+  group_by(country,n.doc) %>%
+  mutate(Descriptor.Label = paste0(labels, collapse = ", ")) %>%
+  arrange(country,n.doc) %>% 
+  select(-labels) %>%
+  distinct() %>%
+  kable(., "latex")
+
+
 bird.hunting.labels <- rbind(DK.huntinglabels.bird, SE.huntinglabels.bird)
 
+bird.hunting.labels %>%
+  group_by(country) %>%
+  summarise(n=n_distinct(labels))
+#dk         71
+#2 se         48
+
+bird.hunting.labels %>%
+  group_by(country,n.doc) %>%
+  mutate(Descriptor.Label = paste0(labels, collapse = ", ")) %>%
+  arrange(country,n.doc) %>% 
+  select(-labels) %>%
+  distinct() %>%
+  kable(., "latex")
 
 cluster.labs <- c(
   "dk"="Denmark", 
@@ -118,7 +150,7 @@ ggplot(.,
   scale_color_manual("", 
                      breaks = c("dk", "se"),
                      values=c(dk="#d1050c", se ="#004B87")) +
-  ggtitle("(A) Eurovoc descriptors for legislations which mentons seal") +
+  ggtitle("(A) Eurovoc descriptors for legislations which mentions seal") +
   guides(size="none") +
   theme(line = element_blank(),
         axis.text.x =element_blank(),
@@ -152,7 +184,7 @@ bird.word.cloud <-
   scale_color_manual("", 
                      breaks = c("dk", "se"),
                      values=c(dk="#d1050c", se ="#004B87")) +
-  ggtitle("(B) Eurovoc descriptors for legislations which mentons bird") +
+  ggtitle("(B) Eurovoc descriptors for legislations which mentions bird") +
   guides(size="none") +
   theme(line = element_blank(),
         axis.text.x =element_blank(),
@@ -203,7 +235,7 @@ DK.fishinglabels.rec <-
   mutate(country = "dk")
 
 
-  
+
 SE.fishinglabels.com <-
   SEEUlinks %>%
   filter(search.term == "fiske") %>%
@@ -233,6 +265,12 @@ SE.fishinglabels.rec <-
 
 
 spec.fisheries.labels <- rbind(DK.fishinglabels.com, DK.fishinglabels.rec, SE.fishinglabels.com, SE.fishinglabels.rec)
+
+
+spec.fisheries.labels %>%
+  group_by(country,fisheries) %>%
+  summarise(n=n_distinct(labels))
+
 
 cluster.labs <- c(
   "commercial"="(A) Commercial fisheries", 
@@ -264,7 +302,7 @@ spec.fisheries.labels %>%
         legend.position = "none")
 
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/fisheries.wordclouds.png", 
-       width = 80, height = 55, units = "cm",
+       width = 60, height = 45, units = "cm",
        limitsize = FALSE)
 
 
