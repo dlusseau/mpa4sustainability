@@ -162,6 +162,11 @@ DK.text.df3 %>%
 DK.text.df3 %>%
   filter(search.term == "sotrafik" & boat.traffic == "TRUE") # 0
 
+
+DK.text.df3 %>%
+  write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKdoctags.csv", row.names=FALSE)
+
+
 DK.text.df4 <-  
   DK.text.df3 %>%
   select(-text)
