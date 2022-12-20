@@ -52,7 +52,7 @@ DKEUlinks1 <-
 n_distinct(DKEUlinks1$from)
 # 211 dk documents link to an EU doc
 n_distinct(DKEUlinks1$to)
-# 234 EU legal acts link 
+# 243 EU legal acts link 
 
 
 eu.vertices <- 
@@ -221,9 +221,9 @@ SEEUlinks1 <-
 
 
 n_distinct(SEEUlinks1$from)
-# 123 dk documents link to an EU doc
+# 92 dk documents link to an EU doc
 n_distinct(SEEUlinks1$to)
-# 404 EU legal acts link 
+# 301 EU legal acts link 
 
 
 eu.vertices2 <- 
@@ -257,15 +257,15 @@ sort(degree)
 
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#   1    1    1    2    9   31 
+#   1    1    1    2   10   30  
 
 
 l.se <- layout.fruchterman.reingold(seeu.network)
 
 
-table(V(seeu.network)$source == "EU") #404
-table(V(seeu.network)$source == "SE") #123
-(V(seeu.network)) # 527 vertices
+table(V(seeu.network)$source == "EU") #301
+table(V(seeu.network)$source == "SE") #92
+(V(seeu.network)) # 393 vertices
 
 saveRDS(seeu.network, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/seeu.networkigraph.rds")
 

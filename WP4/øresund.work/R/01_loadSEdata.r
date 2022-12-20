@@ -27,7 +27,8 @@ library("dplyr")
 # "fiske" query ------------------------------------------------------------------
 
 Fiske.API.URL <-
-"https://data.riksdagen.se/dokumentlista/?sok=%22fiske%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+#"https://data.riksdagen.se/dokumentlista/?sok=%22fiske%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+"https://data.riksdagen.se/dokumentlista/?sok=%22fiske%22&dokstat=g%C3%A4llande+sfs&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
 
 fiske.raw.data <- GET(Fiske.API.URL)
 fiske.raw.data$status_code # 200 means it is ok :)
@@ -103,7 +104,7 @@ URLs <- paste0("https:",full.fisk.df1[,18], sep="") #put https: infront of the u
 doc.id <- full.fisk.df1[,16]
 
 
-SK.fisketext.list <- structure(vector("list", 260), names=doc.id)
+SK.fisketext.list <- structure(vector("list", 113), names=doc.id)
 
 for (i in seq(URLs)) {
   
@@ -121,7 +122,8 @@ for (i in seq(URLs)) {
 # jakt query -----------
 
 jakt.API.URL <-
-"https://data.riksdagen.se/dokumentlista/?sok=%22jakt%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+#"https://data.riksdagen.se/dokumentlista/?sok=%22jakt%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+"https://data.riksdagen.se/dokumentlista/?sok=%22jakt%22&dokstat=g%C3%A4llande+sfs&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
 
 jakt.raw.data <- GET(jakt.API.URL)
 jakt.raw.data$status_code # 200 means it is ok :)
@@ -176,7 +178,7 @@ for (i in seq(No.pgs)) {
 
 doc.id <- full.jakt.df[,16]
 
-SK.jakttext.list <- structure(vector("list", 94), names=doc.id)
+SK.jakttext.list <- structure(vector("list", 35), names=doc.id)
 
 URLs <- paste0("https:",full.jakt.df[,18], sep="") #put https: infront of the url
 
@@ -197,8 +199,9 @@ for (i in seq(URLs)) {
 # sjöfart query -----------
 
 sjofart.API.URL <-
-"https://data.riksdagen.se/dokumentlista/?sok=%22sj%C3%B6fart%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
-  
+#"https://data.riksdagen.se/dokumentlista/?sok=%22sj%C3%B6fart%22&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+"https://data.riksdagen.se/dokumentlista/?sok=%22sj%C3%B6fart%22&dokstat=g%C3%A4llande+sfs&doktyp=SFS&rm=&from=&tom=&ts=&bet=&tempbet=&nr=&org=&iid=&avd=&webbtv=&talare=&exakt=&planering=&facets=&sort=rel&sortorder=desc&rapport=&utformat=json&a=s#soktraff"
+
 sjofart.raw.data <- GET(sjofart.API.URL)
 sjofart.raw.data$status_code # 200 means it is ok :)
 names(sjofart.raw.data)
@@ -257,12 +260,12 @@ full.sjofart.df %>%
 # https://data.riksdagen.se/dokument/sfs-1891-35 s.1.text --> THIS LINK IS FAULTY
 # totally remove the faulty link and then edit the two to be the correct path
 full.sjofart.df1 <- 
-  full.sjofart.df %>%
-  filter(dokument_url_text != "//data.riksdagen.se/dokument/sfs-1891-35 s.1.text")
+  full.sjofart.df #%>%
+ #now not in our df since we are updating API #filter(dokument_url_text != "//data.riksdagen.se/dokument/sfs-1891-35 s.1.text")
 
 doc.id <- full.sjofart.df1[,16]
 
-SK.sjofart.list <- structure(vector("list", 199), names=doc.id)
+SK.sjofart.list <- structure(vector("list", 126), names=doc.id)
 
 URLs <- paste0("https:",full.sjofart.df1[,18], sep="") #put https: infront of the url
 

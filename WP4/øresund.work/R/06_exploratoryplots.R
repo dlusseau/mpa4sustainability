@@ -50,7 +50,7 @@ DKplot <-
         legend.position = "none") + 
   labs(title = "Danish Legislation")
 
-se.labs <- c("fiske" ="fiske (n=257)", "jakt"="jakt (n=93)", "sjöfart"="sjöfart (n=199)")
+se.labs <- c("fiske" ="fiske (n=105)", "jakt"="jakt (n=35)", "sjöfart"="sjöfart (n=125)")
 
 SE.metadata %>%
   group_by(search.term) %>%
@@ -83,6 +83,7 @@ SEplot <-
 
 DKplot + SEplot + 
   plot_annotation(tag_levels = 'A')
+
 
 
 
@@ -135,31 +136,41 @@ dep.leg.dek <-
   ungroup() %>%
   mutate(ministry.english = as.factor(ministry.english)) 
 
+xx <- 
+  SE.metadata %>%
+  mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
+  mutate(organ.cut = as.character(organ.cut))
 
-unique(dep.leg$organ.cut)
+ unique(xx$organ.cut)
+ 
+ [1] "Infrastrukturdepartementet"  "Justitiedepartementet"       "Finansdepartementet"         "Näringsdepartementet"        "Försvarsdepartementet"       NA                           
+ [7] "Statsrådsberedningen"        "Miljödepartementet"          "Kulturdepartementet"         "Utrikesdepartementet"        "Arbetsmarknadsdepartementet" "Landsbygdsdepartementet"    
+ [13] "Fiskeristyrelsen"            "Socialdepartementet"         "Utbildningsdepartementet"    "riksb"   
 
+ # "Infrastrukturdepartementet"       Ministry of Infrastructure
+ # "Justitiedepartementet"         Ministry of Justice
+ # "Finansdepartementet"            "Ministry of Finance"
+ # "Näringsdepartementet"        Ministry of Commerce
+ # "Försvarsdepartementet"          "Ministry of Defence"
+ # "Statsrådsberedningen"       The Cabinet Committee
+ #  "Miljödepartementet"         Ministry of the Environment
+ # "Kulturdepartementet"          Ministry of Culture
+ # "Utrikesdepartementet"        Ministry of Foreign Affairs
 # "Arbetsmarknadsdepartementet"    "Ministry of Labour"
+ # "Landsbygdsdepartementet"     Ministry of Rural Affairs
+ # "Fiskeristyrelsen"               "The Fisheries Board"
+ # "Socialdepartementet"        Ministry of Social Affairs
+ # "Utbildningsdepartementet"   Ministry of Education
+ # "riksb"              ??            
+ 
+ 
 # "Civildepartementet"             "Ministry of Civil Affairs"
-# "Finansdepartementet"            "Ministry of Finance"
-# "Fiskeristyrelsen"               "The Fisheries Board"
-# "Försvarsdepartementet"          "Ministry of Defence"
 # "Industridepartementet"           Ministry of Industry
-# "Infrastrukturdepartementet"       Ministry of Infrastructure
 # "Inrikesdepartementet"           Ministry of the Interior
 # "Jordbruksdepartementet"         Ministry of Agriculture
-# "Justitiedepartementet"         Ministry of Justice
 # "Kammarkollegiet"             Chamber college
 # "Kommunikationsdepartementet"   Ministry of Communications
-# "Kulturdepartementet"          Ministry of Culture
-# "Landsbygdsdepartementet"     Ministry of Rural Affairs
 #  "Miljö- och samhällsbyggnadsdepartementet	-->    Ministry of the Environment and Community Development            
-#  "Miljödepartementet"         Ministry of the Environment
-# "Näringsdepartementet"        Ministry of Commerce
-# "riksb"              ??            
-# "Socialdepartementet"        Ministry of Social Affairs
-# "Utbildningsdepartementet"   Ministry of Education
-# "Utrikesdepartementet"        Ministry of Foreign Affairs
-# "Statsrådsberedningen"       The Cabinet Committee
 # NA  
 
 SE.metadata %>%

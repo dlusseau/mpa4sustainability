@@ -11,12 +11,12 @@ library("tibble")
 library("tm")
 library("corpus")
 library("stringr")
-library("dplyr")
 library("sentimentr")
 library("eurlex")
 library("purrr")
 library("tidyverse")
 library("readxl")
+library("dplyr")
 
 # Define functions -------------------------------------------------------------
 
@@ -37,28 +37,29 @@ fisk.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske U
 # making into a nice df --------------------------------------------------------
 
 sjofarttext.df <- 
-  as.data.frame(unique(cbind(sjofart.list))) %>% # need to use unique () because some of the results were duplicates (jakt and fisk)
+  as.data.frame(unique(cbind(sjofart.list))) %>% # need to use unique () because some of the results were duplicates 
   rownames_to_column(., var = "doc.id") %>%
-  rename("text" = "sjofart.list") %>%
-  unnest(text, keep_empty=TRUE) %>%
+  unnest(sjofart.list, keep_empty=TRUE) %>%
   mutate(search.term = "sjofart") %>%
-  mutate(country = "SE") 
+  mutate(country = "SE") %>%
+  dplyr::rename("text" = "sjofart.list")
+
 
 jakttext.df <- 
   as.data.frame(unique(cbind(jakttext.list))) %>% # need to use unique () because some of the results were duplicates
   rownames_to_column(., var = "doc.id") %>%
-  rename("text" = "jakttext.list") %>%
-  unnest(text, keep_empty=TRUE) %>%
+  unnest(jakttext.list, keep_empty=TRUE) %>%
   mutate(search.term = "jakt") %>%
-  mutate(country = "SE") 
+  mutate(country = "SE") %>%
+  dplyr::rename("text" = "jakttext.list")
 
 fisketext.df <- 
   as.data.frame(unique(cbind(fisketext.list))) %>% # need to use unique () because some of the results were duplicates
   rownames_to_column(., var = "doc.id") %>%
-  rename("text" = "fisketext.list") %>%
-  unnest(text, keep_empty=TRUE) %>%
+  unnest(fisketext.list, keep_empty=TRUE) %>%
   mutate(search.term = "fiske") %>%
-  mutate(country = "SE") 
+  mutate(country = "SE") %>%
+  dplyr::rename("text" = "fisketext.list")
 
 SEtext.dk <- rbind(sjofarttext.df,jakttext.df,fisketext.df)
 
@@ -82,9 +83,9 @@ jakt.metadata <-
 SEmeta.dk <- 
   rbind(sjofart.metadata,jakt.metadata,fisk.metadata)
 
-n_distinct(SEtext.dk$doc.id)
+n_distinct(SEtext.dk$doc.id) # 223
 n_distinct(SEmeta.dk$id)
-# unique ids there are 444 documents
+# unique ids there are 223 documents
 
 #looking for the other forms of hunting and fishing 
 #fisheries (commercial, recreational and spear fishing) : fiske (yrkesfiske, fritidsfiske, harpunfiske). 
@@ -111,18 +112,19 @@ SEtext.dk1 <-
          boat.traffic = case_when(search.term == "sjofart" ~ str_detect(text, "båttrafik|Båttrafik")))
 
 head(SEtext.dk1)
+unique(SEtext.dk1$search.term)
 
 SEtext.dk1 %>%
   group_by(search.term) %>%
   summarise(n=n_distinct(doc.id))
 
-# fiske         257
-# jakt           93
-# sjofart       199
+# fiske         105
+# jakt           35
+# sjofart       125
 
 SEtext.dk1 %>%
   summarise(n=n_distinct(doc.id))
-#444
+#223
 
 SEtext.dk1 %>%
   filter(search.term == "fiske" & harpun == "TRUE") # 0 mention harpun
@@ -131,41 +133,41 @@ SEtext.dk1 %>%
   filter(search.term == "fiske" & harpun2 == "TRUE") # 0 mention harpun
 
 SEtext.dk1 %>%
-  filter(search.term == "fiske" & commercial == "TRUE") # 26 fisheries documents mention yrkesfisk
+  filter(search.term == "fiske" & commercial == "TRUE") # 12 fisheries documents mention yrkesfisk
 
 SEtext.dk1 %>%
-  filter(search.term == "fiske" & recreational == "TRUE") # 10 fisheries documents mention fritidsfisk fisk
+  filter(search.term == "fiske" & recreational == "TRUE") # 3 fisheries documents mention fritidsfisk fisk
 
 SEtext.dk1 %>%
-  filter(search.term == "fiske" & angling == "TRUE") # 2 mention handredskapsfisk
+  filter(search.term == "fiske" & angling == "TRUE") # 1 mention handredskapsfisk
 
 SEtext.dk1 %>%
   filter(search.term == "fiske" & angling2 == "TRUE") # 1  documents mention spöfisk
 
 SEtext.dk1 %>%
-  filter(search.term == "fiske" & houseneeds.fishing == "TRUE") # 1  documents mention husbehovsfisk
+  filter(search.term == "fiske" & houseneeds.fishing == "TRUE") # 0  documents mention husbehovsfisk
 
 SEtext.dk1 %>%
   filter(search.term == "fiske" & houseneeds.fishing2 == "TRUE") # 0  documents mention fiske för husbehov
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & birdhunt == "TRUE") # 7 fågel
+  filter(search.term == "jakt" & birdhunt == "TRUE") # 3 fågel
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal == "TRUE") # 2 mention säl fisk
+  filter(search.term == "jakt" & seal == "TRUE") # 1 mention säl fisk
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal2 == "TRUE") # 5 mention säl fisk
+  filter(search.term == "jakt" & seal2 == "TRUE") # 3 mention säl fisk
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal3 == "TRUE") # 3 mention säl fisk
+  filter(search.term == "jakt" & seal3 == "TRUE") # 2 mention säl fisk
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal4 == "TRUE") # 2 mention säl fisk
+  filter(search.term == "jakt" & seal4 == "TRUE") # 1 mention säl fisk
 
 
 SEtext.dk1 %>%
-  filter(search.term == "sjofart" & boat.traffic == "TRUE") # 3 mention båtstrafik
+  filter(search.term == "sjofart" & boat.traffic == "TRUE") # 0 mention båtstrafik
 
 SEtext.dk1 %>%
   write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdoctags.csv", row.names=FALSE)
@@ -555,7 +557,20 @@ EU.links7 <-
   mutate(celex.dir = case_when(doc.id == "sfs-1999-1229" & sentence_id == 2908 & code == "(EU) 2016/1164" ~ "32016L1164", 
                                TRUE ~ celex.dir)) %>%
   mutate(celex.reg = case_when(type == "reg" & code == "(EC) No 726/20048" ~ "32004R0726", # is a typo it is 2004 not 20048
+                               TRUE ~ celex.reg)) %>%
+  filter(doc.id != "sfs-2011-1533" | ref != "Förordning" | code != "(EU) 2017/2397") %>% # filter this one out bc it is a directive not a regulation
+  filter(doc.id != "sfs-2019-84" | ref != "förordning" | code != "(EU) 2019/420")  %>% # filter this one out bc it is a directive not a regulation
+  filter(doc.id != "sfs-1994-1776" | ref != "förordning" | code != "(EU) 2018/552") %>%
+  mutate(celex.reg = case_when(doc.id == "sfs-1980-789" & sentence_id == 505 & code == "(EC) No 2978/941" ~ "31994R2978", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+                               TRUE ~ celex.reg))%>%
+  mutate(celex.reg = case_when(doc.id == "sfs-2022-1461" & sentence_id == 13 & code == "(EU) 2021/2115" ~ "32021R2115", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+                               TRUE ~ celex.reg))%>%
+  mutate(celex.reg = case_when(doc.id == "sfs-2022-1461" & sentence_id == 36 & code == "(EU) 1408/2013" ~ "32013R1408", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
                                TRUE ~ celex.reg))
+
+
+  
+
 
 
 check1 <-
@@ -599,20 +614,16 @@ check2 <-
              is.na(celex.rec) &
              is.na(celex.reg))
 
-n_distinct(check2$code)
-n_distinct(check2$doc.id)
+n_distinct(check2$code) #3
+n_distinct(check2$doc.id)#8
 
 # These got deleted since idk if it is a typo or not...
 
 # directives
 #  89/106/EC  real title with EEC	--> not clear even in the sentences
 # 2004/42/EC	real title is CE --> for sfs.2008.245	it is def the code with CE (32004L0042) but others not clear even in the sentences
-# 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
 # 2004/35/EC	real title is CE --> not clear even in the sentences
 
-# other notes 
-
-#sfs-1980-789	-->(EC) No 2978/941	--> cannot find this in eurlex....
 
 
 # chang from wide to long formate:
@@ -659,7 +670,9 @@ EU.links10 <-
  filter(ref != "beslut" | code != "2012/19/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
  filter(ref != "beslut" | code != "2009/16/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
  filter(ref != "direktiv" | code != "90/425/EEC"| celex != "31991L0628") %>%
- filter(ref != "beslut" | code != "98/79/EC")
+ filter(ref != "beslut" | code != "98/79/EC") %>%
+  filter(doc.id != "sfs-2010-1770" | ref != "genomförandebeslut"  | code != "2007/2/EC")
+
 #check if cele codes have mutiple resource types within a sentence...
 check2 <-
   EU.links10  %>%
@@ -723,8 +736,8 @@ cleantext.df2 <-
   text.clean %>%
   select(-text, -search.term, -country)
 
-n_distinct(cleantext.df2$doc.id) # 123 SE documents are linked to an EU legislation
-n_distinct(cleantext.df2$celex) # 404 EU legislation is linked
+n_distinct(cleantext.df2$doc.id) # 92 SE documents are linked to an EU legislation
+n_distinct(cleantext.df2$celex) # 301 EU legislation is linked
 unique(cleantext.df2$type)
 
 # which keywords link to which EU documents:
@@ -738,8 +751,8 @@ SE.EU.links <-
   select(-text)
 
 
-n_distinct(SE.EU.links$doc.id) # 123 SE documents are linked to an EU legislation
-n_distinct(SE.EU.links$celex) # 404 EU legislation is linked
+n_distinct(SE.EU.links$doc.id) # 92 SE documents are linked to an EU legislation
+n_distinct(SE.EU.links$celex) # 301 EU legislation is linked
 
 write.csv(SE.EU.links, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02SE.EU.links.csv", row.names=FALSE)
 

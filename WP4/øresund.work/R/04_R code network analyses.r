@@ -45,10 +45,11 @@ DK.bet$code<-colnames(dkse.bi)
 
 
 SE.bet[sort(SE.bet$betweenness,index=TRUE,decreasing=TRUE)$ix,]
-#top SE betweenness 
-# 17 8846.188034  sfs-1998-808
-# 27   27 5680.133883  sfs-2006-813
-# 29   29 3618.247009  sfs-2007-845
+#   top SE
+#node    #betweenness 
+#   13 8468.7741278  sfs-1998-808
+#   21 4991.0333333  sfs-2006-813
+#   22 3492.2741278  sfs-2007-845
 
 SE.bwtn.df <- 
   SE.bet[sort(SE.bet$betweenness,index=TRUE,decreasing=TRUE)$ix,]%>%
@@ -72,15 +73,14 @@ igraph::degree(DKSE) %>%
   filter(str_detect(code, 'sfs')) %>%
   arrange(., desc(degree))
 # sfs-1998-808     89
-#2   sfs-2007-845     85
-#3   sfs-1998-179     82
-  
+#   sfs-2007-845     85
+#  sfs-1998-1252     82
   
 DK.bet[sort(DK.bet$betweenness,index=TRUE,decreasing=TRUE)$ix,]
 #top DK betweenness 
-#  194 5518.8838828       /eli/lta/2021/2536
-# 65   117 3214.7598291        /eli/lta/2016/859
-# 122  174 2716.0300366        /eli/lta/2016/936
+#  184 5098.1666667       /eli/lta/2021/1976
+#   105 2329.6298701        /eli/lta/2016/861
+#  163 2072.5976572       /eli/lta/2021/2512
 
 
 DK.bwtn.df <- 
@@ -104,10 +104,12 @@ igraph::degree(DKSE) %>%
   rownames_to_column(., var = "code") %>%
   filter(str_detect(code, 'eli')) %>%
   arrange(., desc(degree))
-#          /eli/lta/2022/100     12
-#         /eli/lta/2019/1165     11
-#          /eli/lta/2019/783      8
-#          /eli/lta/2022/787      8 
+#           /eli/lta/2022/100      9
+#           /eli/lta/2022/988      8
+#           /eli/lta/2022/787      8
+#           /eli/lta/2019/783      7
+#          /eli/lta/2021/2247      7
+#          /eli/lta/2019/1165      7
 
 identical(as.data.frame(dkse.bi), adj.matrix)
 all.equal(dkse.bi, adj.matrix)
@@ -126,13 +128,13 @@ sedkdependence$HL #is DK dependnce on SE
 table(apply(sedkdependence$HL,2,which.max)) # what SE text are DK texts most dependent on
 #looks like SE 17th
 rownames(dkse.bi)[17]
-#"sfs-1998-808" # happens to be top betweenness
+#"sfs-1999-657" # happens to be top betweenness
 
 
 table(apply(sedkdependence$LL,1,which.max)) # what DK text are SE texts most dependent on
 #looks like DK 36, but close also 1, 8, and 111
 colnames(dkse.bi)[c(36,1,8,111)]
-# "/eli/lta/2022/988"        "/eli/retsinfo/2015/11234" "/eli/lta/2021/2247"       "/eli/lta/2022/100" 
+# "/eli/lta/2021/2246" "/eli/lta/2019/985"  "/eli/lta/2022/964"  "/eli/lta/2022/139"
 
 
 
@@ -278,15 +280,15 @@ EUstats$name<-rownames(euSE.bi)
 #degree
 #top 6
 EUstats$name[sort(EUstats$degree,decreasing=TRUE,index=TRUE)$ix][1:7]
-#"32016R0679" "31976L0769" "31991L0155" "31993L0067" "31993L0105" "32000L0021"
+#"32016R0679" "31976L0769" "31991L0155" "31993L0067" "31993L0105" "32000L0021" "32019R1020"
 EUstats$degree[sort(EUstats$degree,decreasing=TRUE,index=TRUE)$ix][1:7]
-#corresponding degrees: 10  9  9  9  9  9
+#corresponding degrees: 10  8  8  8  8  8  6
 
 #bottom # does not make much sense as many are 1
 
 #betweenness
 EUstats$name[sort(EUstats$betweenness,decreasing=TRUE,index=TRUE)$ix][1:3]
-#"32003L0087" "31987R2658" "32017R0745"
+#"32002R0178" "32013R1380" "32017R0745"
 
 EUstats$betweenness[sort(EUstats$betweenness,decreasing=TRUE,index=TRUE)$ix][1:3]
 #corresponding value 0.1221701 0.1201127 0.0819835
@@ -298,19 +300,19 @@ SEstats$name<-colnames(euSE.bi)
 #degree
 #top 5
 SEstats$name[sort(SEstats$degree,decreasing=TRUE,index=TRUE)$ix][1:3]
-#[1] "sfs-1992-588" "sfs-1998-808" "sfs-2011-13" 
+#[1]  "sfs-1998-808"  "sfs-2011-13"   "sfs-2022-1718"
 
 SEstats$degree[sort(SEstats$degree,decreasing=TRUE,index=TRUE)$ix][1:3]
 
-#corresponding values 31 30 29 
+#corresponding values  30 29 27
 
 #betweenness
 #top 5
 SEstats$name[sort(SEstats$betweenness,decreasing=TRUE,index=TRUE)$ix][1:3]
 
-#  "sfs-1994-1776" "sfs-2009-641"  "sfs-1994-200" 
+# "sfs-2009-400"  "sfs-1999-1229" "sfs-1994-200"
 SEstats$betweenness[sort(SEstats$betweenness,decreasing=TRUE,index=TRUE)$ix][1:3]
-#corresponding values 0.11669896 0.10878558 0.09517302
+#corresponding values  0.13578202 0.09790169 0.07481312
 
 
 
