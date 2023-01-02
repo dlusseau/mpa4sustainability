@@ -424,6 +424,19 @@ Removal.code.list.3 <-
   distinct() %>%
   mutate(celex = as.character(celex)) # here we have a row for every "bad" code within a celex title code 
 
+EU.links7 <-
+  EU.links6 %>%
+  distinct() %>% # remove those that are mentioned exactly the same multiple times in a sentence
+  left_join(., regulation.titles1, by = c("type", "code")) %>%
+  rename(celex.reg = celex) %>%
+  mutate(ref = as.character(ref))
+
+check1 <-
+  EU.links7 %>%
+  filter(type=="reg" & is.na(celex.reg))%>%
+  mutate(code = as.factor(code)) 
+unique(check1$code)
+
 
 EU.links7 <-
   EU.links6 %>%
@@ -431,154 +444,61 @@ EU.links7 <-
   left_join(., regulation.titles1, by = c("type", "code")) %>%
   rename(celex.reg = celex) %>%
   mutate(ref = as.character(ref)) %>%
-  mutate(celex.reg = case_when(type == "reg" & code == "(EC) No 1907/2006" ~ "32006R1907",
-                               type == "reg" & code == "(EC) 1383/2003" ~ "32003R1383",
+  mutate(celex.reg = case_when(type == "reg" & code == "(EC) 1907/2006" ~	"32006R1907",# 
+                               type == "reg" & code == "(EC) No 1907/2006" ~ "32006R1907",
                                type == "reg" & code == "(EC) No 1966/2006" ~ "32006R1966",
-                               type == "reg" & code == "(EC) 1407/2002" ~ "32002R1407",
-                               type == "reg" & code == "No 4064/89/EEC" ~ "31989R4064",
-                               type == "reg" & code == "No 3975/87/EEC" ~ "31987R3975",
-                               type == "reg" & code == "No 2367/90/EEC" ~	"31990R2367",
-                               type == "reg" & code == "(EU) No 2019/1021" ~	"32019R1021",
+                               type == "reg" & code == "(EEC) 2658/87" ~	"31987R2658",
                                type == "reg" & code == "(EEC) 793/93" ~	"31993R0793",
+                               type == "reg" & code == "(EU) 1380/2013" ~	"32013R1380",# 
                                type == "reg" & code == "(EU) No 2016/424" ~	"32016R0424",
-                               type == "reg" & code == "förordning No 17" ~	"31962R0017",
+                               type == "reg" & code == "(EU) No 2019/1021" ~	"32019R1021",
+                               type == "reg" & code == "(EU) 2021/1139" ~	"32021R1139",
                                type == "reg" & code == "(EU) 2019/1896" ~	"32019R1896",
-                               type == "reg" & code == "(EU) No 868/2014" ~	"32014R0868",
-                               type == "reg" & code == "(EU) No 2019/1248" ~	"32019R1248",
-                               type == "reg" & code == "(EU) No 2019/1241" ~	"32019R1241",
                                type == "reg" & code == "(EU) 2019/1603" ~	"32019R1603",
+                               type == "reg" & code == "(EU) No 868/2014" ~	"32014R0868",
                                type == "reg" & code == "(EU) 2019/2033" ~	"32019R2033",
                                type == "reg" & code == "(EU) 2021/836" ~	"32021R0836",
-                               type == "reg" & code == "(EU) 2021/1139" ~	"32021R1139",
-                               type == "reg" & code == "(EU) 2020/262" ~	"32021R1139",
-                               type == "reg" & code == "(EEC) 2658/87" ~	"31987R2658",
-                               type == "reg" & code == "(EEC) No 1182/71" ~	"31971R1182",
-                               type == "reg" & code == "(EEC) No 2299/8" ~	"31989R2299", # these are actioally 80
-                               type == "reg" & code == "(EEC) No 2343/9" ~	"31990R2343", # 90
-                               type == "reg" & code == "(EEC) No 2344/9" ~	"31990R2344",# 90
-                               type == "reg" & code == "(EEC) No 3975/8" ~	"31987R3975",# 87
-                               type == "reg" & code == "(EU) 1380/2013" ~	"32013R1380",# 
-                               type == "reg" & code == "No 3975/87/n" ~	"31987R3975",#  n is how they refe a section in the SE leg. 
-                               type == "reg" & code == "(EC) 1907/2006" ~	"32006R1907",# 
-                               type == "reg" & code == "(EEC) No 3976/8" ~	"31987R3976",# 87
                                type == "reg" & code == "(EU) 297/2008" ~	"32008R0297",# 
                                type == "reg" & code == "(EU) No 2016/425" ~	"32016R0425",# 
-                               type == "reg" & code == "(EC) No 820/974" ~	"31997R0820",# typo (EC) No 820/974 it is (EC) No 820/97
-                               TRUE ~ celex.reg)) %>%
-  mutate(celex.rec = case_when(type == "rec" & code == "2003/361/EC" ~ "32003H0361", # all recos are done!
-                               TRUE ~ celex.rec)) %>%
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2019/713" ~ "32019L0713", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2019/713" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2019/713" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))         %>%
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2018/843" ~ "32018L0843", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2018/843" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2018/843" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))      %>%
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2020/262" ~ "32020L0262", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2020/262" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs.1994.1776" & code == "(EU) 2020/262" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))  %>%
-  mutate(ref = case_when(doc.id == "sfs-1994-1776" & code == "(EU) 2020/262" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))   %>% 
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/413" ~ "32015L0413", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2015/413" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2015/413" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))  %>%
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/652" ~ "32015L0652", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2015/652" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type))%>%
-  mutate(ref = case_when(doc.id == "sfs-2014-1434" & code == "(EU) 2015/652" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))%>%
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2018/851" ~ "32018L0851", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2018/851" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs-2020-614" & code == "(EU) 2018/851" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))%>%
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2015/849" ~ "32015L0849", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2015/849" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs-2014-1102" & code == "(EU) 2015/849" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))%>%
-  mutate(celex.dir = case_when(type == "reg" & code == "(EU) 2017/1132" ~ "32017L1132", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "reg" & code == "(EU) 2017/1132" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs-2009-400" & code == "(EU) 2017/1132" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))%>%
-  mutate(celex.dir = case_when(type == "dec" & code == "(EU) 2018/2001" ~ "32018L2001", # this is a directive but didnt follow the directive coding and 
-                               TRUE ~ celex.dir))%>%
-  mutate(type = case_when(type == "dec" & code == "(EU) 2018/2001" ~ "dir", # this is a directive but didnt follow the directive coding and 
-                          TRUE ~ type)) %>%
-  mutate(ref = case_when(doc.id == "sfs-2011-1088" & code == "(EU) 2018/2001" ~ "direktiv", # this is a directive but didnt follow the directive coding and 
-                         TRUE ~ ref))%>%
-  filter(code != "No 529/2013/EU") %>% # No 529/2013/EU No 280/2004/EC	No 1313/2013/EU		 these are decisions but dec pulled it without No so remove row when type ==reg
-  filter(code != "No 280/2004/EC") %>% 
-  filter(code != "No 1313/2013/EU") %>% 
-  filter(code != "4064/89/EEC") %>% # 4064/89/EEC	 not a decision but the regulation pull got it but with the No at the beginning
-  filter(code != "2344/90/n") %>%   # 2344/90/n	and 3976/87/n	a regulation and got pulled correctly 
-  filter(code != "3976/87/n") %>%   # 2344/90/n	and 3976/87/n	a regulation and got pulled correctly 
-  filter(code != "förordning No 187") %>% # förordning No 187	 not EU regulation says "royal regulation No 187"
-   mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2018/552" ~ "32018D0552", #  
-                               TRUE ~ celex.dec))%>%
-  mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2021/2326" ~ "32021D2326", # 
-                               TRUE ~ celex.dec))%>%
-  mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2017/302" ~ "32017D0302", # 
-                               TRUE ~ celex.dec))%>%
-  mutate(celex.dec = case_when(type == "dec" & code == "(EU) 2017/1442" ~ "32017D1442", # 
-                               TRUE ~ celex.dec)) %>%
-  mutate(celex.dec = case_when(type == "dir" & code == "2004/27/EC" ~ "32004L0027", #  this was mising from the title key pull dont know why
-                               TRUE ~ celex.dec))%>%
-  mutate(celex.dec = case_when(type == "dec" & code == "2009/371/JHA" ~ "32009D0371", #  this offcical title didnt have its code so missing from the key and did not come out of the eurlex pull?
-                               TRUE ~ celex.dec)) %>%
-  mutate(celex.dir = case_when(doc.id == "sfs-2008-245" & sentence_id == 94 & code == "2004/42/EC" ~ "32004L0042", # # 2004/42/EC	real title is CE --> for sfs.2008.245	sentence 94 it is def the code with CE (32004L0042) but others not clear even in the sentences
-                               TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs-2010-770" & sentence_id == 98 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
-                               TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs-2010-770" & sentence_id == 394 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
-                               TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs-2010-770" & sentence_id == 406 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
-                               TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs-1986-171" & sentence_id == 533 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
-                               TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs-1986-171" & sentence_id == 105 & code == "2004/36/EC" ~ "32004L0036", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
-                               TRUE ~ celex.dir))%>%
-  mutate(celex.dir = case_when(doc.id == "sfs-1999-1229" & sentence_id == 2908 & code == "(EU) 2016/1164" ~ "32016L1164", 
-                               TRUE ~ celex.dir)) %>%
-  mutate(celex.reg = case_when(type == "reg" & code == "(EC) No 726/20048" ~ "32004R0726", # is a typo it is 2004 not 20048
-                               TRUE ~ celex.reg)) %>%
-  filter(doc.id != "sfs-2011-1533" | ref != "Förordning" | code != "(EU) 2017/2397") %>% # filter this one out bc it is a directive not a regulation
-  filter(doc.id != "sfs-2019-84" | ref != "förordning" | code != "(EU) 2019/420")  %>% # filter this one out bc it is a directive not a regulation
+                               type == "reg" & code == "(EU) No 2019/1241" ~	"32019R1241",
+                               type == "reg" & code == "(EU) No 2019/1248" ~	"32019R1248",
+                               TRUE ~ celex.reg
+                               ))%>%
+                                 mutate(celex.reg = case_when(doc.id == "sfs-1980-789" & sentence_id == 505 & code == "(EC) No 2978/941" ~ "31994R2978", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+                                                              TRUE ~ celex.reg))%>%
+                                 mutate(celex.reg = case_when(doc.id == "sfs-2022-1461" & sentence_id == 36 & code == "(EU) 1408/2013" ~ "32013R1408", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+                                                              TRUE ~ celex.reg)) %>% 
+  filter(doc.id != "sfs-2022-1718" | ref != "förordning" | code != "(EU) 2015/413") %>% # this is a directive but didnt follow the directive coding but got the code for the directive so remove it
+  filter(doc.id != "sfs-2022-1718" | ref != "beslut" | code != "(EU) 2015/413") %>% # this is a directive but didnt follow the directive coding but got the code for the directive so remove it
+  filter(doc.id != "sfs-2014-1434" | ref != "förordning" | code != "(EU) 2015/652") %>% # this is a directive but didnt follow the directive coding but got the code for the directive so remove it
+  filter(doc.id != "sfs-2022-1718" | ref != "förordning" | code != "(EU) 2015/849") %>% # this is a directive but didnt follow the directive coding but got the code for the directive so remove it
+  filter(doc.id != "sfs-2022-1718" | ref != "beslut" | code != "(EU) 2015/849") %>%
+  filter(doc.id != "sfs-2009-400" | ref != "förordning" | code != "(EU) 2017/1132") %>% # this is a directive but didnt follow the directive coding but got the code for the directive so remove it
   filter(doc.id != "sfs-1994-1776" | ref != "förordning" | code != "(EU) 2018/552") %>%
-  mutate(celex.reg = case_when(doc.id == "sfs-1980-789" & sentence_id == 505 & code == "(EC) No 2978/941" ~ "31994R2978", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
-                               TRUE ~ celex.reg))%>%
-  mutate(celex.reg = case_when(doc.id == "sfs-2022-1461" & sentence_id == 13 & code == "(EU) 2021/2115" ~ "32021R2115", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
-                               TRUE ~ celex.reg))%>%
-  mutate(celex.reg = case_when(doc.id == "sfs-2022-1461" & sentence_id == 36 & code == "(EU) 1408/2013" ~ "32013R1408", # 2004/36/EC	real title is CE --> for sfs.2010.770	sentence 98,, 394, 406 and sfs.1986.171	sentence 533 and 105 it is celex (32004L0036) that title with ce
+  filter(doc.id != "sfs-1994-1776" | ref != "direktiv" | code != "(EU) 2018/552") %>%
+  filter(doc.id != "sfs-2020-614" | ref != "förordning" | code != "(EU) 2018/851") %>%
+  filter(doc.id != "sfs-2020-614" | ref != "beslut" | code != "(EU) 2018/851") %>%
+  filter(doc.id != "sfs-1994-1776" | ref != "förordning" | code != "(EU) 2020/262") %>%
+  filter(code != "No 529/2013/EU") %>% # No 529/2013/EU	 these are decisions but dec pulled it without No AND IS CORRECT so remove row when type ==reg
+  filter(code != "No 1313/2013/EU") %>% # SAME REASONING AS THE ROW ABOVE
+   filter(code != "förordning No 187") %>% # förordning No 187	 not EU regulation says "royal regulation No 187"
+  filter(doc.id != "sfs-2011-1533" | ref != "Förordning" | code != "(EU) 2017/2397") %>% # filter this one out bc it is a directive not a regulation
+  filter(doc.id != "sfs-2011-1533" | ref != "beslut" | code != "(EU) 2017/2397") %>% # filter this one out bc it is a directive not a regulation
+  filter(doc.id != "sfs-2022-1718" | ref != "förordning" | code != "(EU) 2018/843") %>% # filter this one out bc it is a directive not a regulation
+  filter(doc.id != "sfs-2022-1718" | ref != "beslut" | code != "(EU) 2018/843") %>% # filter this one out bc it is a directive not a regulation
+  filter(doc.id != "sfs-2019-84" | ref != "förordning" | code != "(EU) 2019/420")  %>% # filter this one out bc it is a directive not a regulation
+  mutate(celex.reg = case_when(doc.id == "sfs-2022-1461" & sentence_id == 13 & code == "(EU) 2021/2115" ~ "32021R2115", # 
                                TRUE ~ celex.reg))
-
-
   
-
 
 
 check1 <-
   EU.links7 %>%
   filter(type=="reg" & is.na(celex.reg))%>%
   mutate(code = as.factor(code)) 
-# one of these codes is a mistake and the others are not regulatiosn so they are cleaned out below: 
 unique(check1$code)
+
+# Now if there are duplicate codes but one doesnot have a celex but the other does remove the one without since this is a mistake
 
 EU.links8 <-
   EU.links7 %>%
@@ -614,17 +534,50 @@ check2 <-
              is.na(celex.rec) &
              is.na(celex.reg))
 
+n_distinct(check2$code) #6
+n_distinct(check2$doc.id)#11
+
+EU.links9 <- 
+  EU.links9  %>%
+mutate(celex.dec = case_when(type == "dec" & code == "2009/371/JHA" ~ "32009D0371", #  this offcical title didnt have its code so missing from the key and did not come out of the eurlex pull
+                             TRUE ~ celex.dec)) %>%
+mutate(celex.dec = case_when(type == "dir" & code == "2004/27/EC" ~ "32004L0027", #  this was mising from the title key pull dont know why
+                             TRUE ~ celex.dec)) %>%
+filter(doc.id != "sfs-2015-315" | ref != "beslut" | code != "2004/27/EC")  %>% # this is not a decision it is a directive reference the line above
+  mutate(celex.rec = case_when(type == "rec" & code == "2003/361/EC" ~ "32003H0361", # all recos are done!
+                               TRUE ~ celex.rec))
+check2 <-
+  EU.links9  %>%
+  filter(is.na(celex.dir) &
+           is.na(celex.dec) &
+           is.na(celex.rec) &
+           is.na(celex.reg))
+
 n_distinct(check2$code) #3
 n_distinct(check2$doc.id)#8
 
 # These got deleted since idk if it is a typo or not...
-
 # directives
 #  89/106/EC  real title with EEC	--> not clear even in the sentences
 # 2004/42/EC	real title is CE --> for sfs.2008.245	it is def the code with CE (32004L0042) but others not clear even in the sentences
 # 2004/35/EC	real title is CE --> not clear even in the sentences
 
+EU.links10 <- 
+  EU.links9 %>%
+  select(-dup.first,-dup.last,-delete) %>%
+  pivot_longer(cols =  starts_with("celex"),
+               names_to = "type2",
+               values_to = "celex",
+               values_drop_na = TRUE)
 
+#check if cele codes have mutiple resource types within a sentence...
+check2 <-
+  EU.links10  %>%
+  group_by(doc.id,element_id,sentence_id,code) %>%
+  summarise(n=n_distinct(celex)) %>%
+  filter(n>1)
+
+n_distinct(check2$code)
 
 # chang from wide to long formate:
 EU.links10 <- 
@@ -634,45 +587,40 @@ EU.links10 <-
                names_to = "type2",
                values_to = "celex",
                values_drop_na = TRUE) %>% # here we are drioping those that are NA %>%
- filter(type2 != "celex.dec" | code != "2000/60/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
- filter(celex != "32012R0684" | code != "(EU) No 648/2012") %>% # filter this one out bc it is not referencing a implementing reg. 
- filter(type2 != "celex.reg"  | code != "(EU) 2020/262") %>% # filter this one out bc it is not referencing a reg it is a dir. 
- filter(doc.id != "sfs-2009-400" | type2 != "celex.dec"  | code != "98/79/EC") %>% # all of these below were dir not dec
- filter(doc.id != "sfs.2009.400" | type2 != "celex.dec"  | code != "98/79/EC") %>%
- filter(doc.id != "sfs.1998.944" | type2 != "celex.dec"  | code != "98/79/EC")%>%
- filter(doc.id != "sfs.2009.641" | type2 != "celex.dec"  | code != "98/79/EC")%>%
- filter(doc.id != "sfs-2009-641" | type2 != "celex.dec"  | code != "98/79/EC") %>%
- filter(ref != "beslut" | code != "2004/27/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "96/61/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "96/50/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "96/25/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "direktiv" | code != "94/3/EC") %>% # filter this one out bc it is not referencing a dir it is a dec 
- filter(ref != "beslut" | code != "93/74/EEC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2013/40/EU") %>% # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2011/36/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2009/18/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2008/105/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2006/70/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2005/60/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2004/28/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2011/62/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2011/82/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2001/20/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2003/87/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "genomförandebeslut" | code != "2003/96/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2007/43/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2008/119/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2008/120/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "98/58/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "96/93/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "96/23/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "93/42/EEC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2012/19/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "beslut" | code != "2009/16/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
- filter(ref != "direktiv" | code != "90/425/EEC"| celex != "31991L0628") %>%
- filter(ref != "beslut" | code != "98/79/EC") %>%
-  filter(doc.id != "sfs-2010-1770" | ref != "genomförandebeslut"  | code != "2007/2/EC")
-
+  filter(ref != "beslut" | code != "2009/18/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2007/43/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2008/119/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2008/120/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "direktiv" | code != "90/425/EEC"| celex != "31991L0628") %>%
+  filter(ref != "beslut" | code != "96/23/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "96/93/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "98/58/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "genomförandebeslut" | code != "2003/96/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(doc.id != "sfs-2009-400" | type2 != "celex.dec"  | code != "98/79/EC") %>% # all of these below were dir not dec
+  filter(doc.id != "sfs.2009.400" | type2 != "celex.dec"  | code != "98/79/EC") %>%
+  filter(doc.id != "sfs.1998.944" | type2 != "celex.dec"  | code != "98/79/EC")%>%
+  filter(doc.id != "sfs-1998-944" | type2 != "celex.dec"  | code != "98/79/EC")%>%
+  filter(doc.id != "sfs.2009.641" | type2 != "celex.dec"  | code != "98/79/EC")%>%
+  filter(doc.id != "sfs-2009-641" | type2 != "celex.dec"  | code != "98/79/EC")%>%
+  filter(celex != "32012R0684" | code != "(EU) No 648/2012") %>% # filter this one out bc it is not referencing a implementing reg. 
+  filter(type2 != "celex.dec" | code != "2000/60/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2001/20/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2003/87/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "93/42/EEC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2004/28/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2005/60/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2006/70/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(doc.id != "sfs-2010-1770" | ref != "genomförandebeslut"  | code != "2007/2/EC")%>%
+  filter(ref != "beslut" | code != "2008/105/EC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2009/16/EC") %>%   # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2011/36/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2012/19/EU") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "96/50/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "96/25/EC") %>% # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "direktiv" | code != "94/3/EC") %>% # filter this one out bc it is not referencing a dir it is a dec 
+  filter(ref != "beslut" | code != "93/74/EEC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
+  filter(ref != "beslut" | code != "2013/40/EU") # filter this one out bc it is not referencing a dec it is a dir. 
+  
 #check if cele codes have mutiple resource types within a sentence...
 check2 <-
   EU.links10  %>%

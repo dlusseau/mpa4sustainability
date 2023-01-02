@@ -10,6 +10,7 @@ library("dplyr")
 library("ggplot2")
 library("lubridate")
 library("patchwork")
+library(kableExtra)
 
 # Define functions -------------------------------------------------------------
 
@@ -116,7 +117,8 @@ dep.leg.dek <-
                                        Ressort == "Transportministeriet" ~ "Ministry of Transport",
                                        Ressort == "Miljøministeriet" ~ "Ministry of the Environment",
                                        Ressort == "Statsministeriet" ~ "The Prime Minister's Office",
-                                       Ressort == "Uddannelses- og Forskningsministeriet" |  Ressort == "Børne- og Undervisningsministeriet" ~ "Ministry of Education" ,
+                                       Ressort == "Uddannelses- og Forskningsministeriet" ~ "Ministry of Education and Research",
+                                       Ressort == "Børne- og Undervisningsministeriet" ~ "Ministry of Children and Education" ,
                                        Ressort == "Beskæftigelsesministeriet" ~ "Ministry of Labour" ,
                                        Ressort == "Klima-, Energi- og Forsyningsministeriet" ~ "Ministry of Climate, Energy and Supply" ,
                                        Ressort == "Justitsministeriet" ~ "Ministry of Justice" ,
@@ -126,7 +128,6 @@ dep.leg.dek <-
                                        Ressort == "Sundhedsministeriet" ~ "Ministry of Health" ,
                                        Ressort == "Indenrigs- og Boligministeriet" ~ "Ministry of the Interior and Housing" ,
                                        Ressort == "Finansministeriet" ~ "Ministry of Finance" ,
-                                      # Ressort == "Børne- og Undervisningsministeriet" ~ "Ministry of Children and Education" ,
                                        Ressort == "Kirkeministeriet" ~ "Ministry of the Church" ,
                                        Ressort == "Folketinget" ~ "The Danish parliament",
                                        Ressort == "NA" ~ "NA")) %>%
@@ -142,10 +143,10 @@ xx <-
   mutate(organ.cut = as.character(organ.cut))
 
  unique(xx$organ.cut)
- 
- [1] "Infrastrukturdepartementet"  "Justitiedepartementet"       "Finansdepartementet"         "Näringsdepartementet"        "Försvarsdepartementet"       NA                           
- [7] "Statsrådsberedningen"        "Miljödepartementet"          "Kulturdepartementet"         "Utrikesdepartementet"        "Arbetsmarknadsdepartementet" "Landsbygdsdepartementet"    
- [13] "Fiskeristyrelsen"            "Socialdepartementet"         "Utbildningsdepartementet"    "riksb"   
+ #
+ #[1] "Infrastrukturdepartementet"  "Justitiedepartementet"       "Finansdepartementet"         "Näringsdepartementet"        "Försvarsdepartementet"       NA                           
+ #[7] "Statsrådsberedningen"        "Miljödepartementet"          "Kulturdepartementet"         "Utrikesdepartementet"        "Arbetsmarknadsdepartementet" "Landsbygdsdepartementet"    
+ #[13] "Fiskeristyrelsen"            "Socialdepartementet"         "Utbildningsdepartementet"    "riksb"   
 
  # "Infrastrukturdepartementet"       Ministry of Infrastructure
  # "Justitiedepartementet"         Ministry of Justice
@@ -176,29 +177,23 @@ xx <-
 SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
-  mutate(ministry.english = case_when( organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
-                                       organ.cut == "Civildepartementet" ~ "Ministry of Civil Affairs",
-                                       organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
-                                    #   organ.cut == "Fiskeristyrelsen" ~ "The Fisheries Board",
-                                       organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
-                                       organ.cut == "Industridepartementet" ~ "The Ministry of Business and Industry", # sewden just industry this is the name of DK
-                                       organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Infrastructure",
-                                       organ.cut == "Inrikesdepartementet" ~ "Ministry of the Interior",
-                                       organ.cut == "Jordbruksdepartementet" | organ.cut == "Fiskeristyrelsen" ~ "Ministry of Food, Agriculture and Fisheries",
-                                       organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
-                                       organ.cut == "Kammarkollegiet" ~ "Chamber college",
-                                       organ.cut == "Kommunikationsdepartementet" ~ "Ministry of Communications",
-                                       organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
-                                       organ.cut == "Landsbygdsdepartementet" ~ "Ministry of Rural Affairs",
-                                     #  organ.cut == "Miljö" ~ "Ministry of the Environment and Community Development",
-                                       organ.cut == "Miljödepartementet" | organ.cut == "Miljö"  ~ "Ministry of the Environment",
-                                       organ.cut == "Näringsdepartementet" ~ "Ministry of Commerce",
-                                       organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs",
-                                       organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
-                                       organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
-                                       organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
-                                       organ.cut == "NA" ~ "NA",
-                                       organ.cut == "riksb" ~ "riksb")) %>%
+  mutate(ministry.english = case_when( # 2023 updated departments for Sweden
+    organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
+    organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
+    organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
+    organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
+    organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
+    organ.cut == "Socialdepartementet" ~ "Ministry of Health & Social Affairs" ,
+    organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
+    organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
+    organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
+    organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+    organ.cut == "NA" ~ "NA",
+    organ.cut == "riksb" ~ "riksb",
+    #these two are now together:
+    organ.cut == "Landsbygdsdepartementet" | organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Rural Affairs & Infrastructure",
+    #these three are now together:
+    organ.cut == "Miljödepartementet" | organ.cut == "Näringsdepartementet"  ~ "Ministry of the Climate and Enterprise" ))  %>%
   mutate(country = "Sweden") %>%
   group_by(search.term, ministry.english, country) %>%
   summarise(n=n_distinct(doc.id)) %>%
@@ -218,43 +213,37 @@ SE.metadata %>%
   geom_bar(position="dodge", stat="identity") +
   facet_wrap(~search.term, ncol = 1) + 
   scale_fill_manual(values = c("#d1050c", "#004B87")) +
-  theme(axis.text.x = element_text(angle=45,hjust=1,size = 12),
-        axis.text.y = element_text(size = 12),
-        title = element_text(face="bold", size = 12),
+  theme(axis.text.x = element_text(angle=45,hjust=1,size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text( size = 20),
         legend.position = "none",
+        strip.text.x = element_text(size = 20),
         axis.title.x=element_blank())
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/ministry.plots.png", 
-       width = 55, height = 35, units = "cm",
-       limitsize = FALSE)
-
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/ministry.plots.png",
+width = 30,
+height = 14.1,
+units = c( "in"))
 
 SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
-  mutate(ministry.english = case_when( organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
-                                       organ.cut == "Civildepartementet" ~ "Ministry of Civil Affairs",
-                                       organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
-                                       #   organ.cut == "Fiskeristyrelsen" ~ "The Fisheries Board",
-                                       organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
-                                       organ.cut == "Industridepartementet" ~ "The Ministry of Business and Industry", # sewden just industry this is the name of DK
-                                       organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Infrastructure",
-                                       organ.cut == "Inrikesdepartementet" ~ "Ministry of the Interior",
-                                       organ.cut == "Jordbruksdepartementet" | organ.cut == "Fiskeristyrelsen" ~ "Ministry of Food, Agriculture and Fisheries",
-                                       organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
-                                       organ.cut == "Kammarkollegiet" ~ "Chamber college",
-                                       organ.cut == "Kommunikationsdepartementet" ~ "Ministry of Communications",
-                                       organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
-                                       organ.cut == "Landsbygdsdepartementet" ~ "Ministry of Rural Affairs",
-                                       #  organ.cut == "Miljö" ~ "Ministry of the Environment and Community Development",
-                                       organ.cut == "Miljödepartementet" | organ.cut == "Miljö"  ~ "Ministry of the Environment",
-                                       organ.cut == "Näringsdepartementet" ~ "Ministry of Commerce",
-                                       organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs",
-                                       organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
-                                       organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
-                                       organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
-                                       organ.cut == "NA" ~ "NA",
-                                       organ.cut == "riksb" ~ "riksb")) %>%
+  mutate(ministry.english = case_when(    organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
+                                          organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
+                                          organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
+                                          organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
+                                          organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
+                                          organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs" ,
+                                          organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
+                                          organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
+                                          organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
+                                          organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                          organ.cut == "NA" ~ "NA",
+                                          organ.cut == "riksb" ~ "riksb",
+                                          #these two are now together:
+                                          organ.cut == "Landsbygdsdepartementet" | organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Rural Affairs & Infrastructure",
+                                          #these three are now together:
+                                          organ.cut == "Miljödepartementet" | organ.cut == "Näringsdepartementet"  ~ "Ministry of the Climate and Business" )) %>%
   mutate(country = "Sweden") %>%
   group_by(search.term, ministry.english, country) %>%
   summarise(n=n_distinct(doc.id)) %>%
@@ -274,29 +263,22 @@ SE.metadata %>%
 SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
-  mutate(ministry.english = case_when( organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
-                                       organ.cut == "Civildepartementet" ~ "Ministry of Civil Affairs",
-                                       organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
-                                       #   organ.cut == "Fiskeristyrelsen" ~ "The Fisheries Board",
-                                       organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
-                                       organ.cut == "Industridepartementet" ~ "The Ministry of Business and Industry", # sewden just industry this is the name of DK
-                                       organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Infrastructure",
-                                       organ.cut == "Inrikesdepartementet" ~ "Ministry of the Interior",
-                                       organ.cut == "Jordbruksdepartementet" | organ.cut == "Fiskeristyrelsen" ~ "Ministry of Food, Agriculture and Fisheries",
-                                       organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
-                                       organ.cut == "Kammarkollegiet" ~ "Chamber college",
-                                       organ.cut == "Kommunikationsdepartementet" ~ "Ministry of Communications",
-                                       organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
-                                       organ.cut == "Landsbygdsdepartementet" ~ "Ministry of Rural Affairs",
-                                       #  organ.cut == "Miljö" ~ "Ministry of the Environment and Community Development",
-                                       organ.cut == "Miljödepartementet" | organ.cut == "Miljö"  ~ "Ministry of the Environment",
-                                       organ.cut == "Näringsdepartementet" ~ "Ministry of Commerce",
-                                       organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs",
-                                       organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
-                                       organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
-                                       organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
-                                       organ.cut == "NA" ~ "NA",
-                                       organ.cut == "riksb" ~ "riksb")) %>%
+  mutate(ministry.english = case_when(    organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
+                                          organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
+                                          organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
+                                          organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
+                                          organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
+                                          organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs" ,
+                                          organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
+                                          organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
+                                          organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
+                                          organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                          organ.cut == "NA" ~ "NA",
+                                          organ.cut == "riksb" ~ "riksb",
+                                          #these two are now together:
+                                          organ.cut == "Landsbygdsdepartementet" | organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Rural Affairs & Infrastructure",
+                                          #these three are now together:
+                                          organ.cut == "Miljödepartementet" | organ.cut == "Näringsdepartementet"  ~ "Ministry of the Climate and Business" )) %>%
   mutate(country = "Sweden") %>%
   group_by(search.term, ministry.english, country) %>%
   summarise(n=n_distinct(doc.id)) %>%
@@ -318,29 +300,22 @@ SE.metadata %>%
 SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
-  mutate(ministry.english = case_when( organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
-                                       organ.cut == "Civildepartementet" ~ "Ministry of Civil Affairs",
-                                       organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
-                                       #   organ.cut == "Fiskeristyrelsen" ~ "The Fisheries Board",
-                                       organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
-                                       organ.cut == "Industridepartementet" ~ "The Ministry of Business and Industry", # sewden just industry this is the name of DK
-                                       organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Infrastructure",
-                                       organ.cut == "Inrikesdepartementet" ~ "Ministry of the Interior",
-                                       organ.cut == "Jordbruksdepartementet" | organ.cut == "Fiskeristyrelsen" ~ "Ministry of Food, Agriculture and Fisheries",
-                                       organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
-                                       organ.cut == "Kammarkollegiet" ~ "Chamber college",
-                                       organ.cut == "Kommunikationsdepartementet" ~ "Ministry of Communications",
-                                       organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
-                                       organ.cut == "Landsbygdsdepartementet" ~ "Ministry of Rural Affairs",
-                                       #  organ.cut == "Miljö" ~ "Ministry of the Environment and Community Development",
-                                       organ.cut == "Miljödepartementet" | organ.cut == "Miljö"  ~ "Ministry of the Environment",
-                                       organ.cut == "Näringsdepartementet" ~ "Ministry of Commerce",
-                                       organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs",
-                                       organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
-                                       organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
-                                       organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
-                                       organ.cut == "NA" ~ "NA",
-                                       organ.cut == "riksb" ~ "riksb")) %>%
+  mutate(ministry.english = case_when(    organ.cut == "Arbetsmarknadsdepartementet" ~ "Ministry of Labour",
+                                          organ.cut == "Finansdepartementet" ~ "Ministry of Finance",
+                                          organ.cut == "Försvarsdepartementet" ~ "Ministry of Defence",
+                                          organ.cut == "Justitiedepartementet" ~ "Ministry of Justice",
+                                          organ.cut == "Kulturdepartementet" ~ "Ministry of Culture",
+                                          organ.cut == "Socialdepartementet" ~ "Ministry of Social Affairs" ,
+                                          organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
+                                          organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
+                                          organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
+                                          organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                          organ.cut == "NA" ~ "NA",
+                                          organ.cut == "riksb" ~ "riksb",
+                                          #these two are now together:
+                                          organ.cut == "Landsbygdsdepartementet" | organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Rural Affairs & Infrastructure",
+                                          #these three are now together:
+                                          organ.cut == "Miljödepartementet" | organ.cut == "Näringsdepartementet"  ~ "Ministry of the Climate and Business" )) %>%
   mutate(country = "Sweden") %>%
   group_by(search.term, ministry.english, country) %>%
   summarise(n=n_distinct(doc.id)) %>%
@@ -384,12 +359,16 @@ DK.metadata %>%
   geom_bar(position="dodge", stat="identity") +
   facet_wrap(~search.term, ncol = 1) + 
   scale_fill_manual(values = c("#d1050c", "#004B87")) +
-  theme(axis.text.x = element_text(angle=80,hjust=1,size = 12),
-        axis.text.y = element_text(size = 12),
-        title = element_text(face="bold", size = 12),
+  theme(axis.text.x = element_text(angle=80,hjust=1,size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text( size = 20),
         legend.position = "none",
+        strip.text.x = element_text(size = 20),
         axis.title.x=element_blank())
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/DK authority.plots.png", 
        width = 55, height =55, units = "cm",
        limitsize = FALSE)
 
+
+  
+ 

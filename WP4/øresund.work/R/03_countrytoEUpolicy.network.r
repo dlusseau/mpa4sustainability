@@ -303,18 +303,20 @@ SEEU.CELEX.networkstats <-
                nested.normalised=TRUE)
 
 summary(SEEU.CELEX.networkstats)
-#Min.   : 1.000   Min.   :0.00   Min.   :0.9262  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9918  
+#Min.   : 1.000   Min.   :0.00   Min.   :0.9011  
+#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:1.0000  
 #Median : 1.000   Median :0.50   Median :1.0000  
-#Mean   : 1.547   Mean   :0.50   Mean   :0.9955  
-#3rd Qu.: 2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :10.000   Max.   :1.00   Max.   :1.0000  
+#Mean   : 1.561   Mean   :0.50   Mean   :0.9938  
+#3rd Qu.: 1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :10.000   Max.   :1.00   Max.   :1.0000 
 
 SEEU.CELEX.networkstats %>%
   slice_max(., order_by = nestedrank, n=3)%>%
      kable(., "latex")
 #              degree nestedrank PDI
-# 32019R1148      1          1   1 # most specialized
+# 32014L0052 & 1 & 1.0000000 & 1\\
+#32010L0075 & 1 & 0.9966667 & 1\\
+#32006L0021 & 1 & 0.9933333 & 1\\# most specialized
 
 SEEU.CELEX.networkstats %>%
   slice_max(., order_by = PDI, n=1) # specalist
@@ -323,12 +325,18 @@ SEEU.CELEX.networkstats %>%
   slice_min(., order_by = nestedrank, n=3)%>%
   kable(., "latex")
 #            degree  nestedrank       PDI # most generalized
-#32016R0679     10          0 0.9262295
-
+#32016R0679 & 10 & 0.0000000 & 0.9010989\\
+#31976L0769 & 8 & 0.0033333 & 0.9230769\\
+#31991L0155 & 8 & 0.0066667 & 0.9230769\\
 
 SEEU.CELEX.networkstats %>%
   slice_min(., order_by = PDI, n=3)
-# 32016R0679     10          0 0.9262295
+# 32016R0679     10 0.000000000 0.9010989
+# 31976L0769      8 0.003333333 0.9230769
+#31991L0155      8 0.006666667 0.9230769
+#31993L0067      8 0.010000000 0.9230769
+#31993L0105      8 0.013333333 0.9230769
+#32000L0021      8 0.016666667 0.9230769
 
 
 SEEU.COUNTRY.networkstats <- 
@@ -338,12 +346,12 @@ SEEU.COUNTRY.networkstats <-
                nested.normalised=TRUE)
 
 summary(SEEU.COUNTRY.networkstats)
-# Min.   : 1.000   Min.   :0.00   Min.   :0.9256  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9876  
-#Median : 2.000   Median :0.50   Median :0.9975  
-#Mean   : 5.081   Mean   :0.50   Mean   :0.9899  
-#3rd Qu.: 6.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :31.000   Max.   :1.00   Max.   :1.0000  
+#  Min.   : 1.000   Min.   :0.00   Min.   :0.9033  
+#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9825  
+#Median : 2.000   Median :0.50   Median :0.9967  
+#Mean   : 5.109   Mean   :0.50   Mean   :0.9863  
+#3rd Qu.: 6.250   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :30.000   Max.   :1.00   Max.   :1.0000  
 
 ## plot them side-by-side for the report -----------------
 
@@ -372,8 +380,8 @@ legend(x=-1.15,y=1.25, legend = c("Danish Legislation", "EU Legislation"), pch=2
 
 set.seed(1)
 plot(seeu.network,
-     vertex.label=  ifelse(igraph::degree(seeu.network) >=10 & V(seeu.network)$source == "EU",
-                         V(seeu.network)$name,NA),
+     vertex.label= NA, # ifelse(igraph::degree(seeu.network) >=10 & V(seeu.network)$source == "EU",
+                        # V(seeu.network)$name,NA),
      vertex.frame.color = "white",
      vertex.label.cex = 1,
      vertex.size= 3.5,
@@ -413,7 +421,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#  1    1    1    2    9   85 
+# 1    1    1    3    9   85 
 
 l <- layout.fruchterman.reingold(network)
 sort(degree)
@@ -447,7 +455,8 @@ adj.EUlinks <- inner_join(SEEUlinks1,DKEUlinks1, by = "to") %>%
 
 summary(adj.EUlinks$n)
 #Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#1.00    1.00    1.00    1.37    2.00    3.00 
+#  1.000   1.000   1.000   1.397   2.000   4.000 
+
 
 adj.matrix <- 
   adj.EUlinks %>%
@@ -478,7 +487,7 @@ degree <- igraph::degree(network.SEDK.adj)
 median(degree)
 #3
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
-#   1    2    3    4   11   89 
+#  1    2    3    4   10   89 
 
 saveRDS(network.SEDK.adj, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/network.SEDK.igraph.rds")
 
@@ -504,12 +513,13 @@ adj.matrix <-
   adj.matrix %>%
   column_to_rownames(var = "from.x") 
 
-
-#SEDK.modules <- computeModules(adj.matrix) #ran nov. 24, 2022
-#saveRDS(SEDK.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS") 
+#set.seed(01)
+#SEDK.modules <- computeModules(adj.matrix) #ran Jan 2nd, 2022
+saveRDS(SEDK.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS") 
 
 SEDK.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS")
 plotModuleWeb(SEDK.modules)
+
 
 mod.1 <- listModuleInformation(SEDK.modules)[[2]][[1]] %>% unlist()
 mod.2 <- listModuleInformation(SEDK.modules)[[2]][[2]] %>% unlist()
@@ -517,16 +527,16 @@ mod.3 <- listModuleInformation(SEDK.modules)[[2]][[3]] %>% unlist()
 mod.4 <- listModuleInformation(SEDK.modules)[[2]][[4]] %>% unlist()
 mod.5 <- listModuleInformation(SEDK.modules)[[2]][[5]] %>% unlist()
 mod.6 <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist()
+
+mod.7 <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist()
+#mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist()
 # mow split mod 6 into two mod 6 and create new mod 8
-mod.6 <- c( "sfs-2011-1088", "sfs-2010-598" , "/eli/lta/2021/1352", 
+mod.7 <- c( "sfs-2011-1088", "sfs-2010-598" , "/eli/lta/2021/1352", 
             "/eli/lta/2021/2167", "/eli/lta/2021/2237" ,
             "/eli/lta/2021/2520" , "/eli/lta/2021/2536",
             "/eli/lta/2021/923" , "/eli/lta/2022/642")
 
 mod.8 <- c("sfs-1992-1300", "sfs-1992-1303", "/eli/lta/2021/1736")
-
-mod.7 <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist()
-#mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist()
 
 modules <- list(mod.1, mod.2, mod.3, mod.4,
                  mod.5, mod.6, mod.7, mod.8)
@@ -552,25 +562,32 @@ l.SEDK.networkstats <-
 
 summary(h.SEDK.networkstats) # dk
 #degree         nestedrank        PDI        
-#  Min.   : 1.000   Min.   :0.00   Min.   :0.8922  
-#1st Qu.: 2.000   1st Qu.:0.25   1st Qu.:0.9608  
-#Median : 3.000   Median :0.50   Median :0.9706  
-#Mean   : 3.229   Mean   :0.50   Mean   :0.9694  
-#3rd Qu.: 4.000   3rd Qu.:0.75   3rd Qu.:0.9804  
-#Max.   :12.000   Max.   :1.00   Max.   :1.0000   
+#Min.   :1.000   Min.   :0.00   Min.   :0.8780  
+#1st Qu.:2.000   1st Qu.:0.25   1st Qu.:0.9512  
+#Median :3.000   Median :0.50   Median :0.9634  
+#Mean   :3.026   Mean   :0.50   Mean   :0.9641  
+#3rd Qu.:3.000   3rd Qu.:0.75   3rd Qu.:0.9756  
+#Max.   :9.000   Max.   :1.00   Max.   :1.0000 
 
 h.SEDK.networkstats %>%
   slice_max(., order_by = nestedrank, n=3)%>%
   kable(., "latex")
+#/eli/lta/2022/162 & 1 & 1.0000000 & 1\\
+#/eli/lta/2022/1207 & 1 & 0.9934211 & 1\\
+#/eli/lta/2022/1155 & 1 & 0.9868421 & 1\\
 
 h.SEDK.networkstats %>%
   slice_min(., order_by = nestedrank, n=3)%>%
   kable(., "latex")
+#/eli/lta/2022/100 & 9 & 0.0000000 & 0.9105691\\
+#/eli/lta/2022/787 & 8 & 0.0065789 & 0.9430894\\
+#/eli/lta/2022/988 & 8 & 0.0131579 & 0.9024390\\
 
 h.SEDK.networkstats %>%
   slice_max(., order_by = nestedrank, n=1)
 #                     has    degree nestedrank PDI
-# /eli/lta/2022/1207      1          1   1 # most specialized
+#/eli/lta/2022/162      1          1   1
+# most specialized
 
 h.SEDK.networkstats %>%
   slice_max(., order_by = PDI, n=1) # specalist
@@ -578,29 +595,36 @@ h.SEDK.networkstats %>%
 h.SEDK.networkstats %>%
   slice_min(., order_by = nestedrank, n=1)  # generalist
 #              degree nestedrank PDI
-# /eli/lta/2022/100     12          0 0.8954248
+# /eli/lta/2022/100      9          0 0.9105691
 
 h.SEDK.networkstats %>%
   slice_min(., order_by = PDI, n=1) # # generalist
-# /eli/lta/2019/1165     11 0.006578947 0.8921569
+# /eli/lta/2021/2249      6 0.03947368 0.8780488
+# /eli/lta/2022/964       6 0.04605263 0.8780488
 
 summary(l.SEDK.networkstats) # se
 # Min.   : 1.00   Min.   :0.00   Min.   :0.6623  
-#1st Qu.: 1.75   1st Qu.:0.25   1st Qu.:0.9605  
-#Median : 4.00   Median :0.50   Median :0.9857  
-#Mean   : 9.50   Mean   :0.50   Mean   :0.9639  
-#3rd Qu.: 8.50   3rd Qu.:0.75   3rd Qu.:0.9967  #
-#Max.   :89.00   Max.   :1.00   Max.   :1.0000  
-
+#1st Qu.: 2.00   1st Qu.:0.25   1st Qu.:0.9605  
+#Median : 4.00   Median :0.50   Median :0.9825  
+#Mean   :11.02   Mean   :0.50   Mean   :0.9591  
+#3rd Qu.: 9.50   3rd Qu.:0.75   3rd Qu.:0.9951  
+#Max.   :89.00   Max.   :1.00   Max.   :1.0000 
 
 
 l.SEDK.networkstats %>%
   slice_max(., order_by = nestedrank, n=3)%>%
   kable(., "latex")
+#sfs-2021-194 & 1 & 1.0000000 & 1\\
+#sfs-2020-838 & 1 & 0.9756098 & 1\\
+#sfs-2011-1494 & 1 & 0.9512195 & 1\\
 
 l.SEDK.networkstats %>%
   slice_min(., order_by = nestedrank, n=3)%>%
   kable(., "latex")
+#sfs-1998-808 & 89 & 0.0000000 & 0.6622807\\
+#sfs-2007-845 & 85 & 0.0243902 & 0.6710526\\
+#sfs-1998-1252 & 82 & 0.0487805 & 0.7335526\\
+
 
 l.SEDK.networkstats %>%
   slice_max(., order_by = nestedrank, n=1)
@@ -689,11 +713,11 @@ df.mod.2 <- listModuleInformation(SEDK.modules)[[2]][[2]] %>% unlist() %>% as.da
 df.mod.3 <- listModuleInformation(SEDK.modules)[[2]][[3]] %>% unlist() %>% as.data.frame() %>% mutate(module="3")
 df.mod.4 <- listModuleInformation(SEDK.modules)[[2]][[4]] %>% unlist() %>% as.data.frame() %>% mutate(module="4")
 df.mod.5 <- listModuleInformation(SEDK.modules)[[2]][[5]] %>% unlist() %>% as.data.frame() %>% mutate(module="5")
-df.mod.6.edit <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist() %>% as.data.frame() %>% mutate(module="6")
-df.mod.7 <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist() %>% as.data.frame() %>% mutate(module="7")
+df.mod.6 <- listModuleInformation(SEDK.modules)[[2]][[6]] %>% unlist() %>% as.data.frame() %>% mutate(module="6")
+df.mod.7.edit <- listModuleInformation(SEDK.modules)[[2]][[7]] %>% unlist() %>% as.data.frame() %>% mutate(module="7")
 #df.mod.8 <- listModuleInformation(SEDK.modules)[[2]][[8]] %>% unlist() %>% as.data.frame() %>% mutate(module="8")
-df.mod.6 <- df.mod.6.edit[-c(1,2,5),]
-df.mod.8 <- df.mod.6.edit[c(1,2,5),]%>%
+df.mod.7 <- df.mod.7.edit[-c(1,2,5),]
+df.mod.8 <- df.mod.7.edit[c(1,2,5),]%>%
   mutate(module = "8")
 
 df.modules <- rbind(df.mod.1, df.mod.2, df.mod.3, df.mod.4,
@@ -716,17 +740,15 @@ adj.network.df1 %>%
   filter(n == max(n))
 #   module to             n
 #<chr>  <chr>      <int>
-#  1 1      32017R0625     8
-#2 2      32011L0092    12
-#3 3      32013R1303    15
-#4 4      32014R0651     6
-#5 5      31992L0043    75
-#6 6      32018L2001     9
-#7 7      32002L0059     4
-#8 7      32003L0087     4
-#9 7      32009L0013     4
-#10 7      32009L0016     4
-#11 8      32009L0043     3
+# 1      31992L0043    79
+#2 2      32014R0651     5
+#3 3      32000L0060     6
+#4 4      32013R1303    13
+#5 5      32017R0625     9
+#6 6      32009L0013     4
+#7 6      32009L0016     4
+#8 7      32018L2001     9
+#9 8      32009L0043     3
 
 adj.network.df1 %>%
   distinct(name,to,module) %>%
@@ -789,7 +811,7 @@ MOD.1.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#FF0000") +
-  ggtitle("Module 1: Food quality, health, and safety ") +
+  ggtitle("Module 1: Species Protection & Biodiversity") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.2.PLOT <- 
@@ -803,8 +825,9 @@ MOD.2.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#FFBF00")+
-  ggtitle("Module 2: Environmnetal impact and protection ") +
+  ggtitle("Module 2: Government aid  ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
+
 
 MOD.3.PLOT <- 
   cluster.labels %>%
@@ -817,7 +840,7 @@ MOD.3.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#80FF00")+
-  ggtitle("Module 3:  Fisheries managment & policy ") +
+  ggtitle("Module 3: Water managment and protection ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.4.PLOT <- 
@@ -831,7 +854,7 @@ MOD.4.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#00FF40") +
-  ggtitle("Module 4: Government aid ") +
+  ggtitle("Module 4: Fisheries managment, policy & funding") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.5.PLOT <- 
@@ -845,7 +868,7 @@ MOD.5.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#00FFFF")+
-  ggtitle("Module 5: Species Protection & Biodiversity") +
+  ggtitle("Module 5: Food quality, health, and safety ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.6.PLOT <- 
@@ -859,7 +882,7 @@ MOD.6.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#0040FF")+
-  ggtitle("Module 6: Energy resources and GHGs ") +
+  ggtitle("Module 6: Vessel safety and environmental impact") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.7.PLOT <- 
@@ -873,7 +896,7 @@ MOD.7.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#8000FF") +
-  ggtitle("Module 7: Vessel safety and environmental impact") +
+  ggtitle("Module 7: Energy consumption") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 MOD.8.PLOT <- 
@@ -887,7 +910,7 @@ MOD.8.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#FF00BF") +
-  ggtitle("Module 8: defense and customes") +
+  ggtitle("Module 8: Defense") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 ((MOD.1.PLOT + MOD.2.PLOT)+(MOD.3.PLOT + MOD.4.PLOT))/ 
@@ -895,7 +918,7 @@ MOD.8.PLOT <-
 
 
  ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/sharedclusters.png", 
-       width = 125, height = 55, units = "cm",
+       width = 150, height = 55, units = "cm",
        limitsize = FALSE)
 
 adj.network.df1 %>%
@@ -905,16 +928,17 @@ adj.network.df1 %>%
     str_detect(name,"sfs-") ~ "SE",
     TRUE ~ "DK")) %>%
   mutate(module = as.factor(module)) %>%
-  group_by(module,country) %>%
+  group_by(module) %>%
   summarise(n.country = n()) 
 #module n.country
-#   1             20
-#2 2             26
-#3 3             34
-#4 4             15
-#5 5             77
-#6 6             12
-#7 7             21
+#   1             82
+#2 2              9
+#3 3             11
+#4 4             42
+#5 5             25
+#6 6             14
+#7 7              9
+#8 8              3
 
 #################### Now subset via the query search term ######################
 
@@ -963,7 +987,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#      1    1    1    3    8   47 
+#  1    1    1    3    9   48 
 
 l.f <- layout.fruchterman.reingold(network.f)
 sort(degree)
@@ -989,10 +1013,10 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
-table(V(network.f)$source == "EU") #344
+table(V(network.f)$source == "EU") #306 
 table(V(network.f)$source == "DK") #155
-table(V(network.f)$source == "SE") #51
-(V(network.f)) # 550 vertices
+table(V(network.f)$source == "SE") #39
+(V(network.f)) # 500 vertices
 
 ifelse(igraph::degree(network.f) >=9 & V(network.f)$source == "EU",
        V(network.f)$name,NA)
@@ -1023,12 +1047,12 @@ EUfisheries.CELEX.networkstats <-
 
 summary(EUfisheries.CELEX.networkstats)
 #degree         nestedrank        PDI        
-# Min.   : 1   Min.   :0.00   Min.   :0.7756  
-#1st Qu.: 1   1st Qu.:0.25   1st Qu.:0.9951  
-#Median : 1   Median :0.50   Median :1.0000  
-#Mean   : 2   Mean   :0.50   Mean   :0.9951  
-#3rd Qu.: 2   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :47   Max.   :1.00   Max.   :1.0000 
+#  Min.   : 1.000   Min.   :0.00   Min.   :0.7565  
+#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9948  
+#Median : 1.000   Median :0.50   Median :1.0000  
+#Mean   : 2.095   Mean   :0.50   Mean   :0.9943  
+#3rd Qu.: 2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :48.000   Max.   :1.00   Max.   :1.0000  
 
 
 
@@ -1064,7 +1088,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#    1    1    1    2    5   38
+#     1    1    1    2    4   37 
 
 l.h <- layout.fruchterman.reingold(network.h)
 sort(degree)
@@ -1090,9 +1114,9 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
-table(V(network.h)$source == "EU") #105
+table(V(network.h)$source == "EU") #101
 table(V(network.h)$source == "DK") #55
-table(V(network.h)$source == "SE") #19
+table(V(network.h)$source == "SE") #17
 (V(network.h)) # 179 vertices
 
 # hunting network stats ----------------------------------
@@ -1118,12 +1142,12 @@ EUhunting.CELEX.networkstats <-
                nested.normalised=TRUE)
 
 summary(EUhunting.CELEX.networkstats)
-#  Min.   : 1.000   Min.   :0.00   Min.   :0.4932  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:1.0000  
-#Median : 1.000   Median :0.50   Median :1.0000  
-#Mean   : 1.981   Mean   :0.50   Mean   :0.9866  
-#3rd Qu.: 1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :38.000   Max.   :1.00   Max.   :1.0000 
+# Min.   : 1.00   Min.   :0.00   Min.   :0.4930  
+#1st Qu.: 1.00   1st Qu.:0.25   1st Qu.:1.0000  
+#Median : 1.00   Median :0.50   Median :1.0000  
+#Mean   : 1.99   Mean   :0.50   Mean   :0.9861  
+#3rd Qu.: 1.00   3rd Qu.:0.75   3rd Qu.:1.0000  
+#Max.   :37.00   Max.   :1.00   Max.   :1.0000 
 
 
 EUhunting.CELEX.networkstats %>%
@@ -1157,7 +1181,7 @@ median(degree)
 #1
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#   1.00  1.00  1.00  2.00  6.95 31.00 
+#   1.0  1.0  1.0  2.0  5.9 29.0  
 
 l.m <- layout.fruchterman.reingold(network.m)
 sort(degree)
@@ -1185,9 +1209,9 @@ legend(x=-1.15,y=-.85, legend = c("Danish Legislation", "EU Legislation","Swedis
        col=col, pt.bg=col, pt.cex=2, cex=2, bty="n", ncol=1)
 
 
-table(V(network.m)$source == "EU") #248  
+table(V(network.m)$source == "EU") #186   
 table(V(network.m)$source == "DK") #1
-table(V(network.m)$source == "SE") #53
+table(V(network.m)$source == "SE") #36 
 (V(network.m)) # 302 vertices
 
 # maritime network stats ----------------------------------

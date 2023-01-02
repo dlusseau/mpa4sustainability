@@ -105,11 +105,8 @@ igraph::degree(DKSE) %>%
   filter(str_detect(code, 'eli')) %>%
   arrange(., desc(degree))
 #           /eli/lta/2022/100      9
-#           /eli/lta/2022/988      8
-#           /eli/lta/2022/787      8
-#           /eli/lta/2019/783      7
-#          /eli/lta/2021/2247      7
-#          /eli/lta/2019/1165      7
+#2          /eli/lta/2022/988      8
+#3          /eli/lta/2022/787      8
 
 identical(as.data.frame(dkse.bi), adj.matrix)
 all.equal(dkse.bi, adj.matrix)
@@ -271,7 +268,7 @@ euSE.bi[i,match(temp$Sweden,colnames(euSE.bi))]<-1
 
 euSE.stat<-specieslevel(euSE.bi,nested.weighted=FALSE)
 
-#404 EU texts, 123 SE texts
+#301 EU texts, 92 SE texts
 
 #EU
 EUstats<-as.data.frame(euSE.stat[[2]])
@@ -288,10 +285,10 @@ EUstats$degree[sort(EUstats$degree,decreasing=TRUE,index=TRUE)$ix][1:7]
 
 #betweenness
 EUstats$name[sort(EUstats$betweenness,decreasing=TRUE,index=TRUE)$ix][1:3]
-#"32002R0178" "32013R1380" "32017R0745"
+#""32002R0178" "32013R1380" "32017R0745"
 
 EUstats$betweenness[sort(EUstats$betweenness,decreasing=TRUE,index=TRUE)$ix][1:3]
-#corresponding value 0.1221701 0.1201127 0.0819835
+#corresponding value 0.08622844 0.07841266 0.07562246
 #######
 #SE
 SEstats<-as.data.frame(euSE.stat[[1]])
