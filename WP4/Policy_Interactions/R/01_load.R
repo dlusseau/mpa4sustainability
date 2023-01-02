@@ -17,6 +17,8 @@ library("tidyr")
 # pull the function David created: 
 source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
 
+#Notes: this was rerun on Dec 20th since I found out that there need to be better cleaning so I am implementing that now. 
+
 # Load data ---------------------------------------------------------------
 
 # EUR-Lex Data --------------------------------------
@@ -99,6 +101,14 @@ mpaCELEX.df <-
 
 # now we have the document ids that mention our term but we want associated document data.
 # thus we have to create a legislation document-data key to link the celex to their associated data. Next step below
+
+# ok now we need to remove the celexes that start with the number 5 since these are prepatory documents and thus not Legal acts
+
+mpaCELEX.df <- 
+  mpaCELEX.df %>%
+  mutate(remove = str_detect(CELEX, "^5" )) %>%
+  filter(remove == "FALSE") %>%
+  select(-remove)
 
 # --------  make a key to link key terms ---------------
 
@@ -184,11 +194,11 @@ mpa.policy.df <-
 
 # checking no missing or duplicates...
 n_distinct(unique(mpa.policy.df$CELEX))
-# 25 matches the original :) 
+# 17 matches the original :) 
 n_distinct(unique(mpa.policy.df$labels))
-#104 label terms
+#68 label terms
 n_distinct(unique(mpa.policy.df$MT))
-#32 label themes
+#19 label themes
 
 # OK now we have the documents with associated document data, now lets get the document text data, which could be useful later.
 
@@ -381,7 +391,7 @@ mpaCELEX.list.mpaterms.DF <-
          "resource.type" = "rowname")
 
 n_distinct(mpaCELEX.list.mpaterms.DF$CELEX)
-#180 documents pulled
+#181 documents pulled
 # df dim are larger since some documents can mention more than one term...
 
 # Lets bind the df to the data key df:
@@ -392,7 +402,18 @@ mpaCELEX.list.mpaterms.DF2 <-
 
 # check just to be sure it is all good
 n_distinct(mpaCELEX.list.mpaterms.DF2$CELEX)
-# 180
+# 181
+
+mpaCELEX.list.mpaterms.DF2 <- 
+  mpaCELEX.list.mpaterms.DF2 %>%
+  mutate(remove = str_detect(CELEX, "^5" )) %>%
+  filter(remove == "FALSE") %>%
+  select(-remove)
+
+# check just to be sure it is all good
+n_distinct(mpaCELEX.list.mpaterms.DF2$CELEX)
+# 99
+
 
 # -------- (2) extract text data: -------------
 
@@ -421,6 +442,7 @@ n_distinct(mpaterms.text.data1$CELEX)
 # Save files ---------------------------------------------------------------------
 
 # All these data were pulled from query, "cleaned", and saved in this script on Sep 22nd, 2022
+# this data was updated Dec. 20th to ensure better data cleansing
 
 # "marine protected" term  search results:
 write.csv(x = mpa.policy.df,
