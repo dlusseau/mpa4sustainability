@@ -375,9 +375,9 @@ network.attributes.final %>%
 
 
 # first order citation data:
-write.csv(MPA.citations, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv", row.names=FALSE)
-write.csv(network.attributes.final, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.network.rds")
+write.csv(MPA.citations, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2firstordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2firstordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2firstordercit.network.rds")
 
 
 
@@ -557,9 +557,9 @@ V(network2)
 # Save files ---------------------------------------------------------------------
 
 # second order citation data:
-write.csv(Doc.citations3, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv", row.names=FALSE)
-write.csv(network.attributes.final4, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network2, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.network.rds")
+write.csv(Doc.citations3, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2secondordercit.edgelist.csv", row.names=FALSE)
+write.csv(network.attributes.final4, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2secondordercit.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network2, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2secondordercit.network.rds")
 
 
 # Exploring Eurovoc terms -----------------------------------------------
@@ -636,9 +636,9 @@ class(network3)
 # Save ------------------------------------------------------------------
 
 # term co-ocurances:
-write.csv(term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2term.edgelist.csv", row.names=FALSE)
-write.csv(final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2term.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network3, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2.termnetwork.rds")
+write.csv(term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2term.edgelist.csv", row.names=FALSE)
+write.csv(final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2term.verticesmetadata.csv", row.names=FALSE)
+saveRDS(network3, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2.termnetwork.rds")
 
 # Archival code for EuroVoc graphics --------------------------------------
 # (graphics we actually use are in the network stats rscript
