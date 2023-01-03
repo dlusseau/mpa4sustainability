@@ -17,7 +17,7 @@ library("tidyr")
 EU.mpa.char<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
 # EU mpa directives search: 
-EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
+EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX2.csv")
 
 
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
@@ -31,9 +31,7 @@ document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske
 # lets join the new mpa search documents to their associated document data
 EU.mpa.termsearch.data <-
   EU.mpa.termsearch %>%
-  filter(CELEX != "32021R0092") %>% #removing this celex for the same reasoning as in 03 Rscript
   filter(CELEX != "32006R1967R(01)") %>% #removing this celex bc it is a Corrigendum to a regulation that was already pulled and it is tech. not within the legal act types
-  left_join(., document.key.df, by = c("CELEX"="celex", "resource.type")) %>%
   select(-work,-type) # we dont need this info anymore
 
 EU.mpa.termsearch.data %>%
@@ -42,23 +40,22 @@ EU.mpa.termsearch.data %>%
   summarise(n= n_distinct(CELEX))
 
 #    search.term                      n
-# barcelona convention*?             36
-# birds directive*?                  36
-# habitats directive*?               58
-# helcom*?                           14
-# marine protected area*?            24
-# ospar*?                            27
-# ramsar site*?                       1
+# barcelona convention*?             23
+# birds directive*?                  19
+# habitats directive*?               22
+# helcom*?                            6
+# marine protected area*?            18
+# ospar*?                            16
 # site of community importance*?      4
-# sites of community importance*?    10
-# special areas of conservation*?    23
-# special protection area*?          29
-# specially protected area*?         10
+# sites of community importance*?     7
+# special areas of conservation*?    20
+# special protection area*?          22
+# specially protected area*?          9
 # world heritage site*?               2
 
 
 n_distinct(EU.mpa.termsearch.data$CELEX)
-#[1] 178
+#[1] 99
 # The remember the dim are now larger due to some documents having multiple terms-labels etc. 
 
 EU.mpa.termsearch.data %>%
@@ -67,17 +64,17 @@ EU.mpa.termsearch.data %>%
   summarise(total = sum(n))
 # DEC              41
 # DIR              16
-# OPIN             83
-# RECO              3
-# REG              35
+# OPIN              2
+# RECO              2
+# REG              38
 
 # how many unique label terms?
 n_distinct(EU.mpa.termsearch.data$labels)
-# 403
+# 281
 
 # how many unique thems?
 n_distinct(EU.mpa.termsearch.data$MT)
-# 80
+# 67
 unique(EU.mpa.termsearch.data$MT) #curious about looking at them:
 
 
@@ -131,22 +128,22 @@ EU.mpa.char %>%
   group_by(DESIG_ENG) %>%
   summarise(n=n_distinct(mpa))
 # DESIG_ENG                                                                        n
-# baltic sea protected area (helcom)                                             163
-# marine protected area (ospar)                                                  441
-# ramsar site, wetland of international importance                               237
-# sites of community importance (habitats directive)                             481
-# special areas of conservation (habitats directive)                            1388
-# special protection area (birds directive)                                      843
-# specially protected area (cartagena convention)                                  7
-# specially protected areas of mediterranean importance (barcelona convention)    24
-# unesco-mab biosphere reserve                                                    11
-# world heritage site (natural or mixed)                                           9
+# 1 baltic sea protected area (helcom)                                             163
+# 2 marine protected area (ospar)                                                  441
+# 3 ramsar site, wetland of international importance                               237
+# 4 sites of community importance (habitats directive)                             481
+# 5 special areas of conservation (habitats directive)                            1388
+# 6 special protection area (birds directive)                                      843
+# 7 specially protected area (cartagena convention)                                  7
+# 8 specially protected areas of mediterranean importance (barcelona convention)    24
+# 9 unesco-mab biosphere reserve                                                    11
+#10 world heritage site (natural or mixed)                                           9
 
 EU.mpa.char %>%
   filter(DESIG_ENG == "sites of community importance (habitats directive)" |
          DESIG_ENG == "special areas of conservation (habitats directive)") %>%
   summarise(n=n_distinct(mpa))
-
+# 1869
 
 EU.mpa.char %>%
   group_by(DESIG_ENG) %>%
@@ -172,7 +169,7 @@ EU.mpa.char %>%
 
 EU.mpa.char %>%
   summarise(n=n_distinct(mpa))
-
+#3604
 
 
 # Exploring document citations ---------------------------------------------
@@ -185,10 +182,11 @@ MPA.citations <-
   filter(!is.na(citationcelex)) 
 
 n_distinct(MPA.citations$CELEX)
-# [1] 95 documents cited somthing
+# [1] 84 documents cited somthing
 n_distinct(MPA.citations$citationcelex)
-# [1] 515 total number of citation documents
+# [1] 406 total number of citation documents
 
+# stopped here Jan 3rd will finish up tomorrow on this getting tired and want to make sure I go through everything correctly :)
 
 leg.citation_info <- 
   document.key.df %>%
