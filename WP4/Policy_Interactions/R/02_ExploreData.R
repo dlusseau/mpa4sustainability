@@ -27,37 +27,35 @@ mpa.policy.notext.df <- read.csv(file = "WP4/Policy_Interactions/data/01_MPApoli
 
 key.df <- read.csv(file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
-EU.mpa.char<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EU.mpachar.csv")
+EU.mpa.char<- read.csv(file = "WP4/Policy_Interactions/data/01_EU.mpachar.csv")
 
 # EU mpa directives search: 
-EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/Desktop/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
+EU.mpa.termsearch<- read.csv(file = "WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX.csv")
 
 # Exploring document info over time --------------------------------------------------
 
 mpa.policy.notext.df %>%
   summarise(n= n_distinct(CELEX)) 
-# total 25 policy legislation
+# total 18 policy legislation
 unique(mpa.policy.notext.df$CELEX)
 
 mpa.policy.notext.df %>%
   summarise(n= n_distinct(labels)) 
-# total 104 unique label terms 
+# total 76 unique label terms 
 
 mpa.policy.notext.df %>%
   group_by(CELEX) %>%
   summarise(n_labels = (n_distinct(labels))) %>%
   summary(n_labels)
-# n_labels     
-# Min.   : 1.00  
-# 1st Qu.: 7.00  
-# Median : 9.00  
-# Mean   : 8.12  
-# 3rd Qu.:10.00  
-# Max.   :11.00 
-
+#       CELEX              n_labels     
+#Length:18          Min.   : 6.000  
+#Class :character   1st Qu.: 7.250  
+#Mode  :character   Median : 9.000  
+#                   Mean   : 8.556  
+#                   3rd Qu.:10.000  
+#                   Max.   :11.000
 # Legislation numbers over times and which are enforced?
 mpa.policy.notext.df %>%
-  filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
   mutate(date = as.Date(date)) %>%
   mutate(year = year(date)) %>%
   group_by(year,force) %>%
@@ -87,33 +85,7 @@ mpa.policy.notext.df %>%
   theme(legend.position = "bottom")+
   scale_color_discrete(name = "Type of legislation")
 
-# 1 document does not have a date associated??
-mpa.policy.notext.df %>%
-  mutate(date = as.Date(date)) %>%
-  mutate(year = year(date)) %>%
-  filter(is.na(year)) 
-#  resource.type      CELEX                                                     url work type date force eurovoc citationcelex labels year
-#           REG 32021R0092 http://publications.europa.eu/resource/celex/32021R0092 <NA> <NA> <NA>  <NA>    <NA>          <NA>   <NA>   NA
-# ok online it says "This act has been changed. Current consolidated version CELEX: 02021R0092-20220416"
-# so maybe lets pull this one from the large key and replace it... key doesnt have it....
-# based on its new CELEX code it is not a type of legislation... 0: Consolidated acts so remove...
 
-mpa.policy.notext.df %>%
-  mutate(date = as.Date(date)) %>%
-  mutate(year = year(date)) %>%
-  filter(is.na(force)) %>%
-  group_by(resource.type,force) %>%
-  summarise(n=n_distinct(CELEX))
-
-#resource.type force     n
-#OPIN          NA        8
-#RECO          NA        1
-#REG           NA        1 --> this is the one with the prev. problem so makes sense *Reg cannot be NA tho bc they are binding.
-# "An "opinion" is an instrument that allows the institutions 
-#                             to make a statement in a non-binding fashion, in other words without 
-#                             imposing any legal obligation on those to whom it is addressed.
-#                             An opinion is not binding."
-# RECO     is non-binding
 
 # Exploring document type and text -------------------------------------------
 
@@ -270,16 +242,13 @@ mpa.policy.notext.df %>%
   group_by(labels) %>%
   mutate(themes = n_distinct(MT)) %>%
   filter(themes > 1)
-# Three terms have more than one theme association...
-#1 Mozambique     7221 Africa                   2
-#2 Mozambique     7231 economic geography       2
-
-#3 Seychelles     7221 Africa                   2
-#4 Seychelles     7231 economic geography       2
-
-#5 United Kingdom 7206 Europe                   3
-#6 United Kingdom 7231 economic geography       3
-#7 United Kingdom 7236 political geography      3
+# 2 terms have more than one theme association...
+# labels     MT                      themes
+# <chr>      <chr>                    <int>
+#1 Mozambique 7221 Africa                  2
+#2 Mozambique 7231 economic geography      2
+#3 Seychelles 7221 Africa                  2
+#4 Seychelles 7231 economic geography      2
 
 # for now I will just keep the location theme since it is the most straight forward 
 # will discuss with David. 
@@ -289,8 +258,7 @@ remove <-
   group_by(labels) %>%
   mutate(themes = n_distinct(MT)) %>%
   filter(themes > 1) %>%
-  filter(MT!= "7221 Africa"&
-         MT!= "7206 Europe") %>%
+  filter(MT!= "7221 Africa") %>%
   select(-themes)
 
 
@@ -317,13 +285,12 @@ col2 <- brewer.pal(n = 12, name = "Paired")
 col3 <- brewer.pal(n = 9, name = "Set1")
 
 color <- as.data.frame(c(col1,col2,col3))
-
+color <-color[1:22,]
 colors.x <- cbind(colors, color)
 
 final.attributes <- 
   colors.x %>%
-  rename('MT' = 'unique(final.attributes$MT)',
-         'color' = 'c(col1, col2, col3)') %>% 
+  rename('MT' = 'unique(final.attributes$MT)') %>% 
   right_join(.,final.attributes, by = c("MT")) %>% 
   select(item1,total.count,MT,color)
   

@@ -27,20 +27,13 @@ document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske
 
 #---------------------------------------------------------------------------
 #------------- This is the analysis on the first search query  -------------
-#----------------------- "marine protected " -------------------------------
+#----------------------- "marine protected" -------------------------------
 #---------------------------------------------------------------------------
 
 # Exploring document citations ---------------------------------------------
 
-# Document 32021R0092 is No longer in force: This act has been changed. Current consolidated version: 16/04/2022 
-# the new version is not categories as one of the five legeslation types 
-# so we will remove this instead of replace with the current version
-mpa.policy.notext.df <-
-  mpa.policy.notext.df %>%
-  filter(CELEX != "32021R0092")
-
 n_distinct(mpa.policy.notext.df$CELEX)
-# 24
+# 18
 
 Doc.citations <-
   mpa.policy.notext.df %>%
@@ -48,7 +41,7 @@ Doc.citations <-
   filter(!is.na(citationcelex)) 
 
 n_distinct(Doc.citations$CELEX)
-# 19 document cite another document 
+# 18 document cite another document 
 n_distinct(Doc.citations$citationcelex)
 # 208 documents are cited
 
@@ -57,14 +50,12 @@ mpa.policy.notext.df %>%
   group_by(resource.type) %>%
   summarise(n=n_distinct(CELEX))
 
-# DEC               6
-# DIR               2
-# OPIN              8
-# RECO              1
-# REG               7
+#  resource.type     n
+#  DEC               6
+#  DIR               2
+#  REG              10
 
 mpa.policy.notext.df %>%
-  #filter(!is.na(force)) %>% #filtering out leg that is deemed N.A
   mutate(date = as.Date(date)) %>%
   mutate(year = year(date)) %>%
   group_by(year,force) %>%
@@ -84,7 +75,7 @@ mpa.policy.notext.df %>%
 
 #Eurlex data/attributes about the citations
 
-# NOTE: there is a total of 208 unique citation documents but only 134 have eurolex data associated... 
+# NOTE: there is a total of 208 unique citation documents but only 146 have eurolex data associated... 
 # this is bc our key is only leg. documents...
 # Since we are only interested in legislative documents we will only keep citations that are legislation categorized 
 
@@ -103,8 +94,7 @@ Doc.citations <-
 citation.info <-  leg.citation_info
 
 n_distinct(Doc.citations$CELEX)
-# when from 19 to 17 documents that cite since 2 only cited non-leg
-
+# when from 18 to 17 documents that cite since 2 only cited non-leg
 
 
 network.attributes <-
@@ -121,12 +111,14 @@ both.pulls <-
   citation.info %>%
   filter(CELEX %in% mpa.policy.notext.df$CELEX)
 
-# 3 documents pulled as an MPA leg are also cited by other legislation 
+# 5 documents pulled as an MPA leg are also cited by other legislation 
 # These are:
 # 32008L0056 --> Marine Strategy Framework Directive
 #	32013R1380 --> CFP, amending CRs
 #	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
-# 52016AE4426
+# 32021R1139 --> European Maritime, Fisheries and Aquaculture Fund (2021–2027)
+# 32020R0123 --> Fishing opportunities in EU and non-EU waters (2020)
+
 network.attributes.both <- network.attributes[network.attributes$CELEX %in% both.pulls$CELEX,]
 
 network.attributes.both <- 
@@ -157,8 +149,8 @@ network.attributes.final <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final$CELEX)
-#148
-#dimentions add up bc 17(docs)+134(citations)-3(remove the dup.bc within both) = 148
+#158
+#dimentions add up bc 17(docs)+146(citations)-5(remove the dup.bc within both) = 158
 
 # Now we have edge df
 # "from"  = Celex (is the first column)
@@ -171,14 +163,14 @@ Doc.citations <-
 n_distinct(Doc.citations$from)
 # 17
 n_distinct(Doc.citations$to)
-#  134
-17+134-3
-#148
+#  146
+17+146-5
+#158
 docs <- unique(Doc.citations$to)
 cit <-  unique(Doc.citations$from)
 xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx)
-# 148 observations
+# 158 observations
 
 # ok so both the document citataion df and the network attributes df have the same dimentions 
 
@@ -189,14 +181,15 @@ print(network, e=TRUE, v=TRUE)
 #l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 
-labels <- network.attributes.final[1:4,1]
+labels <- network.attributes.final[1:5,1]
 
 # 32008L0056 --> Marine Strategy Framework Directive
 #	32013R1380 --> CFP, amending CRs
 #	32014R0508 --> European Maritime and Fisheries Fund & repealing CRs
-# 52016AE4426 --> Opinion of the European Economic and Social Committee on ‘An integrated European Union policy for the Arctic’
+# 32021R1139 --> European Maritime, Fisheries and Aquaculture Fund (2021–2027)
+# 32020R0123 --> Fishing opportunities in EU and non-EU waters (2020)
 
-labels2 <- rep(NA,time=144)
+labels2 <- rep(NA,time=141)
 labels3 <- c(labels,labels2)
 V(network)$label <- labels3 
 
@@ -233,9 +226,9 @@ dev.off()
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
 
 edges <- degree(network)
-sum(edges)
+sum(edges) #610
 
-V(network)
+V(network) # 158
 
 # Save files ---------------------------------------------------------------------
 
@@ -259,8 +252,8 @@ indir.citation_info <-
   left_join(.,document.key.df, by = c("to" = "celex")) 
 
 #check
-n_distinct(Doc.citations$to)
-n_distinct(indir.citation_info$to)
+n_distinct(Doc.citations$to) # 146
+n_distinct(indir.citation_info$to) #146
 # no changes :)
 
 Doc.citations.2 <-
@@ -271,9 +264,9 @@ Doc.citations.2 <-
          "to" = "citationcelex")
 
 n_distinct(Doc.citations.2$from) # celex
-#118
+#130
 n_distinct(Doc.citations.2$to) # citation
-#823
+#1011
 
 #now make sure citations (to) are only legislation documents 
 leg.citation_info2 <- 
@@ -290,7 +283,7 @@ Doc.citations.2 <-
   filter(to %in% leg.citation_info2$CELEX) 
 
 n_distinct(Doc.citations.2$to)
-#515 citations 
+#673 citations 
 
 citation.info2 <-  leg.citation_info2
 
@@ -310,7 +303,7 @@ network.attributes.final2 <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final2$CELEX)
-#515
+#673
 
 Doc.citations3 <- rbind(Doc.citations,Doc.citations.2)
 
@@ -324,8 +317,7 @@ both.cit2 <-
  filter(n>1) %>%
   filter(CELEX != "32008L0056" &
          CELEX != "32013R1380" &
-         CELEX != "32014R0508" &
-         CELEX != "32013D1386") %>% # this last one is now a both
+         CELEX != "32014R0508") %>% # These ones are all three levels - A search result, first order citation and a second order citation so remove them for ref 3 labeling
   mutate(pulled.from = "reference3") %>%
   mutate(color = 
            case_when(
@@ -335,18 +327,14 @@ both.cit2 <-
 
 # remove the all duplicated pulls
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
-# 663-76-76 = 511 math check add up :)
+# 831-107-107 = 617 math check add up :)
 
 #then rejoin the rows that were duplicated but the correct labeling for the network attributes
 network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
-# 551+76 = 587 
+# 617+107 = 724 
 	
 network.attributes.final4 <- 
   network.attributes.final4 %>%
-  mutate(pulled.from = case_when(CELEX == "32013D1386" ~ "both", # change this one to both since it is second order referenced. 
-                                 TRUE ~ pulled.from)) %>%
-  mutate(color = case_when(CELEX == "32013D1386" ~ "#f8766d", 
-                                 TRUE ~ color)) %>%
   mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove", # 52016AE4426 doesnt need to be removed since it only has one row... (only a reference once)
                             CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
                             CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
@@ -354,18 +342,18 @@ network.attributes.final4 <-
   filter(remove == "keep") %>%
   distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
 
-# 587 - 4 = 583
+# 724 - 3 = 721
 
 n_distinct(Doc.citations$from)
 # 118 
 
 n_distinct(Doc.citations3$to)
-#  570 (134+515-76-4)
+#  709 (146+673-107-3)
 
 docs <- unique(Doc.citations3$from)
 cit <-  unique(Doc.citations3$to)
 xx <- as.data.frame(c(docs,cit))
-xx <- distinct(xx) #583 documents
+xx <- distinct(xx) #721 documents
 # ok so both the document citataion df and the network attributes df have the same dimentions 
 
 network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
@@ -422,13 +410,19 @@ plot(network2,
 dev.off()
 
 edges <- degree(network2)
-sum(edges)
+sum(edges) #3230
 
-V(network2)
+V(network2) #721
 
 network.attributes.final4 %>%
   group_by(pulled.from) %>%
   summarise(n=n_distinct(CELEX))
+
+# both            5
+# eurlex.web     12
+# reference      34
+# reference2    563
+# reference3    107
 
 # Save files ---------------------------------------------------------------------
 
@@ -447,11 +441,11 @@ cleaned.labels <-
   distinct(CELEX,labels, .keep_all = TRUE)
 
 n_distinct(cleaned.labels$CELEX)
-# 24
+# 18
 n_distinct(cleaned.labels$labels)
-# 103 label terms
+# 76 label terms
 n_distinct(cleaned.labels$MT)
-# 29 themes 
+# 22 themes 
 
 label.pairs <- 
   cleaned.labels %>%
@@ -500,7 +494,7 @@ attributes3 <-
 final.attributes <- attributes3
 
 n_distinct(final.attributes$MT)
-# 29
+# 22
 network3 <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
 class(network3)
 

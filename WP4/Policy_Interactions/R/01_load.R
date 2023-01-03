@@ -18,6 +18,7 @@ library("tidyr")
 source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
 
 #Notes: this was rerun on Dec 20th since I found out that there need to be better cleaning so I am implementing that now. 
+# never finished on the 20th will finish today Jan 3rd
 
 # Load data ---------------------------------------------------------------
 
@@ -194,11 +195,11 @@ mpa.policy.df <-
 
 # checking no missing or duplicates...
 n_distinct(unique(mpa.policy.df$CELEX))
-# 17 matches the original :) 
+# 18 matches the original :) 
 n_distinct(unique(mpa.policy.df$labels))
-#68 label terms
+# 76 label terms
 n_distinct(unique(mpa.policy.df$MT))
-#19 label themes
+# 23 label themes
 
 # OK now we have the documents with associated document data, now lets get the document text data, which could be useful later.
 
@@ -391,7 +392,7 @@ mpaCELEX.list.mpaterms.DF <-
          "resource.type" = "rowname")
 
 n_distinct(mpaCELEX.list.mpaterms.DF$CELEX)
-#181 documents pulled
+#182 documents pulled
 # df dim are larger since some documents can mention more than one term...
 
 # Lets bind the df to the data key df:
@@ -402,7 +403,7 @@ mpaCELEX.list.mpaterms.DF2 <-
 
 # check just to be sure it is all good
 n_distinct(mpaCELEX.list.mpaterms.DF2$CELEX)
-# 181
+# 182
 
 mpaCELEX.list.mpaterms.DF2 <- 
   mpaCELEX.list.mpaterms.DF2 %>%
@@ -412,7 +413,7 @@ mpaCELEX.list.mpaterms.DF2 <-
 
 # check just to be sure it is all good
 n_distinct(mpaCELEX.list.mpaterms.DF2$CELEX)
-# 99
+# 100
 
 
 # -------- (2) extract text data: -------------
@@ -438,11 +439,11 @@ mpaterms.text.data1 <-
   left_join(.,mpaterms.text.data, by = c("CELEX"))
 
 n_distinct(mpaterms.text.data1$CELEX)
-
+# 100 
 # Save files ---------------------------------------------------------------------
 
 # All these data were pulled from query, "cleaned", and saved in this script on Sep 22nd, 2022
-# this data was updated Dec. 20th to ensure better data cleansing
+# this data was updated Jan 3rd to ensure better data cleansing
 
 # "marine protected" term  search results:
 write.csv(x = mpa.policy.df,
