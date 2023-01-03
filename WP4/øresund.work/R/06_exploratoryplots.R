@@ -10,8 +10,8 @@ library("dplyr")
 library("ggplot2")
 library("lubridate")
 library("patchwork")
-library(kableExtra)
-
+library("kableExtra")
+library("stringr")
 # Define functions -------------------------------------------------------------
 
 # No defined function for this script
@@ -174,7 +174,37 @@ xx <-
 #  "Miljö- och samhällsbyggnadsdepartementet	-->    Ministry of the Environment and Community Development            
 # NA  
 
-SE.metadata %>%
+ unique(SE.metadata$organ)
+ #[1] "Infrastrukturdepartementet RST TM" 
+ # "Infrastrukturdepartementet RST US"
+ 
+ # "Finansdepartementet S3"  
+ # [7] "Finansdepartementet S4"     
+ 
+ #[3] "Justitiedepartementet L3" The unit for property law and association law (L1)
+ #[5] "Justitiedepartementet L6" The Basic Law Unit (L6)
+          
+ # "Näringsdepartementet RSN"         
+ #       "Försvarsdepartementet"            
+ #[9] ""                                  "Statsrådsberedningen"             
+ #[11] "Miljödepartementet"                "Kulturdepartementet"              
+ #[13] "Justitiedepartementet L1"          "Justitiedepartementet"            
+ #[15] "Finansdepartementet"               "Finansdepartementet S2"           
+ #[17] "Justitiedepartementet L4"          "Justitiedepartementet BIRS"       
+ #[19] "Infrastrukturdepartementet RSED E" "Justitiedepartementet DÅ"         
+ #[21] "Finansdepartementet FPM"           "Finansdepartementet SPN BB"       
+ #[23] "Utrikesdepartementet"              "Arbetsmarknadsdepartementet ARM"  
+ #[25] "Justitiedepartementet L2"          "Finansdepartementet ESA"          
+ #[27] "Finansdepartementet S1"            "Näringsdepartementet RSL"         
+ #[29] "Utrikesdepartementet UDH"          "Näringsdepartementet"             
+ #[31] "Landsbygdsdepartementet"           "Fiskeristyrelsen"                 
+ #[33] "Socialdepartementet"               "Socialdepartementet /Lo"          
+ #[35] "Utbildningsdepartementet"          "riksb"                            
+ #[37] "Finansdepartementet SFÖ"           "Arbetsmarknadsdepartementet AA"   
+ #[39] "Justitiedepartementet L5"    
+
+ 
+ SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
   mutate(ministry.english = case_when( # 2023 updated departments for Sweden
@@ -187,7 +217,7 @@ SE.metadata %>%
     organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
     organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
     organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
-    organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+    organ.cut == "Statsrådsberedningen" ~ "Prime Minister's Office",
     organ.cut == "NA" ~ "NA",
     organ.cut == "riksb" ~ "riksb",
     #these two are now together:
@@ -213,8 +243,8 @@ SE.metadata %>%
   geom_bar(position="dodge", stat="identity") +
   facet_wrap(~search.term, ncol = 1) + 
   scale_fill_manual(values = c("#d1050c", "#004B87")) +
-  theme(axis.text.x = element_text(angle=45,hjust=1,size = 15),
-        axis.text.y = element_text(size = 15),
+  theme(axis.text.x = element_text(angle=45,hjust=1,size = 20),
+        axis.text.y = element_text(size = 20),
         title = element_text( size = 20),
         legend.position = "none",
         strip.text.x = element_text(size = 20),
@@ -237,7 +267,7 @@ SE.metadata %>%
                                           organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
                                           organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
                                           organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
-                                          organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                          organ.cut == "Statsrådsberedningen" ~ "Prime Minister's Office",
                                           organ.cut == "NA" ~ "NA",
                                           organ.cut == "riksb" ~ "riksb",
                                           #these two are now together:
@@ -272,7 +302,7 @@ SE.metadata %>%
                                           organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
                                           organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
                                           organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
-                                          organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                          organ.cut == "Statsrådsberedningen" ~ "Prime Minister's Office",
                                           organ.cut == "NA" ~ "NA",
                                           organ.cut == "riksb" ~ "riksb",
                                           #these two are now together:
@@ -309,7 +339,7 @@ SE.metadata %>%
                                           organ.cut == "Utbildningsdepartementet" ~ "Ministry of Education",
                                           organ.cut == "Utrikesdepartementet" ~ "Ministry of Foreign Affairs",
                                           organ.cut == "Fiskeristyrelsen" ~  "Fisheries Agency",
-                                          organ.cut == "Statsrådsberedningen" ~ "The Cabinet Committee",
+                                          organ.cut == "Statsrådsberedningen" ~ "Prime Minister's Office",
                                           organ.cut == "NA" ~ "NA",
                                           organ.cut == "riksb" ~ "riksb",
                                           #these two are now together:
@@ -341,7 +371,7 @@ SE.metadata %>%
 
 
 # now the governing authority for DK 
-
+unique(DK.metadata$AdministrerendeMyndighed)
 DK.metadata %>%
   mutate(country = "Denmark")  %>%
   group_by(search.term, AdministrerendeMyndighed, country) %>%
@@ -359,16 +389,43 @@ DK.metadata %>%
   geom_bar(position="dodge", stat="identity") +
   facet_wrap(~search.term, ncol = 1) + 
   scale_fill_manual(values = c("#d1050c", "#004B87")) +
-  theme(axis.text.x = element_text(angle=80,hjust=1,size = 15),
-        axis.text.y = element_text(size = 15),
+  theme(axis.text.x = element_text(angle=80,hjust=1,size = 18),
+        axis.text.y = element_text(size = 20),
         title = element_text( size = 20),
         legend.position = "none",
         strip.text.x = element_text(size = 20),
         axis.title.x=element_blank())
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/DK authority.plots.png", 
-       width = 55, height =55, units = "cm",
+       width = 55, height =45, units = "cm",
        limitsize = FALSE)
 
+unique(SE.metadata$organ)
 
-  
- 
+SE.metadata %>%
+  mutate(country = "Sweden")  %>%
+  group_by(search.term, organ, country) %>%
+  summarise(n=n_distinct(doc.id)) %>%
+  ungroup() %>%
+  group_by(country, search.term) %>%
+  mutate(total.n = sum(n)) %>%
+  mutate('Proportion of legislation' = n/total.n) %>%
+  mutate(search.term = case_when( search.term == "fiske"  ~ "Fisheries",
+                                  search.term == "jakt"  ~ "Hunting",
+                                  search.term == "sjofart"  ~ "Maritime traffic")) %>%
+  mutate(organ = case_when(organ == "" ~ "NA",
+                           TRUE ~ organ)) %>%
+  group_by(country,organ, search.term) %>%
+  ggplot(aes( y=`Proportion of legislation`, x=organ,  fill = country)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_wrap(~search.term, ncol = 1) + 
+  scale_fill_manual(values = c( "#004B87")) +
+  theme(axis.text.x = element_text(angle=80,hjust=1,size = 22),
+        axis.text.y = element_text(size = 20),
+        title = element_text( size = 20),
+        legend.position = "none",
+        strip.text.x = element_text(size = 20),
+        axis.title.x=element_blank())
+
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/SEauthority.plots.png", 
+       width = 65, height =45, units = "cm",
+       limitsize = FALSE)
