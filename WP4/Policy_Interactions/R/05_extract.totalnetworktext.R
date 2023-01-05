@@ -25,9 +25,9 @@ Q1.net2nd.graph<-readRDS("WP4/Policy_Interactions/data/03.Q1secondordercit.netwo
 # ----------- Query 2 (Q2) ---------- #
 
 # -- citations -- #
-Q2.net2nd<-read.csv("WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv")              # edge list
-Q2.net2nd.meta<-read.csv("WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv") # vertices meta data
-Q2.net2nd.graph<-readRDS("WP4/Policy_Interactions/data/03.Q2secondordercit.network.rds")          # the network object 
+Q2.net2nd<-read.csv("WP4/Policy_Interactions/data/04.Q2secondordercit.edgelist.csv")              # edge list
+Q2.net2nd.meta<-read.csv("WP4/Policy_Interactions/data/04.Q2secondordercit.verticesmetadata.csv") # vertices meta data
+Q2.net2nd.graph<-readRDS("WP4/Policy_Interactions/data/04.Q2secondordercit.network.rds")          # the network object 
 
 # EU mpa designation term associated text data: 
 MPA.DESG.text <- read.csv(file = "WP4/Policy_Interactions/data/01_mpaterms.text.data.dup.csv")

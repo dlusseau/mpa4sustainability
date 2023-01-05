@@ -70,7 +70,7 @@ mpa.policy.notext.df %>%
   scale_x_continuous(breaks = seq(1980, 2024, by = 4)) +
   scale_y_continuous(limits=c(0, 4.5), expand = c(0,0)) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.overtime.png")
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.overtime.png")
 
 
 #Eurlex data/attributes about the citations
@@ -109,7 +109,7 @@ network.attributes <-
 # Which citations are from the eurlex search and references?
 both.pulls <-
   citation.info %>%
-  filter(CELEX %in% mpa.policy.notext.df$CELEX)
+  filter(CELEX %in% Doc.citations$CELEX)
 
 # 5 documents pulled as an MPA leg are also cited by other legislation 
 # These are:
@@ -169,6 +169,7 @@ n_distinct(Doc.citations$to)
 docs <- unique(Doc.citations$to)
 cit <-  unique(Doc.citations$from)
 xx <- as.data.frame(c(docs,cit))
+sum(duplicated(xx))
 xx <- distinct(xx)
 # 158 observations
 
@@ -344,8 +345,8 @@ network.attributes.final4 <-
 
 # 724 - 3 = 721
 
-n_distinct(Doc.citations$from)
-# 118 
+n_distinct(Doc.citations3$from)
+# 129 
 
 n_distinct(Doc.citations3$to)
 #  709 (146+673-107-3)
@@ -387,24 +388,6 @@ plot(network2,
      layout=l
 )
 
-#legend(x=-1.3,y=-1.05,c("32008L0056: Marine Strategy Framework Directive",
-#                        "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
-#                        "32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
-#                        "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’",
-#                        "32013D1386: Decision on a General Union Environment Action Programme to 2020 ‘Living well, within the limits of our planet’"),
-#       cex=1.5 )
-#legend(x=-1.25,y=-.78,c("Both (result & citation)",
-#                       "Search result",
- #                      "Only first order citation",
-#                       "Only second order citation",
- #                      "First and second order citation"), 
-#       pch=21,
-#       col="#777777", 
- #      pt.bg=unique(V(network2)$color), 
- ##      pt.cex=2, 
- #      cex=2.5, 
- #      bty="n", 
- #     ncol=1)
 
 #32016R1624 does cite itself... double checked on EUR-Lex... 
 dev.off()

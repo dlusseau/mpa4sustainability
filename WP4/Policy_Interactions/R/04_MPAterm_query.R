@@ -53,6 +53,23 @@ EU.mpa.termsearch.data %>%
 # specially protected area*?          9
 # world heritage site*?               2
 
+#compare which mpa titles pulled same as ones that say MPA
+mpa.policy.notext.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
+
+x <- mpa.policy.notext.df %>% distinct(CELEX)
+
+xx <-
+  EU.mpa.termsearch.data %>%
+  filter(search.term == "marine protected area*?") %>%
+  distinct(CELEX)
+
+identical(x, xx)
+
+EU.mpa.termsearch.data %>%
+  filter(CELEX %in% x$CELEX) %>%
+  distinct(search.term,CELEX) %>%
+  group_by(search.term) %>%
+  summarise(n=n())
 
 n_distinct(EU.mpa.termsearch.data$CELEX)
 #[1] 99
@@ -94,7 +111,7 @@ EU.mpa.termsearch.data %>%
   scale_x_continuous(breaks = seq(1976, 2024, by = 3)) +
   scale_y_continuous(limits=c(0, 15),breaks = seq(0, 15, by = 3) ,expand = c(0,0)) + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.overtime.png")
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.overtime.png")
 
 # Legislation numbers over times by resource/leg. type:
 EU.mpa.termsearch.data %>%
@@ -195,13 +212,17 @@ leg.citation_info <-
   select(resource.type,celex,date,force) %>%
   rename(CELEX = celex) %>%
   mutate(pulled.from = "reference")
-#317 documents cited are legislation
+#278 documents cited are legislation
 
 #filtering out citation that are not with legislation:
 MPA.citations <- 
   MPA.citations %>%
   filter(citationcelex %in% leg.citation_info$CELEX) 
 
+n_distinct(MPA.citations$CELEX)
+#76
+n_distinct(MPA.citations$citationcelex)
+#278
 citation.info <-  leg.citation_info 
 
 
@@ -216,15 +237,9 @@ network.attributes <-
 
 both.pulls <-
   citation.info %>%
-  filter(CELEX %in% EU.mpa.termsearch.data$CELEX)
-#32
+  filter(CELEX %in% MPA.citations$CELEX)
+#20
 
-#both.pulls2 <-
-#  network.attributes %>%
-#  group_by(CELEX) %>%
-#  summarise(n=n()) %>%
-#  filter(n>1) 
-# documents pulled as an MPA leg and cited within others
 
 network.attributes.both <- network.attributes[network.attributes$CELEX %in% both.pulls$CELEX,]
 
@@ -237,7 +252,7 @@ network.attributes.notboth <- network.attributes[!network.attributes$CELEX %in% 
 
 network.attributes.final <-
   rbind(network.attributes.both,network.attributes.notboth)
-
+#20+314 = 334
 
 network.attributes.final <-
   network.attributes.final %>%
@@ -257,7 +272,7 @@ network.attributes.final <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final$CELEX)
-# 381
+# 334
 
 # Now we have edge df
 # "from"  = Celex (is the first column)
@@ -268,14 +283,16 @@ MPA.citations <-
          "to"="citationcelex")
 
 n_distinct(MPA.citations$from)
-# 85
+# 76
 n_distinct(MPA.citations$to)
-# 317
-
+# 278
+278+76-20
+#334
 docs <- unique(MPA.citations$to)
 cit <-  unique(MPA.citations$from)
 xx <- as.data.frame(c(docs,cit))
-xx <- distinct(xx) #381 documents
+sum(duplicated(xx))
+xx <- distinct(xx) #334 documents
 # ok vertices df and attribute df dim are the same :) 
 
 network <- graph_from_data_frame(d=MPA.citations, directed = TRUE, vertices = network.attributes.final)
@@ -308,66 +325,23 @@ plot(network,
      layout=l,# trying this layout based on pdf above...
      #edge.curved=.1
 )
-#legend(x=-1.7,y=1.2,c("32008L0056: Marine Strategy Framework Directive",
-#                        "32000L0060: Directive a framework for Community action in the field of water policy",
-#                        "31992L0043: Habitats Directive" ,
-#                        "32009L0147: Birds Directive" ,
-#                        "32008L0099: Directive on the protection of the environment through criminal law"  ,
-#                        "32011L0092: Directive on the assessment of the effects of certain public and private projects on the environment", 
-#                        "32009L0031: Directive on the geological storage of carbon dioxide & amending CD 85/337/EEC, EP & CD 2000/60/EC, 2001/80/EC, 2004/35/EC, 2006/12/EC, 2008/1/EC & Reg. (EC) No 1013/2006",  
-#                        "32006R1967: Reg. concerning management measures for the sustainable exploitation of fishery resources in the Mediterranean Sea, amending Reg. (EEC) No 2847/93 & repealing Reg. (EC) No 1626/94" ,
-#                        "32004R0724: Reg. amending Reg. (EC) No 1406/2002 establishing a European Maritime Safety Agency" ,
-#                        "32010R1089: Reg. implementing Directive 2007/2/EC of the European Parliament and of the Council as regards interoperability of spatial data sets and services", 
-#                        "31997R0338: Reg. on the protection of species of wild fauna and flora by regulating trade therein"
- #                      ),
-#       cex=.65,
-#       ncol=1,
-#       col="#777777",
-#       bty="n", # no box around the legen 
-#       
-#)
-#legend(x=-1.7,y=-1,c("32013R1380: Reg. on the CFP, amending CR (EC) No 1954/2003 and 1224/2009 and repealing CR (EC) No 2371/2002 and 639/2004 and CD 2004/585/ECs",
-#                      "32014R0508: Reg.on the European Maritime and Fisheries Fund and repealing CR (EC) No 2328/2003, No 861/2006, No 1198/2006 and No 791/2007 and Reg. (EU) No 1255/2011",
-#                      "31999D0800: Barcelona Convention" , 
-#                      "31999D0801: Dec. accepting amendments to the Protocol for the protection of the Mediterranean Sea against pollution from land-based sources (Barcelona Convention)", 
-#                      "32013D0005: Dec. on the accession of the EU to the Protocol for the Protection of the Mediterranean Sea against pollution resulting from exploration and exploitation of the continental shelf and the seabed and its subsoil",
-#                      "32009D0089: Dec. on the signing of the Protocol on Integrated Coastal Zone Management in the Mediterranean to the Convention for the Protection of the Marine Environment and the Coastal Region of the Mediterranean ",  
-#                      "32002D1600: Dec. laying down the Sixth Community Environment Action Programme",  
-#                      "32000D0340: Dec. approval of the new Annex V to the Convention for the Protection of the Marine Environment of the North-East Atlantic on the protection and conservation of the ecosystems and biological diversity of the maritime area",
-#                      "52018AE2960: Opin. of the European Economic and Social Committee on ‘Proposal for a Regulation of the European Parliament and of the Council on the alignment of reporting obligations in the field of environment policy",
-#                      "52017AE2820: Opin. of the European Economic and Social Committee on Commission Notice on Access to Justice in Environmental Matters"
-#),
-#cex=.65,
-#ncol=1,
-#col="#777777", 
-#bty="n", # no box around the legen #
 
-#)
-
-
-
-#legend(x=-1,y=-1,c("Both (result & citation)",
- #                    "Search result",
- #                    "First order citation"),
- #      pch=21,
- #      col="#777777", 
- #      pt.bg=unique(V(network)$color), 
-  #     pt.cex=2, 
- #      cex=1, 
- #      bty="n", # no box around the legen 
- #      ncol=1)
 dev.off()
 # blue are documents referenced within text
 # green are those pulled from out MPA eurlex search
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
 edges <- degree(network)
 sum(edges)
-
+#1124
 V(network)
-
+#334
 network.attributes.final %>%
   group_by( pulled.from) %>%
   summarise(n=n())
+#  pulled.from     n
+#  both           20
+# eurlex.web     56
+# reference     258
 
 # Save files ---------------------------------------------------------------------
 
@@ -387,8 +361,8 @@ indir.citation_info <-
   left_join(.,document.key.df, by = c("to" = "celex"))
 
 
-n_distinct(MPA.citations$to)
-n_distinct(indir.citation_info$to)
+n_distinct(MPA.citations$to)# 278
+n_distinct(indir.citation_info$to) # 278
 
 Doc.citations.2 <-
   indir.citation_info %>%
@@ -398,9 +372,9 @@ Doc.citations.2 <-
          "to" = "citationcelex")
 
 n_distinct(Doc.citations.2$from) # celex
-#272
+#246
 n_distinct(Doc.citations.2$to) # citation
-#1442
+#1415
 
 #now make sure citations (to) are only legislation documents 
 leg.citation_info2 <- 
@@ -417,9 +391,9 @@ Doc.citations.2 <-
   filter(to %in% leg.citation_info2$CELEX) 
 
 n_distinct(Doc.citations.2$from) # celex
-# 248
+# 225
 n_distinct(Doc.citations.2$to) # citation
-# 935
+# 972
 
 citation.info2 <-  leg.citation_info2
 
@@ -439,7 +413,7 @@ network.attributes.final2 <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final2$CELEX)
-#935
+#972
 
 Doc.citations3 <- rbind(MPA.citations,Doc.citations.2) # combine the first order citation edge list with the second order citation edge list
 
@@ -451,10 +425,10 @@ both.cit2 <-
   group_by(CELEX) %>%
   mutate(n=n()) %>%
   filter(n>1) %>% # so these are either both or first & second order
-  filter(!CELEX %in% both.pulls$CELEX) %>% #380- (20 boths thus 40 rows as both and ref2) = 340
-  filter(CELEX != "32010D0631" &
-         CELEX != "32013D1386" &
-         CELEX != "31998D2179") %>% # this three are now a both so in total there are 35 docs that will have duplicates later. 
+  filter(!CELEX %in% both.pulls$CELEX) %>% #remove the twenty that are already both = so goes to 366
+  filter(CELEX != "32011R0142" &
+         CELEX != "32010D0631" &
+         CELEX != "31998D2179") %>% # this three are now a both web result and second order. 
   mutate(pulled.from = "reference3") %>%
   mutate(color = 
            case_when(
@@ -464,10 +438,10 @@ both.cit2 <-
 
 
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
-# 1316-167-167= 982 math check add up :)
+# 1306-180-180= 946 math check add up :)
 
 network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
-# 982+167 = 1149 
+# 946+180 = 1126 
 
 both.cit.originaloverlap<-
   network.attributes.final3 %>%
@@ -477,30 +451,34 @@ both.cit.originaloverlap<-
   filter(pulled.from == "both") %>%
   as.data.frame()
 
-both.cit.originaloverlap <- as.character(both.cit.originaloverlap[1:20,1])
+both.cit.originaloverlap <- as.character(both.cit.originaloverlap[1:15,1])
 
 network.attributes.final4 <- 
   network.attributes.final4 %>%
-  mutate(pulled.from = case_when(CELEX == "32010D0631" ~ "both", # change this one to both since it is second order referenced. 
-                                 CELEX == "32013D1386" ~ "both",
+  mutate(pulled.from = case_when(CELEX == "32011R0142" ~ "both", # change this one to both since it is second order referenced. 
+                                 CELEX == "32010D0631" ~ "both",
                                  CELEX == "31998D2179" ~ "both",
                                  TRUE ~ pulled.from)) %>%
-  mutate(color = case_when(CELEX == "32010D0631" ~ "#f8766d", 
-                           CELEX == "32013D1386" ~ "#f8766d", 
+  mutate(color = case_when(CELEX == "32011R0142" ~ "#f8766d", 
+                           CELEX == "32010D0631" ~ "#f8766d", 
                            CELEX == "31998D2179" ~ "#f8766d", 
                            TRUE ~ color)) %>%
-  mutate(remove = case_when(CELEX %in% both.cit.originaloverlap & pulled.from == "reference2" ~ "remove", # 
-                           # CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
-                           # CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
+  mutate(remove = case_when(CELEX %in% both.cit.originaloverlap & pulled.from == "reference2" ~ "remove",
                             TRUE ~ "keep")) %>%
   filter(remove == "keep") %>%
   distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
-# 1149 - 20 - 3 = 1126
+# 1126 - 15 - 3 = 1108
+
+xx <-
+  network.attributes.final4 %>%
+  group_by(CELEX) %>%
+  mutate(n=n()) %>%
+  filter(n>1)
 
 n_distinct(Doc.citations3$from)
-# 312
+# 281
 n_distinct(Doc.citations3$to)
-# 1065
+# 1055 (278+972-180-15)
 
 docs <- unique(Doc.citations3$from)
 cit <-  unique(Doc.citations3$to)
@@ -549,8 +527,9 @@ dev.off()
 
 edges <- degree(network2)
 sum(edges)
-
+#5286
 V(network2)
+#1108
 
 # Save files ---------------------------------------------------------------------
 
@@ -567,14 +546,17 @@ cleaned.labels <-
   EU.mpa.termsearch.data %>%
   distinct(CELEX,labels, .keep_all = TRUE)
 
+n_distinct(cleaned.labels$CELEX)
+# 99
 n_distinct(cleaned.labels$MT)
-# 79 themes
+# 66 themes
 n_distinct(cleaned.labels$labels)
-# 403 terms
+# 281 terms 280 not including NA
+unique(cleaned.labels$labels)
 
 cleaned.labels %>% 
   group_by(CELEX) %>%
-  filter(is.na(labels)) # 11 documents have no eurovoc label thus total labels is 402
+  filter(is.na(labels)) # 1 documents has no eurovoc label thus total labels is 98
 
 label.pairs <- 
   cleaned.labels %>%

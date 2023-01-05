@@ -98,6 +98,7 @@ head(Q1.1st.df)
 
 # membership(graph1st.cluster)
 
+
 # ------------------- Second order citations -------------------
 
 # degree_in and degree_out
@@ -150,7 +151,7 @@ summary(Q1.1st.df)
 
 # degree 
 Q1.term.degree<-degree(Q1.terms.graph)
-
+sum(Q1.term.degree)
 summary(Q1.term.degree)
 
 V(Q1.terms.graph)
@@ -175,7 +176,7 @@ Q1.termclusters <-cluster_leading_eigen(Q1.terms.graph,
                                         steps = -1,
                                         weights = E(Q1.terms.graph)$n)
 
-# 7 clusters
+# 6 clusters
 
 plot_dendrogram(Q1.termclusters)
 
@@ -241,22 +242,21 @@ as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$members
                    x=V2,
                   color = V2)) +
     geom_text_wordcloud(shape = "circle", eccentricity = 1) +
-    scale_size_area(max_size = 15) +
+    scale_size_area(max_size = 25) +
     theme_minimal()  +
     theme(line = element_blank(),
           text = element_blank(),
           title = element_blank())+
     theme(strip.text.x = element_text(size = 15, face = "bold")) + 
     scale_color_manual(breaks = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                  "Cluster 4", "Cluster 5", "Cluster 6",
-                                  "Cluster 7"),
+                                  "Cluster 4", "Cluster 5", "Cluster 6"),
                        values=c("#1B9E77", 
                                 "#D95F02", 
                                 "#7570B3", 
                                 "#E7298A", 
                                 "#66A61E", 
-                                "#E6AB02", 
-                                "#A6761D"))
+                                "#E6AB02"))
+
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.termclusterspt1.png")
 
 
@@ -361,7 +361,7 @@ summary(Q2.1st.df)
 
 # degree 
 Q2.term.degree<-degree(Q2.terms.graph)
-
+sum(Q2.term.degree)
 summary(Q2.term.degree)
 
 V(Q2.terms.graph)
@@ -378,7 +378,7 @@ Q2.termclusters <-cluster_leading_eigen(Q2.terms.graph,
                                         steps = -1,
                                         weights = E(Q2.terms.graph)$n,
                                         options = list(maxiter=10000))
-# 21 clusters
+# 9 clusters
 
 
 
@@ -474,7 +474,7 @@ class(network.updated)
 network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(network.updated)<9])
 
 n_distinct(V(network.updated1)$membership)
-#16 in the filtered network
+#8 in the filtered network
 
 library(RColorBrewer)
 
@@ -510,7 +510,7 @@ plot(network.updated1,
      edge.width=E(network.updated1)$n,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
-     vertex.label.cex=(degree(network.updated1)/sum(degree(network.updated1))*225), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.cex=(degree(network.updated1)/sum(degree(network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
      vertex.label.color=V(network.updated1)$color, #membership(Q2.termclusters),
      vertex.shape="none",
      vertex.label.family = "sans",
@@ -522,6 +522,7 @@ plot(network.updated1,
 
 dev.off()
 
+
 # cluster plot wordcloud
 
 as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
@@ -532,18 +533,14 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
     mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
     mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
                                        "Cluster 4", "Cluster 5", "Cluster 6",
-                                       "Cluster 7","Cluster 8","Cluster 9",
-                                       "Cluster 10","Cluster 11", "Cluster 12", "Cluster 13",
-                                       "Cluster 14", "Cluster 15", "Cluster 16",
-                                       "Cluster 17","Cluster 18","Cluster 19",
-                                       "Cluster 20", "Cluster 21"))) %>%
-    filter(V2<=10) %>%
+                                       "Cluster 7","Cluster 8","Cluster 9"))) %>%
+   # filter(V2<=10) %>%
     ggplot(., aes(label = labels, 
                   size = degree,
                   color = V22,
                   x=V22)) +
     geom_text_wordcloud(shape = "circle",eccentricity = 1) +
-    scale_size_area(max_size = 45) +
+    scale_size_area(max_size = 35) +
     theme_minimal() +
     theme(line = element_blank(),
           text = element_blank(),
@@ -551,11 +548,7 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
    # facet_wrap(~V22, ncol = 3,scales = "free")+
     scale_color_manual(breaks = c("Cluster 1", "Cluster 2","Cluster 3",
                                   "Cluster 4", "Cluster 5", "Cluster 6",
-                                  "Cluster 7","Cluster 8","Cluster 9",
-                                  "Cluster 10","Cluster 11", "Cluster 12", "Cluster 13",
-                                  "Cluster 14", "Cluster 15", "Cluster 16",
-                                  "Cluster 17", "Cluster 18","Cluster 19",
-                                  "Cluster 20", "Cluster 21"),
+                                  "Cluster 7","Cluster 8","Cluster 9"),
                        # clusters not in the network... 2, 3, 13, 14, 15 but will still need a color that is not present in the network for the word clouds 
                        
                        values=c("#E6AB02", #1
@@ -566,19 +559,8 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
                                 "#1F78B4", #6 
                                 "#FB9A99", #7
                                 "#B2DF8A", #8
-                                "#1B9E77", #9
-                                "#66A61E",#10
-                                "#7570B3",#11 
-                                "#FF7F00",#12 
-                                "#00cccc",#13 
-                                "#cc3333",#14
-                                "#ff6600",#15
-                                "#E7298A",#16
-                                "#D95F02",#17
-                                "#6A3D9A",#18
-                                "#CAB2D6",#19
-                                "#E31A1C",#20
-                                "#A6761D" #21
+                                "#1B9E77" #9
+                             
                        )) 
 
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusterspt1.png",
@@ -586,6 +568,7 @@ ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4
 
 
 dev.off()
+
 as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
     mutate(V2 = as.numeric(V2)) %>%
     distinct(., .keep_all=TRUE) %>%
