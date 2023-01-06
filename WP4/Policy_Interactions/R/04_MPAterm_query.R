@@ -28,12 +28,16 @@ document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske
 #-------------------------- MPA Designation names --------------------------
 #---------------------------------------------------------------------------
 
+n_distinct(EU.mpa.termsearch$CELEX)
+#100
 # lets join the new mpa search documents to their associated document data
 EU.mpa.termsearch.data <-
   EU.mpa.termsearch %>%
   filter(CELEX != "32006R1967R(01)") %>% #removing this celex bc it is a Corrigendum to a regulation that was already pulled and it is tech. not within the legal act types
   select(-work,-type) # we dont need this info anymore
 
+n_distinct(EU.mpa.termsearch.data$CELEX)
+#99
 EU.mpa.termsearch.data %>%
   #distinct(CELEX, .keep_all = TRUE) %>% 
   group_by(search.term) %>%
@@ -191,6 +195,7 @@ EU.mpa.char %>%
 
 # Exploring document citations ---------------------------------------------
 
+  n_distinct(EU.mpa.termsearch.data$CELEX)
 # this citation network code is the same as 03 Rscript just different data. 
 
 MPA.citations <-
@@ -485,6 +490,16 @@ cit <-  unique(Doc.citations3$to)
 xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx)
 # ok so both the document citataion df and the network attributes df have the same dimentions 
+
+
+network.attributes.final4 %>%
+  group_by( pulled.from) %>%
+  summarise(n=n())
+# both           23
+# eurlex.web     53
+# reference      78
+# reference2    774
+# reference3    180
 
 network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network2, e=TRUE, v=TRUE)
