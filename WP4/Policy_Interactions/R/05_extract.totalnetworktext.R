@@ -30,7 +30,7 @@ Q2.net2nd.meta<-read.csv("WP4/Policy_Interactions/data/04.Q2secondordercit.verti
 Q2.net2nd.graph<-readRDS("WP4/Policy_Interactions/data/04.Q2secondordercit.network.rds")          # the network object 
 
 # EU mpa designation term associated text data: 
-MPA.DESG.text <- read.csv(file = "WP4/Policy_Interactions/data/01_mpaterms.text.data.dup.csv")
+MPA.DESG.text <- read.csv(file = "WP4/Policy_Interactions/data/01_mpaterms.text.data.csv")
 
 # Get text for all of the network vertices --------------------------------
 
@@ -63,12 +63,12 @@ toQ1.NOtextdf <-
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   rename("CELEX" = "to")
 # 546
-# 24 + 546 = 570
+# 24 + 685 = 709
 
 Q1.net2nd %>%
   select(to) %>%
   distinct(., .keep_all = TRUE)  
-# math checks out there is 570 citations celex
+# math checks out there is 709 citations celex
 
 # Citer text ----------
 
@@ -89,14 +89,14 @@ fromQ1.NOtextdf <-
   filter(! from %in% MPA.DESG.text.cut$CELEX) %>%
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   rename("CELEX" = "from")
-# 90
+# 101
 
-# 28 + 90 = 118
+# 28 + 101 = 129
 
 Q1.net2nd %>%
   select(from) %>%
   distinct(., .keep_all = TRUE) 
-# math checks out there is 118 citers (celex)
+# math checks out there is 129 citers (celex)
 
 # join the to and from columns and remove duplicates
 Q1edge.text <-
