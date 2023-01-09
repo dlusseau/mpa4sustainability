@@ -30,11 +30,11 @@ Q1.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universit
 
 # Query 2
 Q2C2.edge.text<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/05.Q2C2.edge.text.csv")
-Q2.net2nd.meta<-read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.verticesmetadata.csv") # vertices meta data
+Q2.net2nd.meta<-read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2secondordercit.verticesmetadata.csv") # vertices meta data
 #load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q2_stm.Rdata")
 
 # first order citations to filter later 
-Q2.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.verticesmetadata.csv") # vertices meta data
+Q2.net1st.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2firstordercit.verticesmetadata.csv") # vertices meta data
 
 # Make the new text data and align it with the result stm data ------------
 
@@ -96,9 +96,10 @@ vocab <- Q1C2.textprocessed$vocab
 meta  <- Q1C2.textprocessed$meta
 
 Q1C2.out <- prepDocuments(docs, vocab, meta)
-# Removing 30320 of 62747 terms (30320 of 3149484 tokens) due to frequency 
-# Removing 285 Documents with No Words 
-# Your corpus now has 206565 documents, 32427 terms and 3119164 tokens.
+# Removing 23760 of 53849 terms (23760 of 3978448 tokens) due to frequency 
+# Removing 207 Documents with No Words 
+# Your corpus now has 256911 documents, 30089 terms and 3954688 tokens.
+
 
 # First order citations ----------------
 
@@ -109,7 +110,7 @@ Q1C1.edge.text.preproc2 <-
 
 #check 
 n_distinct(Q1C1.edge.text.preproc2$CELEX) # has the right number of documents
-# 148
+# 158
 
 # lets make it into a corpus object (tm package)
 Q1C1.textpreproc.corpus <- DataframeSource(Q1C1.edge.text.preproc2)
@@ -128,9 +129,9 @@ vocab <- Q1C1.textprocessed$vocab
 meta  <- Q1C1.textprocessed$meta
 
 Q1C1.out <- prepDocuments(docs, vocab, meta)
-#Removing 8270 of 17978 terms (8270 of 855689 tokens) due to frequency 
-#Removing 125 Documents with No Words 
-#Your corpus now has 50424 documents, 9708 terms and 847419 tokens.
+# Removing 6713 of 15935 terms (6713 of 1008265 tokens) due to frequency 
+# Removing 99 Documents with No Words 
+# Your corpus now has 58907 documents, 9222 terms and 1001552 tokens.
 
 # ---------------- ---------------- Query 2 ---------------- ----------------
 
@@ -186,9 +187,9 @@ vocab <- Q2C2.textprocessed$vocab
 meta  <- Q2C2.textprocessed$meta
 
 Q2C2.out <- prepDocuments(docs, vocab, meta)
-#Removing 49456 of 97803 terms (49456 of 5150043 tokens) due to frequency 
-#Removing 511 Documents with No Words 
-#Your corpus now has 334037 documents, 48347 terms and 5100587 tokens.
+# Removing 34942 of 75611 terms (34942 of 5362925 tokens) due to frequency 
+# Removing 358 Documents with No Words 
+# Your corpus now has 346245 documents, 40669 terms and 5327983 tokens.
 
 # First order citations ----------------
 
@@ -199,7 +200,7 @@ Q2C1.edge.text.preproc <-
 
 #check 
 n_distinct(Q2C1.edge.text.preproc$CELEX) # has the right number of documents
-# 381
+# 334
 
 # lets make it into a corpus object (tm package)
 Q2C1.textpreproc.corpus <- DataframeSource(Q2C1.edge.text.preproc)
@@ -211,13 +212,16 @@ docvars(Q2C1.textpreproc.corpus)
 ndoc(Q2C1.textpreproc.corpus)
 
 Q2C1.textpreproc.dfm <- dfm(tokens(Q2C1.textpreproc.corpus))   # Create a document feature matrix
-Q2C1.textprocessed <- convert(Q2C1.textpreproc.dfm, to="stm") # convert dfm to stm format corpus
+Q2C1.textprocessed <- convert(Q2C1.textpreproc.dfm, to="stm")  # Convert dfm to stm format corpus
 
 docs  <- Q2C1.textprocessed$documents
 vocab <- Q2C1.textprocessed$vocab
 meta  <- Q2C1.textprocessed$meta
 
 Q2C1.out <- prepDocuments(docs, vocab, meta)
+# Removing 19715 of 38751 terms (19715 of 1807052 tokens) due to frequency 
+# Removing 432 Documents with No Words 
+# Your corpus now has 111764 documents, 19036 terms and 1787337 tokens.
 
 # Save -------------------------------------------------------------------------------------
 
@@ -236,7 +240,7 @@ saveRDS(Q2C1.out, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universit
 # **Note from the stm CRAN manual!
 # "we don't run prepCorpus here because we don't want to drop any words- we want every word that showed up in the old documents."
 
-Q1.newdocs <- alignCorpus(new=Q1C2.textprocessed, old.vocab=Q1.stm$vocab)
+# Q1.newdocs <- alignCorpus(new=Q1C2.textprocessed, old.vocab=Q1.stm$vocab)
 # info on what was done: 
 # Removing 14628 Documents with No Words (in our case sentences)
 # Your new corpus now has 192222 documents (sentences), 3968 non-zero terms of 3980 total terms in the original set. 
@@ -246,33 +250,33 @@ Q1.newdocs <- alignCorpus(new=Q1C2.textprocessed, old.vocab=Q1.stm$vocab)
 # You have retained 3499112 tokens of the 3956192 tokens you started with (88.4%)
 
 
-Q1C2.topi.pred <- 
-  fitNewDocuments(model=Q1.stm, 
-                  documents=Q1.newdocs$documents, 
-                  newData=Q1.newdocs$meta,
-                  origData=Q1.text$meta)
+#Q1C2.topi.pred <- 
+#  fitNewDocuments(model=Q1.stm, 
+#                  documents=Q1.newdocs$documents, 
+#                  newData=Q1.newdocs$meta,
+#                  origData=Q1.text$meta)
 
-Q1C2.doctopic.pred <- Q1C2.topi.pred$theta
+#Q1C2.doctopic.pred <- Q1C2.topi.pred$theta
 
-Q1.doc.names <- as.data.frame(names(Q1.newdocs$documents))
+#Q1.doc.names <- as.data.frame(names(Q1.newdocs$documents))
 
 # lets make this into a long df
-Q1C2.Doctopic.longdf <-
-  Q1C2.doctopic.pred %>%
-  as.data.frame() %>%
-  rownames_to_column(var = "document_sentence") %>%
-  cbind(., Q1.newdocs$meta$CELEX,Q1.doc.names) %>%
-  pivot_longer(.,
-               cols = 2:68,
-               names_to = "topic", 
-               values_to = "proportion") %>%
-  mutate(topic = str_replace_all(topic, "V", "topic"),
-         percent.doc = proportion *100) 
+#Q1C2.Doctopic.longdf <-
+##  Q1C2.doctopic.pred %>%
+#  as.data.frame() %>%
+#  rownames_to_column(var = "document_sentence") %>%
+#  cbind(., Q1.newdocs$meta$CELEX,Q1.doc.names) %>%
+#  pivot_longer(.,
+#               cols = 2:68,
+#               names_to = "topic", 
+#               values_to = "proportion") %>%
+#  mutate(topic = str_replace_all(topic, "V", "topic"),
+#         percent.doc = proportion *100) 
 
-n_distinct(Q1C2.Doctopic.longdf$`Q1.newdocs$meta$CELEX`)
+#n_distinct(Q1C2.Doctopic.longdf$`Q1.newdocs$meta$CELEX`)
 # 583
 
-summary(Q1C2.Doctopic.longdf$percent.doc)
+#summary(Q1C2.Doctopic.longdf$percent.doc)
 #    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.0000  0.1708  0.5688  1.4925  1.4362 99.4407 
 
@@ -280,7 +284,7 @@ summary(Q1C2.Doctopic.longdf$percent.doc)
 # **Note from the stm CRAN manual!
 # "we don't run prepCorpus here because we don't want to drop any words- we want every word that showed up in the old documents."
 
-Q2.newdocs <- alignCorpus(new=Q2C2.textprocessed, old.vocab=Q1.stm$vocab)
+#Q2.newdocs <- alignCorpus(new=Q2C2.textprocessed, old.vocab=Q1.stm$vocab)
 #Removing 18292 Documents with No Words 
 #Your new corpus now has 316256 documents, 3971 non-zero terms of 3980 total terms in the original set. 
 #93832 terms from the new data did not match.
@@ -288,31 +292,31 @@ Q2.newdocs <- alignCorpus(new=Q2C2.textprocessed, old.vocab=Q1.stm$vocab)
 #and the old data contained 4.1% of the unique terms in the new data. 
 #You have retained 5660154 tokens of the 6472359 tokens you started with (87.5%)
 
-Q2C2.topi.pred <- 
-  fitNewDocuments(model=Q2.stm, 
-                  documents=Q2.newdocs$documents, 
-                  newData=Q2.newdocs$meta,
-                  origData=Q2.stm$meta)
+#Q2C2.topi.pred <- 
+#  fitNewDocuments(model=Q2.stm, 
+#                  documents=Q2.newdocs$documents, 
+#                  newData=Q2.newdocs$meta,
+#                  origData=Q2.stm$meta)#
 
-Q2C2.doctopic.pred <- Q2C2.topi.pred$theta
+#Q2C2.doctopic.pred <- Q2C2.topi.pred$theta
 
-Q2.doc.names <- as.data.frame(names(Q2.newdocs$documents))
+#Q2.doc.names <- as.data.frame(names(Q2.newdocs$documents))
 
 # lets make this into a long df
-Q2C2.Doctopic.longdf <-
-  Q2C2.doctopic.pred %>%
-  as.data.frame() %>%
-  rownames_to_column(var = "document_sentence") %>%
-  cbind(., Q2.newdocs$meta$CELEX,Q2.doc.names) %>%
-  pivot_longer(.,
-               cols = 2:68,
-               names_to = "topic", 
-               values_to = "proportion") %>%
-  mutate(topic = str_replace_all(topic, "V", "topic"),
-         percent.doc = proportion *100)
+#Q2C2.Doctopic.longdf <-
+#  Q2C2.doctopic.pred %>%
+#  as.data.frame() %>%
+#  rownames_to_column(var = "document_sentence") %>%
+#  cbind(., Q2.newdocs$meta$CELEX,Q2.doc.names) %>%
+#  pivot_longer(.,
+#               cols = 2:68,
+#               names_to = "topic", 
+#               values_to = "proportion") %>%
+#  mutate(topic = str_replace_all(topic, "V", "topic"),
+#         percent.doc = proportion *100)
 
 
-n_distinct(Q2C2.Doctopic.longdf$`Q2.newdocs$meta$CELEX`)
+#n_distinct(Q2C2.Doctopic.longdf$`Q2.newdocs$meta$CELEX`)
 
 
 #write.csv(Q1C2.Doctopic.longdf, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q1C2.Doctopic.longdf.csv", row.names=FALSE)
