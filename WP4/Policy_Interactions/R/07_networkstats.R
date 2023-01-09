@@ -380,7 +380,10 @@ Q2.termclusters <-cluster_leading_eigen(Q2.terms.graph,
                                         options = list(maxiter=10000))
 # 9 clusters
 
-
+Q2.term.df<-data.frame(name= V(Q2.terms.graph)$name,
+                      degree=Q2.term.degree,
+                      betweenness=Q2.term.betweenness,
+                      component=as.numeric(membership(Q2.termclusters)))
 
 plot(degree.in~degree.out,data=Q1.2nd.df)
 
