@@ -62,7 +62,7 @@ toQ1.NOtextdf <-
   filter(! to %in% MPA.DESG.text.cut$CELEX) %>%
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   rename("CELEX" = "to")
-# 546
+# 685
 # 24 + 685 = 709
 
 Q1.net2nd %>%
@@ -105,10 +105,10 @@ Q1edge.text <-
 
 gc() # clear up some space before the text pulling
 
-Q1edge.NOtextsec1 <- 
+Q1edge.NOtext <- 
   rbind(fromQ1.NOtextdf, toQ1.NOtextdf) %>%
-  distinct(., .keep_all = TRUE) %>% # 546 celex
-  slice(0:273) %>% # 273
+  distinct(., .keep_all = TRUE) %>% # 685 celex
+ # slice(0:273) %>% # 273
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>% 
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
   as_tibble() %>%
@@ -119,25 +119,14 @@ Q1edge.NOtextsec1 <-
 
 gc() # clear up some space before the text pulling
 
-Q1edge.NOtextsec2 <- 
-  rbind(fromQ1.NOtextdf, toQ1.NOtextdf) %>%
-  distinct(., .keep_all = TRUE) %>% # 546 celex
-  slice(274:546) %>% # 515
-  mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>% 
-  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-  as_tibble() %>%
-  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
-  as_tibble() %>%
-  mutate(total.text = paste0(.$title,.$text)) %>%
-  select(CELEX, total.text)
-
 
 Q1.edge.text <-
-  rbind(Q1edge.text,Q1edge.NOtextsec1,Q1edge.NOtextsec2) #546 + 37 = 583 --> all checks out this is the total number of vertices in the network 
+  rbind(Q1edge.text,Q1edge.NOtext) #685 + 36 = 721 --> all checks out this is the total number of vertices in the network 
 
-V(Q1.net2nd.graph) # 583 vertices
+V(Q1.net2nd.graph) # 721 vertices
 edges <- degree(Q1.net2nd.graph)
 sum(edges)
+
 # Query two ---------------------
 
 # Citation text --------
@@ -152,7 +141,7 @@ toQ2.textdf <-
   left_join(.,MPA.DESG.text.cut, by = c("to"="CELEX")) %>%
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   rename("CELEX" = "to")
-# 36
+# 26
 toQ2.NOtextdf <- 
   Q2.net2nd %>%
   select(to) %>%
@@ -161,13 +150,13 @@ toQ2.NOtextdf <-
   rename("CELEX" = "to")
 # 1029
 
-# 36 + 1029 = 1065
+# 26 + 1029 = 1055
 
 Q2.net2nd %>%
   select(to) %>%
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   dim()
-# math checks out there is 1065 observations (celex)
+# math checks out there is 1055 observations (celex)
 
 # Citer text ----------
 
@@ -179,7 +168,7 @@ fromQ2.textdf <-
   left_join(.,MPA.DESG.text.cut, by = c("from"="CELEX")) %>%
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   rename("CELEX" = "from")
-# 85
+# 76
 
 fromQ2.NOtextdf <- 
   Q2.net2nd %>%
@@ -187,30 +176,29 @@ fromQ2.NOtextdf <-
   filter(! from %in% MPA.DESG.text.cut$CELEX) %>%
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   rename("CELEX" = "from")
-# 227
+# 205
 
-# 85 + 227 = 312
+# 76 + 205 = 281
 
 Q2.net2nd %>%
   select(from) %>%
   distinct(., .keep_all = TRUE) %>% # since some cite multiple documents. 
   dim()
-# math checks out there is 312 observations (celex)
+# math checks out there is 281 observations (celex)
 
 
 # join the to and from columns and remove duplicates
 Q2edge.text <-
   rbind(fromQ2.textdf, toQ2.textdf) %>%
-  distinct(., .keep_all = TRUE) # 97 celex
+  distinct(., .keep_all = TRUE) # 79 celex
 
 gc() # clear up some space before the text pulling
 
 # too big cut in half then re-join (section 1 will be rows 1-514, section 2 will be 515-1029)
-Q2edge.NOtext.sec1 <- 
+Q2edge.NOtext <- 
   rbind(fromQ2.NOtextdf, toQ2.NOtextdf) %>%
   distinct(., .keep_all = TRUE) %>% # 1029 celex
   mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>%
-  slice(1:343) %>% # 343
   mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
   as_tibble() %>%
   mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
@@ -220,35 +208,10 @@ Q2edge.NOtext.sec1 <-
 
 gc()
 
-Q2edge.NOtext.sec2 <- 
-  rbind(fromQ2.NOtextdf, toQ2.NOtextdf) %>%
-  distinct(., .keep_all = TRUE) %>% # 1029 celex
-  mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>%
-  slice(344:686) %>% # 343
-  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-  as_tibble() %>%
-  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
-  as_tibble() %>%
-  mutate(total.text = paste0(.$title,.$text)) %>%
-  select(CELEX, total.text)
-
-
-Q2edge.NOtext.sec3 <- 
-  rbind(fromQ2.NOtextdf, toQ2.NOtextdf) %>%
-  distinct(., .keep_all = TRUE) %>% # 1029 celex
-  mutate(url = paste0("http://publications.europa.eu/resource/celex/",.$CELEX)) %>%
-  slice(687:1029) %>% # 343
-  mutate(title = map_chr(url, elx_fetch_data, "title")) %>% 
-  as_tibble() %>%
-  mutate(text = map_chr(url, elx_fetch_data, "text")) %>% 
-  as_tibble() %>%
-  mutate(total.text = paste0(.$title,.$text)) %>%
-  select(CELEX, total.text)
-  
 Q2.edge.text <-
-  rbind(Q2edge.text,Q2edge.NOtext.sec1,Q2edge.NOtext.sec2,Q2edge.NOtext.sec3) #1029 + 97 = 1126 --> all checks out this is the total number of vertices in the network 
+  rbind(Q2edge.text,Q2edge.NOtext) #1029 + 79 = 1108 --> all checks out this is the total number of vertices in the network 
 
-V(Q2.net2nd.graph) # 1126 vertices
+V(Q2.net2nd.graph) # 1108 vertices
 edges <- degree(Q2.net2nd.graph)
 sum(edges)
 # Save ---------------------------------------------------------------
