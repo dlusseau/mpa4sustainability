@@ -178,6 +178,13 @@ Q1.termclusters <-cluster_leading_eigen(Q1.terms.graph,
 
 # 6 clusters
 
+Q1.term.df<-data.frame(name= V(Q1.terms.graph)$name,
+                       degree=Q1.term.degree,
+                       betweenness=Q1.term.betweenness,
+                       component=as.numeric(membership(Q1.termclusters))) 
+
+write.csv(Q1.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.term.data.csv", row.names=FALSE)
+
 plot_dendrogram(Q1.termclusters)
 
 l2 <- layout.fruchterman.reingold(Q1.terms.graph)
@@ -384,6 +391,8 @@ Q2.term.df<-data.frame(name= V(Q2.terms.graph)$name,
                       degree=Q2.term.degree,
                       betweenness=Q2.term.betweenness,
                       component=as.numeric(membership(Q2.termclusters)))
+
+write.csv(Q2.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2.term.data.csv", row.names=FALSE)
 
 plot(degree.in~degree.out,data=Q1.2nd.df)
 
