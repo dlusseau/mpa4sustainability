@@ -1,4 +1,6 @@
 
+#redone Jan 13th since data saved a blank object...
+
 # Clear work space ---------------------------------------------------------
 rm(list = ls())
 Sys.setenv(LANG = "en") # change the language to english 
@@ -10,6 +12,7 @@ library("dplyr")
 library("tibble")
 library("stringr")
 library("purrr")
+library("jsonlite")
 
 # Load data ---------------------------------------------------------------
 
@@ -84,6 +87,8 @@ Q1.Seed.doc <-
  # rename("celex" = "CELEX")%>%
   distinct(celex,force,date,work,citationcelex,sector.type,order)
 
+Q1.Seed.doc  %>%
+  distinct(celex)
 
 Q1.cit.list <- list(Q1.Seed.doc)
 
@@ -98,7 +103,7 @@ for (i in seq(1:20)) {
 }
 
 # it seems like we get into a loop where the citations keep citing eachother.... so we have reached the end.
-# remove everything 18 and up this is duplicates
+# remove everything 17 and up this is duplicates
 
 Q1.cit.list.new <- Q1.cit.list[-21] 
 Q1.cit.list.new <- Q1.cit.list.new[-20] 
@@ -118,13 +123,13 @@ Q1.cit.df <-
   select(-order)
 
 ### -------- Save ---------- #
-library(jsonlite)
 
 Q1_totalcitations.json <- toJSON(Q1.cit.df, pretty=TRUE)
 
 #jsonQ1.2 <- fromJSON(jsonQ1, flatten=TRUE)
 
 write(Q1_totalcitations.json,  file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1_totalcitations.json")
+
 
 ### ------------- Second Query ----------------- ###
 
@@ -136,7 +141,8 @@ Q2.Seed.doc <-
   # rename("celex" = "CELEX")%>%
   distinct(celex,force,date,work,citationcelex,sector.type,order)
 
-
+Q2.Seed.doc  %>%
+  distinct(celex)
 
 Q2.cit.list <- list(Q2.Seed.doc)
 
@@ -151,7 +157,7 @@ for (i in seq(1:20)) {
 }
 
 # it seems like we get into a loop where the citations keep citing eachother.... so we have reached the end.
-# remove everything 18 and up this is duplicates
+# remove everything 17 and up this is duplicates
 
 
 Q2.cit.list.new <- Q2.cit.list[-21] 
@@ -173,7 +179,6 @@ Q2.cit.df <-
   select(-order)
 
 ### -------- Save ---------- #
-library(jsonlite)
 
 Q2_totalcitations.json <- toJSON(Q2.cit.df, pretty=TRUE)
 
