@@ -219,6 +219,14 @@ leg.citation_info <-
   mutate(pulled.from = "reference")
 #278 documents cited are legislation
 
+
+leg.citation_info <- 
+  leg.citation_info %>%
+  mutate(bad.sector = str_detect(CELEX, "^[^3]" )) %>%
+  filter(bad.sector=="FALSE")%>%
+  select(-bad.sector)
+# 5 opionons in prep docs removed
+
 #filtering out citation that are not with legislation:
 MPA.citations <- 
   MPA.citations %>%
@@ -227,7 +235,7 @@ MPA.citations <-
 n_distinct(MPA.citations$CELEX)
 #76
 n_distinct(MPA.citations$citationcelex)
-#278
+#273
 citation.info <-  leg.citation_info 
 
 
@@ -257,7 +265,7 @@ network.attributes.notboth <- network.attributes[!network.attributes$CELEX %in% 
 
 network.attributes.final <-
   rbind(network.attributes.both,network.attributes.notboth)
-#20+314 = 334
+#20+309 = 329
 
 network.attributes.final <-
   network.attributes.final %>%
@@ -277,7 +285,7 @@ network.attributes.final <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final$CELEX)
-# 334
+# 329
 
 # Now we have edge df
 # "from"  = Celex (is the first column)
@@ -290,14 +298,14 @@ MPA.citations <-
 n_distinct(MPA.citations$from)
 # 76
 n_distinct(MPA.citations$to)
-# 278
-278+76-20
-#334
+# 273
+273+76-20
+#329
 docs <- unique(MPA.citations$to)
 cit <-  unique(MPA.citations$from)
 xx <- as.data.frame(c(docs,cit))
 sum(duplicated(xx))
-xx <- distinct(xx) #334 documents
+xx <- distinct(xx) #329 documents
 # ok vertices df and attribute df dim are the same :) 
 
 network <- graph_from_data_frame(d=MPA.citations, directed = TRUE, vertices = network.attributes.final)
@@ -337,16 +345,16 @@ dev.off()
 # red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
 edges <- degree(network)
 sum(edges)
-#1124
+#1114
 V(network)
-#334
+#329
 network.attributes.final %>%
   group_by( pulled.from) %>%
   summarise(n=n())
 #  pulled.from     n
 #  both           20
-# eurlex.web     56
-# reference     258
+#  eurlex.web     56
+#  reference     253
 
 # Save files ---------------------------------------------------------------------
 
@@ -366,8 +374,8 @@ indir.citation_info <-
   left_join(.,document.key.df, by = c("to" = "celex"))
 
 
-n_distinct(MPA.citations$to)# 278
-n_distinct(indir.citation_info$to) # 278
+n_distinct(MPA.citations$to)# 273
+n_distinct(indir.citation_info$to) # 273
 
 Doc.citations.2 <-
   indir.citation_info %>%
@@ -377,9 +385,9 @@ Doc.citations.2 <-
          "to" = "citationcelex")
 
 n_distinct(Doc.citations.2$from) # celex
-#246
+#244
 n_distinct(Doc.citations.2$to) # citation
-#1415
+#1385
 
 #now make sure citations (to) are only legislation documents 
 leg.citation_info2 <- 
@@ -390,15 +398,25 @@ leg.citation_info2 <-
   rename(CELEX = celex) %>%
   mutate(pulled.from = "reference2") # label them as second order references
 
+
+leg.citation_info2 <- 
+  leg.citation_info2 %>%
+  mutate(bad.sector = str_detect(CELEX, "^[^3]" )) %>%
+  filter(bad.sector=="FALSE")%>%
+  select(-bad.sector)
+
+#removed prep opinions and one decision in complementary documents
+
+
 #do the same to the edge list
 Doc.citations.2 <- 
   Doc.citations.2 %>%
   filter(to %in% leg.citation_info2$CELEX) 
 
 n_distinct(Doc.citations.2$from) # celex
-# 225
+# 223
 n_distinct(Doc.citations.2$to) # citation
-# 972
+# 917
 
 citation.info2 <-  leg.citation_info2
 
@@ -418,7 +436,7 @@ network.attributes.final2 <-
              resource.type == "OTHER" ~ "square"  ))
 
 n_distinct(network.attributes.final2$CELEX)
-#972
+#917
 
 Doc.citations3 <- rbind(MPA.citations,Doc.citations.2) # combine the first order citation edge list with the second order citation edge list
 
@@ -443,10 +461,10 @@ both.cit2 <-
 
 
 network.attributes.final4 <- network.attributes.final3[!network.attributes.final3$CELEX %in% both.cit2$CELEX,]
-# 1306-180-180= 946 math check add up :)
+# 1246-179-179= 888 math check add up :)
 
 network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
-# 946+180 = 1126 
+# 888+179 = 1067 
 
 both.cit.originaloverlap<-
   network.attributes.final3 %>%
@@ -472,7 +490,7 @@ network.attributes.final4 <-
                             TRUE ~ "keep")) %>%
   filter(remove == "keep") %>%
   distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
-# 1126 - 15 - 3 = 1108
+# 1067 - 15 - 3 = 1049
 
 xx <-
   network.attributes.final4 %>%
@@ -481,9 +499,9 @@ xx <-
   filter(n>1)
 
 n_distinct(Doc.citations3$from)
-# 281
+# 279
 n_distinct(Doc.citations3$to)
-# 1055 (278+972-180-15)
+# 996 (273+917-179-15)
 
 docs <- unique(Doc.citations3$from)
 cit <-  unique(Doc.citations3$to)
@@ -497,9 +515,9 @@ network.attributes.final4 %>%
   summarise(n=n())
 # both           23
 # eurlex.web     53
-# reference      78
-# reference2    774
-# reference3    180
+# reference      74
+# reference2    720
+# reference3    179
 
 network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network2, e=TRUE, v=TRUE)
@@ -542,9 +560,9 @@ dev.off()
 
 edges <- degree(network2)
 sum(edges)
-#5286
+#5146
 V(network2)
-#1108
+#1049
 
 # Save files ---------------------------------------------------------------------
 
