@@ -81,7 +81,7 @@ plot(Q1.1st.degree.out ~ Q1.1st.betweenness )
 # first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
 
 Q1.1st.comp.weak<-components(Q1.net1st.graph,mode="weak")
-
+componen
 Q1.1st.df<-data.frame(name= V(Q1.net1st.graph)$name,
                         degree.in=Q1.1st.degree.in,
                         degree.out=Q1.1st.degree.out,
@@ -97,7 +97,7 @@ head(Q1.1st.df)
 # directed = TRUE)
 
 # membership(graph1st.cluster)
-
+sort(table(Q1.1st.comp.weak$membership))
 
 # ------------------- Second order citations -------------------
 
@@ -147,6 +147,37 @@ Q1.1st.df$component.2nd<-Q1.2nd.df$component[match(Q1.1st.df$name,Q1.2nd.df$name
 
 summary(Q1.1st.df)
 
+Q1.1st.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+#  32013R1380 0.009405111
+
+Q1.1st.df %>%
+  filter( betweenness.2nd == max(betweenness.2nd))%>%
+  select(name, betweenness.2nd)
+#32014R0508     0.005869453
+
+
+Q1.1st.df %>%
+  filter( degree.in == max(degree.in))%>%
+  select(name, degree.in)
+# 32013R1380        10
+
+Q1.1st.df %>%
+  filter( degree.in.2nd == max(degree.in.2nd))%>%
+  select(name, degree.in.2nd)
+# 32011R0182            34
+
+Q1.1st.df %>%
+  filter( degree.out == max(degree.out))%>%
+  select(name, degree.out)
+# 32021R1139         33
+Q1.1st.df %>%
+  filter( degree.out.2nd == max(degree.out.2nd)) %>%
+  select(name, degree.out.2nd)
+# 32021R1139             66
+
+
 # ------------------- eurovo terms -------------------
 
 # degree 
@@ -184,6 +215,17 @@ Q1.term.df<-data.frame(name= V(Q1.terms.graph)$name,
                        component=as.numeric(membership(Q1.termclusters))) 
 
 write.csv(Q1.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.term.data.csv", row.names=FALSE)
+
+Q1.term.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+#  environmental protection   0.2157232
+
+Q1.term.df %>%
+  filter( degree == max(degree))%>%
+  select(name, degree)
+# fishing rights     35
+
 
 plot_dendrogram(Q1.termclusters)
 
@@ -264,7 +306,8 @@ as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$members
                                 "#66A61E", 
                                 "#E6AB02"))
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.termclusterspt1.png")
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.termclusterspt1.png",
+       width = 41, height = 20)
 
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1.eurovocterm.network.png",
@@ -275,7 +318,7 @@ plot(Q1.network.updated1,
      edge.width=E(Q1.network.updated1)$n,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=1.5,
-     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*150), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
      vertex.label.color=V(Q1.network.updated1)$color, #membership(Q2.termclusters),
      vertex.shape="none",
      vertex.label.family = "sans",
@@ -364,6 +407,39 @@ Q2.1st.df$component.2nd<-Q2.2nd.df$component[match(Q2.1st.df$name,Q2.2nd.df$name
 
 summary(Q2.1st.df)
 
+
+Q2.1st.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+# 32008L0056 0.005448802
+
+Q2.1st.df %>%
+  filter( betweenness.2nd == max(betweenness.2nd))%>%
+  select(name, betweenness.2nd)
+# 1 32000L0060     0.004303183
+
+
+Q2.1st.df %>%
+  filter( degree.in == max(degree.in))%>%
+  select(name, degree.in)
+#  31992L0043        22
+
+
+Q2.1st.df %>%
+  filter( degree.in.2nd == max(degree.in.2nd))%>%
+  select(name, degree.in.2nd)
+# 31999D0468            68
+
+Q2.1st.df %>%
+  filter( degree.out == max(degree.out))%>%
+  select(name, degree.out)
+# 32011R0142         39
+
+
+Q2.1st.df %>%
+  filter( degree.out.2nd == max(degree.out.2nd))%>%
+  select(name, degree.out.2nd)
+#  32021R1139             66
 # ------------------- eurovo terms -------------------
 
 # degree 
@@ -394,6 +470,17 @@ Q2.term.df<-data.frame(name= V(Q2.terms.graph)$name,
 
 write.csv(Q2.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2.term.data.csv", row.names=FALSE)
 
+Q2.term.df %>%
+  filter( degree == max(degree))%>%
+  select(name, degree)
+
+# environmental protection    103
+
+Q2.term.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+#  environmental protection    0.379143
+
 plot(degree.in~degree.out,data=Q1.2nd.df)
 
 Q1.1st.df$degree.in.2nd<-Q1.2nd.df$degree.in[match(Q1.1st.df$name,Q1.2nd.df$name)]
@@ -401,6 +488,8 @@ Q1.1st.df$degree.out.2nd<-Q1.2nd.df$degree.out[match(Q1.1st.df$name,Q1.2nd.df$na
 Q1.1st.df$betweenness.2nd<-Q1.2nd.df$betweenness[match(Q1.1st.df$name,Q1.2nd.df$name)]
 
 summary(Q1.1st.df)
+
+
 
 plot_dendrogram(Q2.termclusters)
 
