@@ -56,12 +56,62 @@ Q1.cluster.profiles2 <-
 Q1.cluster.profiles2 %>%
   group_by(component) %>%
   summarise( n = n_distinct(CELEX))
-
+#  component     n
+#         1     7
+#         2    12
+#         3     5
+#         4     5
+#         5     3
+#         6     1
 
 Q1.cluster.profiles2 %>%
   group_by(CELEX) %>%
   summarise( n = n_distinct(component)) %>%
   arrange(desc(n))
+
+#   CELEX          n
+# 32019D0867     5
+# 32013R1380     4
+# 32014R0508     3
+# 32022R2343     3
+# 31984D0132     2
+# 32010D0814     2
+# 32012D0091     2
+# 32021R1139     2
+# 32008L0056     1
+# 32013D1386     1
+# 32013L0030     1
+# 32018R0120     1
+# 32019R0124     1
+# 32020R0123     1
+# 32021D1796     1
+# 32021R0092     1
+# 32022R0109     1
+# 32022R2473     1
+
+Q1.cluster.profiles2 %>%
+  filter(cluster.prop >=0.5) %>%
+  arrange(desc(cluster.prop))
+  
+
+#component CELEX      cluster.prop
+#         1 32008L0056        1    
+#         1 32013D1386        1    
+#         1 32013L0030        1    
+#         1 32021D1796        1    
+#         5 32022R2473        1    
+#         2 32019R0124        1    
+#         2 32022R0109        1    
+#         2 32021R0092        1    
+#         2 32018R0120        1    
+#         2 32020R0123        1    
+#         3 32021R1139        0.9  
+#         4 32012D0091        0.857
+#         1 31984D0132        0.833
+#         2 32022R2343        0.778
+#         4 32010D0814        0.75 
+#         3 32014R0508        0.714
+#         3 32013R1380        0.5 
 
 #----------- Query 2 --------------------
 
@@ -113,8 +163,68 @@ Q2.term.search <-
 x <- Q2.term.search %>% 
   right_join(.,Q2.cluster.profiles2, by = c("CELEX"))
 
-y <- 
+# lets combine the titles that overlap:
+unique(x$search.term)
+
+xz <- 
   x %>%
-  group_by(component,search.term) %>%
-  summarise(n = n_distinct(CELEX))
+  mutate(new.title = case_when(search.term ==  "sites of community importance*?" ~ "habitats directive*?" ,
+                               search.term == "site of community importance*?" ~ "habitats directive*?",
+                               search.term == "special areas of conservation*?" ~ "habitats directive*?",
+                               search.term == "special protection area*?" ~ "birds directive*?",
+                               search.term == "marine protected area*?" ~ "ospar*?",
+                               TRUE ~ search.term ))
+unique(xz$new.title)
+
+#"barcelona convention*?"
+#
+#"sites of community importance*?"
+#"site of community importance*?" 
+#"habitats directive*?"           
+#"special areas of conservation*?"
+#
+#"birds directive*?"              
+#"special protection area*?"
+#
+#"ospar*?"                        
+#"marine protected area*?" 
+#
+#"world heritage site*?"          
+#
+# "helcom*?"                       
+#
+# "specially protected area*?" 
+
+y <- 
+  xz %>%
+  group_by(component,new.title) %>%
+  summarise(n = n_distinct(CELEX)) %>%
+  mutate(total.n=sum(n)) %>%
+  mutate(prop.celex = n/total.n)
+
+
+y%>%
+  filter(prop.celex >=0.25)
+
+
+Q2.cluster.profiles2 %>%
+  ungroup() %>%
+  group_by(component)%>%
+  summarise(n=n_distinct(CELEX))
+
+
+xxx <-
+  Q2.cluster.profiles2 %>%
+  filter(cluster.prop >=0.5) %>%
+  arrange(desc(cluster.prop))
+
+Q2.cluster.profiles2 %>%
+  filter(cluster.prop >=0.5 & 
+           cluster.prop < 1) %>%
+  arrange(desc(cluster.prop))
+
+
+less.than.fifty <-
+  anti_join(Q2.cluster.profiles2,xxx, by = c("CELEX"))
+  
   
