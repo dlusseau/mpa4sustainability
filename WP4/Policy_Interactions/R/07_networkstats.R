@@ -11,6 +11,7 @@ library("tibble")
 library("RColorBrewer")
 library("ggplot2")
 library("ggwordcloud")
+library("patchwork")
 
 # Define functions --------------------------------------------------------
 
@@ -306,8 +307,7 @@ as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$members
                                 "#66A61E", 
                                 "#E6AB02"))
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.termclusterspt1.png",
-       width = 41, height = 20)
+
 
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1.eurovocterm.network.png",
@@ -326,6 +326,140 @@ plot(Q1.network.updated1,
      vertex.label.family = "sans")
 
 dev.off()
+
+Clus.1.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 1") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#1B9E77")+
+  ggtitle("Cluster 1: Environmental Protection (n=7)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.1.PLOT.Q1
+
+Clus.2.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 2") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#D95F02")+
+  ggtitle("Cluster 2: Fishing rights and areas (n=12)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.2.PLOT.Q1
+
+Clus.3.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 3") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#7570B3")+
+  ggtitle("Cluster 3: Sustainable development (n=5)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.3.PLOT.Q1
+
+
+Clus.4.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 4") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#E7298A")+
+  ggtitle("Cluster 4: Fisheries agreements (n=5)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.4.PLOT.Q1
+
+Clus.5.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 5") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#66A61E")+
+  ggtitle("Cluster 5: Aquaculture & gov't aid (n=3)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.5.PLOT.Q1
+
+Clus.6.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 6") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#E6AB02")+
+  ggtitle("Cluster 6: Antarctica (n=1)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.6.PLOT.Q1
+
+(Clus.1.PLOT.Q1 + Clus.2.PLOT.Q1 + Clus.3.PLOT.Q1) /
+(Clus.4.PLOT.Q1 + Clus.5.PLOT.Q1 + Clus.6.PLOT.Q1) 
+
+
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.termclusterspt1.png",
+       width = 35, height = 15)
 
 # Query 2 ---------------------------------------------------------
 
@@ -481,16 +615,6 @@ Q2.term.df %>%
   select(name, betweenness)
 #  environmental protection    0.379143
 
-plot(degree.in~degree.out,data=Q1.2nd.df)
-
-Q1.1st.df$degree.in.2nd<-Q1.2nd.df$degree.in[match(Q1.1st.df$name,Q1.2nd.df$name)]
-Q1.1st.df$degree.out.2nd<-Q1.2nd.df$degree.out[match(Q1.1st.df$name,Q1.2nd.df$name)]
-Q1.1st.df$betweenness.2nd<-Q1.2nd.df$betweenness[match(Q1.1st.df$name,Q1.2nd.df$name)]
-
-summary(Q1.1st.df)
-
-
-
 plot_dendrogram(Q2.termclusters)
 
 l <- layout.fruchterman.reingold(Q2.terms.graph)
@@ -522,8 +646,8 @@ membership(Q2.termclusters)
 library(RColorBrewer)
 
 colors <- brewer.pal(n = 9, name = "Set1")
-colors2 <- brewer.pal(n = 12, name = "Paired")
-colors3 <- c(colors, colors2)
+#colors2 <- brewer.pal(n = 12, name = "Paired")
+colors3 <- c(colors)
 
 V(Q2.terms.graph)$color <- colors3[as.numeric(as.factor(membership(Q2.termclusters)))]
 
@@ -577,15 +701,18 @@ network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(n
 n_distinct(V(network.updated1)$membership)
 #8 in the filtered network
 
+V(network.updated)
+V(network.updated1)
+
 library(RColorBrewer)
 
 colors <- brewer.pal(n = 8, name = "Dark2")
-colors2 <- brewer.pal(n = 10, name = "Paired")
-colors2.5 <- colors2[-4] # remove the unreadable yellow
-colors2.5 <- colors2.5[-6] # remove the unreadable yellow
+#colors2 <- brewer.pal(n = 10, name = "Paired")
+#colors2.5 <- colors2[-4] # remove the unreadable yellow
+#colors2.5 <- colors2.5[-6] # remove the unreadable yellow
 
 set.seed(022)
-colors3 <- sample(c(colors, colors2.5))
+colors3 <- sample(c(colors))
 V(network.updated1)$color <- colors3[as.numeric(as.factor(V(network.updated1)$membership))]
 
 
@@ -605,7 +732,7 @@ V(network.updated1)$dist <- dist[as.numeric(as.factor(V(network.updated1)$name))
 n_distinct(V(network.updated1)$color)
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2.eurovocterm.network.png",
-    width = 2500, height = 2500)
+    width = 2525, height = 2500)
 
 plot(network.updated1,
      edge.width=E(network.updated1)$n,
@@ -635,105 +762,269 @@ as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) 
     mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
                                        "Cluster 4", "Cluster 5", "Cluster 6",
                                        "Cluster 7","Cluster 8","Cluster 9"))) %>%
-   # filter(V2<=10) %>%
     ggplot(., aes(label = labels, 
                   size = degree,
                   color = V22,
                   x=V22)) +
     geom_text_wordcloud(shape = "circle",eccentricity = 1) +
-    scale_size_area(max_size = 35) +
+    scale_size_area(max_size = 37) +
     theme_minimal() +
     theme(line = element_blank(),
           text = element_blank(),
           title = element_blank()) + 
-   # facet_wrap(~V22, ncol = 3,scales = "free")+
+    facet_wrap(~V22, ncol = 3,scales = "free")+
     scale_color_manual(breaks = c("Cluster 1", "Cluster 2","Cluster 3",
                                   "Cluster 4", "Cluster 5", "Cluster 6",
                                   "Cluster 7","Cluster 8","Cluster 9"),
-                       # clusters not in the network... 2, 3, 13, 14, 15 but will still need a color that is not present in the network for the word clouds 
+                       # cluster 5not in the network...but will still need a color that is not present in the network for the word clouds 
                        
                        values=c("#E6AB02", #1
-                                "black",   #2
-                                "purple",  #3
-                                "#A6CEE3", #4
-                                "#666666", #5
-                                "#1F78B4", #6 
-                                "#FB9A99", #7
-                                "#B2DF8A", #8
-                                "#1B9E77" #9
+                                "#1B9E77",   #2
+                                "#D95F02",  #3
+                                "#E7298A", #4
+                                "black", #5
+                                "#66A61E", #6 
+                                "#7570B3", #7
+                                "#A6761D", #8
+                                "#666666" #9
                              
                        )) 
 
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusterspt1.png",
-       width = 47, height = 40)
+       width = 50, height = 50,
+       limitsize = FALSE)
 
 
 dev.off()
 
-as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
-    mutate(V2 = as.numeric(V2)) %>%
-    distinct(., .keep_all=TRUE) %>%
-    right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-    left_join(.,degrees1, by = c("labels"= "rowname")) %>%
-    mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-    mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                       "Cluster 4", "Cluster 5", "Cluster 6",
-                                       "Cluster 7","Cluster 8","Cluster 9",
-                                       "Cluster 10","Cluster 11", "Cluster 12", "Cluster 13",
-                                       "Cluster 14", "Cluster 15", "Cluster 16",
-                                       "Cluster 17","Cluster 18","Cluster 19",
-                                       "Cluster 20", "Cluster 21"))) %>%
-    filter(V2>10) %>%
-    ggplot(., aes(label = labels, 
-                  size = degree,
-                  color = V22,
-                  x=V22)) +
-    geom_text_wordcloud(shape = "circle",eccentricity = 1) +
-    scale_size_area(max_size = 12) +
-    theme_minimal() +
-     theme(line = element_blank(),
-           text = element_blank(),
-          title = element_blank()) + 
-    # facet_wrap(~V22, ncol = 3,scales = "free")+
-    scale_color_manual(breaks = c("Cluster 1", "Cluster 2","Cluster 3",
-                                  "Cluster 4", "Cluster 5", "Cluster 6",
-                                  "Cluster 7","Cluster 8","Cluster 9",
-                                  "Cluster 10","Cluster 11", "Cluster 12", "Cluster 13",
-                                  "Cluster 14", "Cluster 15", "Cluster 16",
-                                  "Cluster 17", "Cluster 18","Cluster 19",
-                                  "Cluster 20", "Cluster 21"),
-                       # clusters not in the network... 2, 3, 13, 14, 15 but will still need a color that is not present in the network for the word clouds 
-                       
-                       values=c("#E6AB02", #1
-                                "black",   #2
-                                "purple",  #3
-                                "#A6CEE3", #4
-                                "#666666", #5
-                                "#1F78B4", #6 
-                                "#FB9A99", #7
-                                "#B2DF8A", #8
-                                "#1B9E77", #9
-                                "#66A61E",#10
-                                "#7570B3",#11 
-                                "#FF7F00",#12 
-                                "#00cccc",#13 
-                                "#006600",#14
-                                "#ff6600",#15
-                                "#E7298A",#16
-                                "#D95F02",#17
-                                "#6A3D9A",#18
-                                "#CAB2D6",#19
-                                "#E31A1C",#20
-                                "#A6761D" #21
-                       )) 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusterspt2.png",
-       width = 13, height = 37)
+
+# So some of the word clouds are more legiable I will make a wordcloud for each and then patchwork them together
+
+Clus.1.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 1") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#E6AB02")+
+  ggtitle("Cluster 1: Environmental Protection (emph. pollution) (n=59)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.1.PLOT
 
 
+Clus.2.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 2") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#1B9E77")+
+  ggtitle("Cluster 2: Telecommunications infrastructure (n=1)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.2.PLOT
+
+
+
+Clus.3.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 3") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#D95F02")+
+  ggtitle("Cluster 3: Fishing rights and areas (n=29)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.3.PLOT
+
+Clus.4.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 4") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#E7298A")+
+  ggtitle("Cluster 4: Protected species & areas / Biodiversity (n=48)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.4.PLOT
+
+
+Clus.5.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 5") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "black")+
+  ggtitle("Cluster 5: Water resources and managment (n=4)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.5.PLOT
+
+
+Clus.6.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 6") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#66A61E")+
+  ggtitle("Cluster 6: European directives, regulations, specifications (n=12)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.6.PLOT
+
+
+Clus.7.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 7") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#7570B3")+
+  ggtitle("Cluster 7: Susatinable development (n=13)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.7.PLOT
+
+
+
+Clus.8.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 8") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#A6761D")+
+  ggtitle("Cluster 8: Law of the sea and international law (n=2)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.8.PLOT
+
+Clus.9.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  filter(V22 == "Cluster 9") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#666666")+
+  ggtitle("Cluster 9: German Reunification (1990) (n=2)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+Clus.9.PLOT
+
+big.clsuplot <-
+(Clus.1.PLOT + Clus.2.PLOT + Clus.3.PLOT)/
+(Clus.4.PLOT + Clus.5.PLOT + Clus.6.PLOT)/
+(Clus.7.PLOT + Clus.8.PLOT + Clus.9.PLOT)
+
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusterspt1.png",
+       width = 37, height = 24,
+       limitsize = FALSE)
 
 # archival wordcloud cluster plots ----------------
-
-
 
 #as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
 #    mutate(V2 = as.numeric(V2)) %>%
