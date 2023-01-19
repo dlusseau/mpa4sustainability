@@ -110,7 +110,7 @@ Q1C1.edge.text.preproc2 <-
 
 #check 
 n_distinct(Q1C1.edge.text.preproc2$CELEX) # has the right number of documents
-# 158
+# 156
 
 # lets make it into a corpus object (tm package)
 Q1C1.textpreproc.corpus <- DataframeSource(Q1C1.edge.text.preproc2)
@@ -129,9 +129,9 @@ vocab <- Q1C1.textprocessed$vocab
 meta  <- Q1C1.textprocessed$meta
 
 Q1C1.out <- prepDocuments(docs, vocab, meta)
-# Removing 6713 of 15935 terms (6713 of 1008265 tokens) due to frequency 
+# Removing 6702 of 15913 terms (6702 of 1005600 tokens) due to frequency 
 # Removing 99 Documents with No Words 
-# Your corpus now has 58907 documents, 9222 terms and 1001552 tokens.
+# Your corpus now has 58704 documents, 9211 terms and 998898 tokens
 
 # ---------------- ---------------- Query 2 ---------------- ----------------
 
@@ -187,9 +187,9 @@ vocab <- Q2C2.textprocessed$vocab
 meta  <- Q2C2.textprocessed$meta
 
 Q2C2.out <- prepDocuments(docs, vocab, meta)
-# Removing 34942 of 75611 terms (34942 of 5362925 tokens) due to frequency 
-# Removing 358 Documents with No Words 
-# Your corpus now has 346245 documents, 40669 terms and 5327983 tokens.
+# Removing 34738 of 75124 terms (34738 of 5226756 tokens) due to frequency 
+# Removing 357 Documents with No Words 
+# Your corpus now has 337123 documents, 40386 terms and 5192018 tokens.
 
 # First order citations ----------------
 
@@ -200,7 +200,7 @@ Q2C1.edge.text.preproc <-
 
 #check 
 n_distinct(Q2C1.edge.text.preproc$CELEX) # has the right number of documents
-# 334
+# 329
 
 # lets make it into a corpus object (tm package)
 Q2C1.textpreproc.corpus <- DataframeSource(Q2C1.edge.text.preproc)
@@ -219,9 +219,9 @@ vocab <- Q2C1.textprocessed$vocab
 meta  <- Q2C1.textprocessed$meta
 
 Q2C1.out <- prepDocuments(docs, vocab, meta)
-# Removing 19715 of 38751 terms (19715 of 1807052 tokens) due to frequency 
+# Removing 19651 of 38642 terms (19651 of 1799782 tokens) due to frequency 
 # Removing 432 Documents with No Words 
-# Your corpus now has 111764 documents, 19036 terms and 1787337 tokens.
+# Your corpus now has 111160 documents, 18991 terms and 1780131 tokens.
 
 # Save -------------------------------------------------------------------------------------
 
