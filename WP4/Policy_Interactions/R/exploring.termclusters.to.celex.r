@@ -195,16 +195,70 @@ unique(xz$new.title)
 #
 # "specially protected area*?" 
 
+xz %>% distinct(new.title,component,CELEX)
+
 y <- 
   xz %>%
-  group_by(component,new.title) %>%
-  summarise(n = n_distinct(CELEX)) %>%
-  mutate(total.n=sum(n)) %>%
-  mutate(prop.celex = n/total.n)
+  group_by(CELEX,new.title) %>%
+  filter(cluster.prop == max(cluster.prop)) %>%
+  distinct(new.title,component,CELEX) %>%
+  group_by(new.title) %>%
+  mutate(n = n_distinct(CELEX)) %>%
+  distinct(CELEX,new.title,n,component) %>%
+  ungroup() %>%
+  group_by(new.title,component) %>%
+  mutate(comp.n=n_distinct(CELEX)) %>%
+  mutate(prop= comp.n/n) %>%
+  distinct(new.title,n,component,comp.n,n,prop)
+
+y%>%
+  filter(new.title =="barcelona convention*?") %>%
+  ungroup() %>%
+  group_by(new.title)%>%
+  mutate(sum = sum(prop))
+
+y%>%
+  filter(new.title =="habitats directive*?") %>%
+  ungroup() %>%
+  group_by(new.title)%>%
+  mutate(sum = sum(prop))
+
+y%>%
+  filter(new.title =="birds directive*?")  %>%
+  ungroup() %>%
+  group_by(new.title)%>%
+  mutate(sum = sum(prop))
+
+y%>%
+  filter(new.title =="ospar*?")  %>%
+  ungroup() %>%
+  group_by(new.title)%>%
+  mutate(sum = sum(prop))
+
+y%>%
+  filter(new.title =="world heritage site*?")  %>%
+  ungroup() %>%
+  group_by(new.title)%>%
+  mutate(sum = sum(prop))
+
+y%>%
+  filter(new.title =="helcom*?")  %>%
+  ungroup() %>%
+  group_by(new.title)%>%
+  mutate(sum = sum(prop))
+
+y%>%
+  filter(new.title =="specially protected area*?")  %>%
+  ungroup() %>%
+  group_by(new.title)%>%
+  mutate(sum = sum(prop))
 
 
 y%>%
-  filter(prop.celex >=0.25)
+  select(new.title,component,prop) %>%
+  arrange(desc(new.title)) %>%
+  mutate(prop = round(prop, digits = 2)) %>%
+  kable(.,"latex")
 
 
 Q2.cluster.profiles2 %>%
