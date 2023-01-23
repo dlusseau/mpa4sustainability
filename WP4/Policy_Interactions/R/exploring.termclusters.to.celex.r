@@ -223,6 +223,17 @@ y%>%
   group_by(new.title)%>%
   mutate(sum = sum(prop))
 
+
+dup <- 
+  xz %>%
+  group_by(CELEX,new.title) %>%
+  filter(cluster.prop == max(cluster.prop)) %>%
+  distinct(new.title,component,CELEX)%>%
+  filter(new.title =="habitats directive*?") %>%
+  ungroup()
+  
+which(duplicated(dup$CELEX))
+
 y%>%
   filter(new.title =="birds directive*?")  %>%
   ungroup() %>%
@@ -234,6 +245,18 @@ y%>%
   ungroup() %>%
   group_by(new.title)%>%
   mutate(sum = sum(prop))
+
+
+dup <- 
+  xz %>%
+  group_by(CELEX,new.title) %>%
+  filter(cluster.prop == max(cluster.prop)) %>%
+  distinct(new.title,component,CELEX)%>%
+  filter(new.title =="ospar*?") %>%
+  ungroup()
+
+which(duplicated(dup$CELEX))
+
 
 y%>%
   filter(new.title =="world heritage site*?")  %>%
