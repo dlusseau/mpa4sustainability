@@ -510,126 +510,126 @@ saveRDS(network3, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universi
 
 # Archival code for EuroVoc graphics --------------------------------------
 # (graphics we actually use are in the network stats rscript
-l <- layout.fruchterman.reingold(network3)
-l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+#l <- layout.fruchterman.reingold(network3)
+#l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-degree(network3)
-n_distinct(V(network3)$MT)
+#degree(network3)
+#n_distinct(V(network3)$MT)
 
-library("viridis")   
+#library("viridis")   
 
-colors <- inferno(29)
+#colors <- inferno(29)
 #colors <- colors[-1:-5]
-V(network3)$color <- colors[as.numeric(as.factor(V(network3)$MT))]
+#(network3)$color <- colors[as.numeric(as.factor(V(network3)$MT))]
 
-dist <- rep(c(0.18, -0.18), length.out = 103)
+#dist <- rep(c(0.18, -0.18), length.out = 103)
 #try to jitter the labels a little to avoid overlap 
-V(network3)$dist <- dist[as.numeric(as.factor(V(network3)$name))]
+#V(network3)$dist <- dist[as.numeric(as.factor(V(network3)$name))]
 
 
-plot(network3,
-     edge.width=E(network3)$n*1,
-     edge.color=adjustcolor("gray", alpha.f = .5),
-     vertex.size=2,
-     vertex.label.cex=(degree(network3)/sum(degree(network3))*100),
-     vertex.label.color=V(network3)$color,
-     vertex.shape="none",
-     rescale = TRUE,
-     layout = l,
-     vertex.label.dist = V(network)$dist,
-     vertex.label.family = "sans"
+#plot(network3,
+ #    edge.width=E(network3)$n*1,
+ #    edge.color=adjustcolor("gray", alpha.f = .5),
+ #    vertex.size=2,
+ #    vertex.label.cex=(degree(network3)/sum(degree(network3))*100),
+#     vertex.label.color=V(network3)$color,
+#     vertex.shape="none",
+#     rescale = TRUE,
+ #    layout = l,
+#     vertex.label.dist = V(network)$dist,
+#     vertex.label.family = "sans"
      
-)
+#)
 
-legend(x=-.1,y=1.2,unique(V(network3)$MT), 
-       pch=21,
-       col="#777777", 
-       pt.bg=unique(V(network3)$color), 
-       pt.cex=2, 
-       cex=1, 
-       bty="n", # no box around the legen 
-       ncol=2)
+#legend(x=-.1,y=1.2,unique(V(network3)$MT), 
+ #      pch=21,
+ #      col="#777777", 
+ #      pt.bg=unique(V(network3)$color), 
+ #      pt.cex=2, 
+ #      cex=1, 
+ #      bty="n", # no box around the legen 
+ #      ncol=2)
 
 
 
-edges <- degree(network3)
-sum(edges)
-term.pairs%>%
-  summarise(total = sum(n))
-V(network3)
+#edges <- degree(network3)
+#sum(edges)
+#term.pairs%>%
+#summarise(total = sum(n))
+#V(network3)
 
 # O.K. so the network viz is more legable 
 # I will only plot those that are the median or above edges
 
-I1 <-
-  term.pairs %>%
-  group_by(item1) %>%
-  summarise(n=n())
-I2 <-
-  term.pairs %>%
-  group_by(item2) %>%
-  summarise(n=n())
+#I1 <-
+#  term.pairs %>%
+#  group_by(item1) %>%
+#  summarise(n=n())
+#I2 <-
+#  term.pairs %>%
+#  group_by(item2) %>%
+#  summarise(n=n())
 
-I3 <- full_join(I1,I2, by=c("item1"="item2")) %>%
-  mutate(n.x = replace_na(n.x,0),
-         n.y = replace_na(n.y,0))%>%
-  mutate(edge.number = n.x+n.y )
+#I3 <- full_join(I1,I2, by=c("item1"="item2")) %>%
+#  mutate(n.x = replace_na(n.x,0),
+#         n.y = replace_na(n.y,0))%>%
+#  mutate(edge.number = n.x+n.y )
 
-summary(I3$edge.number)
+#summary(I3$edge.number)
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 2.00    7.00    9.00   11.79   14.50   47.00 
 
-edges.remove <- V(network3)[degree(network3)<9]
-degree(network3)
-graphNetwork <-  igraph::delete.vertices(network3,edges.remove) 
-degree(graphNetwork)
+#edges.remove <- V(network3)[degree(network3)<9]
+#degree(network3)
+#graphNetwork <-  igraph::delete.vertices(network3,edges.remove) 
+#degree(graphNetwork)
 
-n_distinct(V(graphNetwork)$MT)
+#n_distinct(V(graphNetwork)$MT)
 #17 themes 
 
-library("viridis")   
+#library("viridis")   
 
-colors <- inferno(17)
+#colors <- inferno(17)
 #colors <- colors[-1]
-V(graphNetwork)$color <- colors[as.numeric(as.factor(V(graphNetwork)$MT))]
+#V(graphNetwork)$color <- colors[as.numeric(as.factor(V(graphNetwork)$MT))]
 
 #dist <- seq(-.025,0.25, by=.0024)
-dist <- rep(c(0.25, -0.25), length.out = 54)
+#dist <- rep(c(0.25, -0.25), length.out = 54)
 #try to jitter the labels a little to avoid overlap 
-V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
+#V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
 
 
-l2 <- layout.fruchterman.reingold(graphNetwork)
+#l2 <- layout.fruchterman.reingold(graphNetwork)
 
-plot(graphNetwork,
-     edge.width=E(graphNetwork)$n*1,
-     edge.color=adjustcolor("gray", alpha.f = .25),
-     vertex.size=2,
-     vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*75), # label size is equiv. to percent of edges associated to the word out of total edges
-     vertex.label.color=V(graphNetwork)$color,
-     vertex.shape="none",
-     rescale = TRUE,
-     layout = l2,
-     vertex.label.family = "sans",
-     vertex.label.dist = V(graphNetwork)$dist
+#plot(graphNetwork,
+ #    edge.width=E(graphNetwork)$n*1,
+#     edge.color=adjustcolor("gray", alpha.f = .25),
+   #  vertex.size=2,
+  #   vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*75), # label size is equiv. to percent of edges associated to the word out of total edges
+ #    vertex.label.color=V(graphNetwork)$color,
+#     vertex.shape="none",
+    # rescale = TRUE,
+   #  layout = l2,
+  #   vertex.label.family = "sans",
+#     vertex.label.dist = V(graphNetwork)$dist
      # trying this layout based on pdf above...
-)
+#)
 
-legend(x=-.1,y=-.7,unique(V(graphNetwork)$MT), 
-       pch=21,
-       col="#777777", 
-       pt.bg=unique(V(graphNetwork)$color), 
-       pt.cex=2, 
-       cex=1, 
-       bty="n", # no box around the legen 
-       ncol=2)
+#legend(x=-.1,y=-.7,unique(V(graphNetwork)$MT), 
+#       pch=21,
+#       col="#777777", 
+#       pt.bg=unique(V(graphNetwork)$color), 
+#       pt.cex=2, 
+#       cex=1, 
+#       bty="n", # no box around the legen 
+#       ncol=2)
 
 
 
-edges <- degree(graphNetwork)
-sum(edges)
+#edges <- degree(graphNetwork)
+#sum(edges)
 
-V(graphNetwork)
+#V(graphNetwork)
 
 
 

@@ -660,100 +660,100 @@ saveRDS(network3, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universi
 #http://www.kateto.net/wp-content/uploads/2015/06/Polnet%202015%20Network%20Viz%20Tutorial%20-%20Ognyanova.pdf
 
 
-l <- layout.fruchterman.reingold(network3)
-l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+#l <- layout.fruchterman.reingold(network3)
+#l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
-plot(network3,
-     edge.width=E(network3)$n*1,
-     edge.color="grey",
-     vertex.size=1,
-     vertex.label.cex=(degree(network3)/sum(degree(network3))*100),
-     vertex.label.color=V(network3)$color,
-     vertex.shape="none",
-     rescale = TRUE,
-     ylim=c(-1,1),xlim=c(-1,1)
+#plot(network3,
+#     edge.width=E(network3)$n*1,
+##     edge.color="grey",
+#     vertex.size=1,
+#     vertex.label.cex=(degree(network3)/sum(degree(network3))*100),
+#     vertex.label.color=V(network3)$color,
+#     vertex.shape="none",
+#     rescale = TRUE,
+#ylim=c(-1,1),xlim=c(-1,1)
      # trying this layout based on pdf above...
-)
+#)
 
 # O.K. so the network viz is more legable 
 # I will only plot those that are the median or above edges
 
-edges <- degree(network3)
-sum(edges)
+#edges <- degree(network3)
+#sum(edges)
 
-V(network3)
-I1 <-
-  term.pairs %>%
-  group_by(item1) %>%
-  summarise(n=n())
-I2 <-
-  term.pairs %>%
-  group_by(item2) %>%
-  summarise(n=n())
+#V(network3)
+#I1 <-
+ # term.pairs %>%
+ # group_by(item1) %>%
+#  summarise(n=n())
+#I2 <-
+#  term.pairs %>%
+#  group_by(item2) %>%
+#summarise(n=n())
 
-I3 <- full_join(I1,I2, by=c("item1"="item2")) %>%
-  mutate(n.x = replace_na(n.x,0),
-         n.y = replace_na(n.y,0))%>%
-  mutate(edge.number = n.x+n.y )
+#I3 <- full_join(I1,I2, by=c("item1"="item2")) %>%
+#  mutate(n.x = replace_na(n.x,0),
+#n.y = replace_na(n.y,0))%>%
+#  mutate(edge.number = n.x+n.y )
 
-summary(I3$edge.number)
+#summary(I3$edge.number)
 #    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #   1.00    6.00    9.00   13.07   15.00  175.00
 
 #this tutorial was helpful for this vizualization
 #https://tm4ss.github.io/docs/Tutorial_5_Co-occurrence.html#4_Visualization_of_co-occurrence
 #https://kateto.net/wp-content/uploads/2016/06/Polnet%202016%20R%20Network%20Visualization%20Workshop.pdf
-edges.remove <- V(network3)[degree(network3)<9]
-degree(network3)
-graphNetwork <-  igraph::delete.vertices(network3,edges.remove) 
-degree(graphNetwork)
+#edges.remove <- V(network3)[degree(network3)<9]
+#degree(network3)
+#graphNetwork <-  igraph::delete.vertices(network3,edges.remove) 
+#degree(graphNetwork)
 
-n_distinct(V(graphNetwork)$MT)
+#n_distinct(V(graphNetwork)$MT)
 
-library("viridis")   
+#library("viridis")   
 
-colors <- inferno(54)
+#colors <- inferno(54)
 #colors <- colors[-1:-5]
-V(graphNetwork)$color <- colors[as.numeric(as.factor(V(graphNetwork)$MT))]
+#V(graphNetwork)$color <- colors[as.numeric(as.factor(V(graphNetwork)$MT))]
 
-dist <- seq(-.025,0.25, by=.0024)
-dist <- rep(c(0.18, -0.18), length.out = 226)
+#dist <- seq(-.025,0.25, by=.0024)
+#dist <- rep(c(0.18, -0.18), length.out = 226)
 #try to jitter the labels a little to avoid overlap 
-V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
+#V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
 
 
-l2 <- layout.fruchterman.reingold(graphNetwork)
+#l2 <- layout.fruchterman.reingold(graphNetwork)
 
-plot(graphNetwork,
-     edge.width=E(graphNetwork)$n,
-     edge.color=adjustcolor("gray", alpha.f = .5),
-     vertex.size=2,
-     vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*125), # label size is equiv. to percent of edges associated to the word out of total edges
-     vertex.label.color=V(graphNetwork)$color,
-     vertex.shape="none",
-     rescale = TRUE,
-     ylim=c(-.8,.85),xlim=c(-.9,.9),
-     layout = l2,
-     vertex.label.family = "sans",
-     vertex.label.dist = V(graphNetwork)$dist
+#plot(graphNetwork,
+     #edge.width=E(graphNetwork)$n,
+    # edge.color=adjustcolor("gray", alpha.f = .5),
+     #vertex.size=2,
+    # vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*125), # label size is equiv. to percent of edges associated to the word out of total edges
+   #  vertex.label.color=V(graphNetwork)$color,
+  #   vertex.shape="none",
+ #    rescale = TRUE,
+#     ylim=c(-.8,.85),xlim=c(-.9,.9),
+   #  layout = l2,
+  #   vertex.label.family = "sans",
+ #    vertex.label.dist = V(graphNetwork)$dist
      # trying this layout based on pdf above...
-)
+#)
 
-legend(x=.45,y=-.15,unique(V(graphNetwork)$MT)[-27], 
-       pch=21,
-       col="#777777", 
-       pt.bg=unique(V(graphNetwork)$color), 
-       pt.cex=2, 
-       cex=1, 
-       bty="n", # no box around the legen 
-       ncol=2)
+#legend(x=.45,y=-.15,unique(V(graphNetwork)$MT)[-27], 
+  #     pch=21,
+  #     col="#777777", 
+  #     pt.bg=unique(V(graphNetwork)$color), 
+  #     pt.cex=2, 
+  #     cex=1, 
+ #      bty="n", # no box around the legen 
+ #      ncol=2)
 
 
 
-edges <- degree(graphNetwork)
-sum(edges)
+#edges <- degree(graphNetwork)
+#sum(edges)
 
-V(graphNetwork)
+#V(graphNetwork)
 
 
 
