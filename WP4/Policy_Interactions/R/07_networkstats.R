@@ -148,6 +148,8 @@ Q1.1st.df$component.2nd<-Q1.2nd.df$component[match(Q1.1st.df$name,Q1.2nd.df$name
 
 summary(Q1.1st.df)
 
+write.csv(Q1.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.networkdata.csv", row.names=FALSE)
+
 Q1.1st.df %>%
   filter( betweenness == max(betweenness))%>%
   select(name, betweenness)
@@ -541,6 +543,7 @@ Q2.1st.df$component.2nd<-Q2.2nd.df$component[match(Q2.1st.df$name,Q2.2nd.df$name
 
 summary(Q2.1st.df)
 
+write.csv(Q2.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2.networkdata.csv", row.names=FALSE)
 
 Q2.1st.df %>%
   filter( betweenness == max(betweenness))%>%
