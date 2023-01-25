@@ -23,10 +23,10 @@ Q1C2.edgelist<- read.csv(file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske U
 
 # query 2
 Q2C1.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q2C1.preptext.rds")
-Q2C1.edgelist<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2firstordercit.edgelist.csv")
+Q2C1.edgelist<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2firstordercit.edgelist.csv")
 
 Q2C2.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/06_Q2C2.preptext.rds")
-Q2C2.edgelist<- read.csv(file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q2secondordercit.edgelist.csv")
+Q2C2.edgelist<- read.csv(file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2secondordercit.edgelist.csv")
 
 # Topic predictions
 
@@ -70,6 +70,14 @@ Q1C1.Doctopic.longdf <-
   rename("document_sentence" = "names(Q1C1.text$documents)",
          "CELEX" = "Q1C1.text$meta$CELEX")
 
+head(Q1C1.Doctopic.longdf)
+
+Q1C1.Doctopic.longdf %>%
+  ungroup() %>%
+  group_by(document_sentence) %>%
+  summarise(n=sum(proportion))
+
+
 # now select the topic with the highest prop. to each sentence
 Q1C1max.topic <-
   Q1C1.Doctopic.longdf %>%
@@ -85,19 +93,19 @@ Q1C1topic.no <-
 
 summary(Q1C1max.topic)
 #  proportion      percent.doc   
-# Min.   :0.5000   Min.   :50.00  
-# 1st Qu.:0.5448   1st Qu.:54.48  
-# Median :0.6038   Median :60.38  
-# Mean   :0.6410   Mean   :64.10  
-# 3rd Qu.:0.7102   3rd Qu.:71.02  
-# Max.   :0.9979   Max.   :99.79 
+#Min.   :0.5000   Min.   :50.00  
+#1st Qu.:0.5431   1st Qu.:54.31  
+#Median :0.6118   Median :61.18  
+#Mean   :0.6440   Mean   :64.40  
+#3rd Qu.:0.7085   3rd Qu.:70.85  
+#Max.   :0.9978   Max.   :99.78 
                                              
 Q1C1topics <-
   Q1C1max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q1C1topics$topic) # 54 
+n_distinct(Q1C1topics$topic) # 53 topic are 50% or more 
 sort(unique(Q1C1topics$topic)) 
 
 #lets join the edge list and the topic assignments
@@ -158,7 +166,7 @@ Q1C2.Doctopic.longdf <-
   relocate(c("names(Q1C2.text$documents)"), .after = c(row.id)) %>%
   relocate(c("Q1C2.text$meta$CELEX"), .after = c("names(Q1C2.text$documents)")) %>%
   pivot_longer(.,
-               cols = 4:72,
+               cols = 4:58,
                names_to = "topic", 
                values_to = "proportion") %>%
   mutate(topic = str_replace_all(topic, "V", "topic"),
@@ -182,18 +190,18 @@ Q1C2topic.no <-
 summary(Q1C2max.topic)
 # proportion      percent.doc   
 # Min.   :0.5000   Min.   :50.00  
-# 1st Qu.:0.5393   1st Qu.:53.93  
-# Median :0.6326   Median :63.26  
-# Mean   :0.6653   Mean   :66.53  
-# 3rd Qu.:0.7786   3rd Qu.:77.86  
-# Max.   :0.9996   Max.   :99.96  
+# 1st Qu.:0.5532   1st Qu.:55.32  
+# Median :0.6319   Median :63.19  
+# Mean   :0.6722   Mean   :67.22  
+# 3rd Qu.:0.7877   3rd Qu.:78.77  
+# Max.   :0.9995   Max.   :99.95 
 
 Q1C2topics <-
   Q1C2max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q1C2topics$topic) # 57 
+n_distinct(Q1C2topics$topic) # 52 
 sort(unique(Q1C2topics$topic)) 
 
 #lets join the edge list and the topic assignments
@@ -231,7 +239,7 @@ Q2C1.Doctopic.longdf <-
   relocate(c("names(Q2C1.text$documents)"), .after = c(row.id)) %>%
   relocate(c("Q2C1.text$meta$CELEX"), .after = c("names(Q2C1.text$documents)")) %>%
   pivot_longer(.,
-               cols = 4:73,
+               cols = 4:74,
                names_to = "topic", 
                values_to = "proportion") %>%
   mutate(topic = str_replace_all(topic, "V", "topic"),
@@ -256,18 +264,18 @@ Q2C1topic.no <-
 summary(Q2C1max.topic)
 #   proportion      percent.doc   
 # Min.   :0.5000   Min.   :50.00  
-# 1st Qu.:0.5495   1st Qu.:54.95  
-# Median :0.6183   Median :61.83  
-# Mean   :0.6540   Mean   :65.40  
-# 3rd Qu.:0.7395   3rd Qu.:73.95  
-# Max.   :0.9965   Max.   :99.65 
+# 1st Qu.:0.5461   1st Qu.:54.61  
+# Median :0.6162   Median :61.62  
+# Mean   :0.6525   Mean   :65.25  
+# 3rd Qu.:0.7399   3rd Qu.:73.99  
+# Max.   :0.9963   Max.   :99.6
 
 Q2C1topics <-
   Q2C1max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q2C1topics$topic) # 52
+n_distinct(Q2C1topics$topic) # 50
 sort(unique(Q2C1topics$topic)) 
 
 #lets join the edge list and the topic assignments
@@ -303,7 +311,7 @@ Q2C2.Doctopic.longdf <-
   relocate(c("names(Q2C2.text$documents)"), .after = c(row.id)) %>%
   relocate(c("Q2C2.text$meta$CELEX"), .after = c("names(Q2C2.text$documents)")) %>%
   pivot_longer(.,
-               cols = 4:74,
+               cols = 4:68,
                names_to = "topic", 
                values_to = "proportion") %>%
   mutate(topic = str_replace_all(topic, "V", "topic"),
@@ -328,18 +336,18 @@ Q2C2topic.no <-
 summary(Q2C2max.topic)
 # proportion      percent.doc   
 # Min.   :0.5000   Min.   :50.00  
-# 1st Qu.:0.5602   1st Qu.:56.02  
-# Median :0.6406   Median :64.06  
-# Mean   :0.6667   Mean   :66.67  
-# 3rd Qu.:0.7660   3rd Qu.:76.60  
-# Max.   :0.9996   Max.   :99.96  
+# 1st Qu.:0.5359   1st Qu.:53.59  
+# Median :0.6313   Median :63.13  
+# Mean   :0.6564   Mean   :65.64  
+# 3rd Qu.:0.7567   3rd Qu.:75.67  
+# Max.   :0.9996   Max.   :99.96 
 
 Q2C2topics <-
   Q2C2max.topic %>%
   ungroup() %>%
   distinct(CELEX,topic)
 
-n_distinct(Q2C2topics$topic) # 59
+n_distinct(Q2C2topics$topic) # 55
 
 #lets join the edge list and the topic assignments
 
@@ -367,10 +375,10 @@ hist(Q2C2max.topic$percent.doc)
 
 # Save -----------------------------------------------------------------------
 
-write.csv(Q1C1.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q1C1.edgelist.topics.csv", row.names=FALSE)
-write.csv(Q1C2.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q1C2.edgelist.topics.csv", row.names=FALSE)
-write.csv(Q2C1.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q2C1.edgelist.topics.csv", row.names=FALSE)
-write.csv(Q2C2.edgelist.cat, file = "WP4/Policy_Interactions/data/08.Q2C2.edgelist.topics.csv", row.names=FALSE)
+write.csv(Q1C1.edgelist.cat, file = "WP4/Policy_Interactions/data/09.Q1C1.edgelist.topics.csv", row.names=FALSE)
+write.csv(Q1C2.edgelist.cat, file = "WP4/Policy_Interactions/data/09.Q1C2.edgelist.topics.csv", row.names=FALSE)
+write.csv(Q2C1.edgelist.cat, file = "WP4/Policy_Interactions/data/09.Q2C1.edgelist.topics.csv", row.names=FALSE)
+write.csv(Q2C2.edgelist.cat, file = "WP4/Policy_Interactions/data/09.Q2C2.edgelist.topics.csv", row.names=FALSE)
 
 
 
