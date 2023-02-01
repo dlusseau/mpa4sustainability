@@ -184,8 +184,7 @@ xx <- distinct(xx)
 network <- graph_from_data_frame(d=Doc.citations, directed = TRUE, vertices = network.attributes.final)
 print(network, e=TRUE, v=TRUE)
 
-# <- layout.fruchterman.reingold(network)
-#l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+l <- layout.fruchterman.reingold(network)
 
 
 labels <- network.attributes.final[1:5,1]
@@ -212,7 +211,7 @@ plot(network,
      vertex.label.cex=.75,
      edge.arrow.size=.25,
      edge.arrow.width=2,
-#    layout = l
+     layout = l
      )
 #legend(x=-1,y=-1.075,c("2008L0056: Marine Strategy Framework Directive",
   #                     "32013R1380: CFP, amending CRs",
@@ -377,8 +376,7 @@ xx <- distinct(xx) #721 documents
 network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network2, e=TRUE, v=TRUE)
 
-l <- layout.fruchterman.reingold(network2)
-l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+l2 <- layout.fruchterman.reingold(network2)
 
 
 labels <- network.attributes.final[1:4,1]
@@ -402,7 +400,7 @@ plot(network2,
      vertex.label.family = "sans",
      edge.arrow.size=.5,
      edge.arrow.width=1,
-     layout=l
+     layout=l2
 )
 
 
@@ -435,78 +433,112 @@ saveRDS(network2, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universi
 
 # Exploring Eurovoc terms -----------------------------------------------
 
-# Eurovoc Term Co-occurrences: 
-cleaned.labels <-
-  mpa.policy.notext.df %>%
-  distinct(CELEX,labels, .keep_all = TRUE)
+# Making a EuroVoc term co-occurance for the seed and citations!
 
-n_distinct(cleaned.labels$CELEX)
-# 18
-n_distinct(cleaned.labels$labels)
-# 76 label terms
-n_distinct(cleaned.labels$MT)
-# 22 themes 
+# get the network attributes:
 
-label.pairs <- 
-  cleaned.labels %>%
+Order1.docs <- read.csv("WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv")
+Order2.docs <- read.csv("WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv")
+
+#remove unnec. columns for this 
+Order1.docs <-
+  Order1.docs %>%
+  select(-color,-shape)
+
+Order2.docs <-
+  Order2.docs %>%
+  select(-color,-shape)
+
+#the key doc only keep celex and eurovoc
+celex.label.key <- 
+  document.key.df %>%
+  distinct(celex,labels)
+
+#now get the network docs eurovoc descriptors 
+Order1.docsdescript <- 
+  Order1.docs %>%
+  left_join(.,celex.label.key, by = c("CELEX" = "celex"))
+
+Order1.docsdescript %>%
+  distinct(CELEX,labels) %>% dim()
+
+Order2.docsdescript <- 
+  Order2.docs %>%
+  left_join(.,celex.label.key, by = c("CELEX" = "celex"))
+
+Order2.docsdescript %>%
+  distinct(CELEX,labels) %>% dim()
+
+#check 
+n_distinct(Order1.docsdescript$CELEX)
+#156 --> all good :)
+
+n_distinct(Order2.docsdescript$CELEX)
+# 675 --> all good :)
+
+#how many labels?
+n_distinct(Order1.docsdescript$labels)
+#425
+n_distinct(Order2.docsdescript$labels)
+#1218
+
+
+Order1.label.pairs <- 
+  Order1.docsdescript %>%
+  pairwise_count(labels,CELEX, sort=TRUE)
+
+Order2.label.pairs <- 
+  Order2.docsdescript %>%
   pairwise_count(labels,CELEX, sort=TRUE)
 
 #david's code help
-label.pairs$all<-apply(apply(cbind(as.character(label.pairs$item1),as.character(label.pairs$item2)),1,sort),2,function(x) paste(x,collapse="."))
+Order1.label.pairs$all<-apply(apply(cbind(as.character(Order1.label.pairs$item1),as.character(Order1.label.pairs$item2)),1,sort),2,function(x) paste(x,collapse="."))
 #this should be the four columns in alphabetical order collapsed and separated by a dot
+Order2.label.pairs$all<-apply(apply(cbind(as.character(Order2.label.pairs$item1),as.character(Order2.label.pairs$item2)),1,sort),2,function(x) paste(x,collapse="."))
 
 #duplicated should work on this
-label.pairs.sub<-label.pairs[!duplicated(label.pairs$all),]
+Order1.label.pairs.sub<-Order1.label.pairs[!duplicated(Order1.label.pairs$all),]
 
-term.pairs<- 
-  label.pairs.sub %>%
+Order2.label.pairs.sub<-Order2.label.pairs[!duplicated(Order2.label.pairs$all),]
+
+
+Order1.term.pairs<- 
+  Order1.label.pairs.sub %>%
   select(-all) 
 
-summary(term.pairs)
+Order2.term.pairs<- 
+  Order2.label.pairs.sub %>%
+  select(-all) 
 
-#Which labels have more than one theme?
-more.themes <- 
-  mpa.policy.notext.df %>%
-  distinct(labels,MT) %>%
-  group_by(labels) %>%
-  mutate(themes = n_distinct(MT)) %>%
-  filter(themes > 1)
-
-# for now I will just keep the location theme since it is the most straight forward 
-# will discuss with David. 
-remove <- 
-  mpa.policy.notext.df %>%
-  distinct(labels,MT) %>%
-  group_by(labels) %>%
-  mutate(themes = n_distinct(MT)) %>%
-  filter(themes > 1) %>%
-  filter(MT!= "7221 Africa"&
-           MT!= "7206 Europe") %>%
-  select(-themes)
-
-attributes3 <-
-  mpa.policy.notext.df %>%
-  distinct(labels,MT) %>%
-  anti_join(.,remove, by = c("labels","MT")) %>% # remove the unwanted themes
-  mutate(MT=gsub("\\d","",.$MT)) # remove the theme number code
+summary(Order1.term.pairs)
+summary(Order2.term.pairs)
 
 
-final.attributes <- attributes3
 
-n_distinct(final.attributes$MT)
-# 22
-network3 <- graph_from_data_frame(d=term.pairs, vertices = final.attributes, directed = FALSE)
-class(network3)
+Order1.final.attributes <- Order1.docsdescript %>% distinct(labels) %>% drop_na()
+Order2.final.attributes <- Order2.docsdescript %>% distinct(labels) %>% drop_na()
 
 
+Order1.EuroVoc.network <- graph_from_data_frame(d=Order1.term.pairs, vertices = Order1.final.attributes, directed = FALSE)
+class(Order1.EuroVoc.network)
+
+
+Order2.EuroVoc.network <- graph_from_data_frame(d=Order2.term.pairs, vertices = Order2.final.attributes, directed = FALSE)
+class(Order2.EuroVoc.network)
 
 
 # Save ------------------------------------------------------------------
 
 # term co-ocurances:
-write.csv(term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.edgelist.csv", row.names=FALSE)
-write.csv(final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.verticesmetadata.csv", row.names=FALSE)
-saveRDS(network3, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1.termnetwork.rds")
+# 1st order citations
+write.csv(Order1.term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1term.edgelist.csv", row.names=FALSE)
+write.csv(Order1.final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1term.verticesmetadata.csv", row.names=FALSE)
+saveRDS(Order1.EuroVoc.network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1.termnetwork.rds")
+
+# 2nd order citations
+write.csv(Order2.term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2term.edgelist.csv", row.names=FALSE)
+write.csv(Order2.final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2term.verticesmetadata.csv", row.names=FALSE)
+saveRDS(Order2.EuroVoc.network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2.termnetwork.rds")
 
 # Archival code for EuroVoc graphics --------------------------------------
 # (graphics we actually use are in the network stats rscript

@@ -313,7 +313,6 @@ print(network, e=TRUE, v=TRUE)
 
 
 l <- layout.fruchterman.reingold(network)
-#l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
 
 labels <- network.attributes.final[1:32,1]
 
@@ -327,17 +326,15 @@ png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/
 
 plot(network,
      edge.width=.5,
-     vertex.size=3.5,
+     vertex.size=5,
+     vertex.label=NA,
      vertex.label.family = "sans",
-      vertex.label=NA,
-     vertex.label.cex=.765,
-     vertex.label.color = "black",
-     edge.arrow.size=.5,
-     edge.arrow.width=1,
-     rescale=TRUE,
-     layout=l,# trying this layout based on pdf above...
-     #edge.curved=.1
+     vertex.label.cex=.75,
+     edge.arrow.size=.25,
+     edge.arrow.width=2,
+     layout = l
 )
+
 
 dev.off()
 # blue are documents referenced within text
@@ -522,24 +519,24 @@ network.attributes.final4 %>%
 network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network2, e=TRUE, v=TRUE)
 
-l <- layout.fruchterman.reingold(network2)
-l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
+l2 <- layout.fruchterman.reingold(network2)
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2.2nd.order.networkcitations.png",
     width = 1200, height = 1000)
 
 plot(network2,
      edge.width=.5,
-     edge.color=adjustcolor("gray", alpha.f = .5),
-     vertex.size=3,
+     edge.color=adjustcolor("gray", alpha.f = .65),
+     vertex.size=2.5,
      vertex.label=NA,
-     vertex.label.cex=.65,
+     vertex.label.cex=1,
      vertex.label.family = "sans",
-     edge.arrow.size=.05,
+     edge.arrow.size=.5,
      edge.arrow.width=1,
-    # layout=l
+     layout=l2
     
 )
+
 
 
 legend(x=-1.5,y=1.2,c("Both (result & citation)",
