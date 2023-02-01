@@ -32,9 +32,15 @@ Q1.net2nd.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universit
 
 # -- terms co-occurance -- #
 
-Q1.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.edgelist.csv")                         # edge list
-Q1.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1term.verticesmetadata.csv")            # vertices meta data
-Q1.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1.termnetwork.rds")                     # the network object 
+#citation order 1
+Q1C1.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1term.edgelist.csv")                         # edge list
+Q1C1.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1term.verticesmetadata.csv")            # vertices meta data
+Q1C1.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1.termnetwork.rds")                     # the network object 
+
+#citation order 2
+Q1C2.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2term.edgelist.csv")                         # edge list
+Q1C2.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2term.verticesmetadata.csv")            # vertices meta data
+Q1C2.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2.termnetwork.rds")                     # the network object 
 
 # ----------- Query 2 (Q2) ---------- #
 
@@ -183,19 +189,24 @@ Q1.1st.df %>%
 
 # ------------------- eurovo terms -------------------
 
-# degree 
-Q1.term.degree<-degree(Q1.terms.graph)
-sum(Q1.term.degree)
-summary(Q1.term.degree)
+# EuroVoc Citation 1 --------------------------
 
-V(Q1.terms.graph)
+# degree 
+Q1C1.term.degree<-degree(Q1C1.terms.graph)
+sum(Q1C1.term.degree) #5262 interactions
+summary(Q1C1.term.degree)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 2.00    6.00    9.00   12.41   14.25   68.00 
+V(Q1C1.terms.graph)
+#425 labels
 
 # betweenness
-Q1.term.betweenness<-betweenness(Q1.terms.graph, directed = FALSE, normalized=TRUE)
+Q1C1.term.betweenness<-betweenness(Q1C1.terms.graph, directed = FALSE, normalized=TRUE)
 
-summary(Q1.term.betweenness)
-
-plot(Q1.term.degree ~ Q1.term.betweenness)
+summary(Q1C1.term.betweenness)
+#     Min.   1st Qu.   Median     Mean   3rd Qu.     Max. 
+#  0.000000 0.000000 0.000000 0.004912 0.003789 0.135853
+plot(Q1C1.term.degree ~ Q1C1.term.betweenness)
 
 # term clusters/groups
 # cluster_leading_eigen: 
@@ -203,89 +214,85 @@ plot(Q1.term.degree ~ Q1.term.betweenness)
 #   "Community structure detecting based on the leading eigenvector of the community matrix" 
 #   "This function tries to find densely connected subgraphs in a graph by calculating the leading nonnegative 
 #    eigenvector of the modularity matrix of the graph." - CRAN PDF
-E(Q1.terms.graph)$n
-E(Q1.terms.graph)
+E(Q1C1.terms.graph)$n
+E(Q1C1.terms.graph)
 
-Q1.termclusters <-cluster_leading_eigen(Q1.terms.graph,
+Q1C1.termclusters <-cluster_leading_eigen(Q1C1.terms.graph,
                                         steps = -1,
-                                        weights = E(Q1.terms.graph)$n)
+                                        weights = E(Q1C1.terms.graph)$n)
+table(membership(Q1C1.termclusters))
+#  1  2  3  4  5  6  7  8  9 
+# 83  3 72 60 35 23 58 52 38 
 
-# 6 clusters
+Q1C1.term.df<-data.frame(name= V(Q1C1.terms.graph)$name,
+                       degree=Q1C1.term.degree,
+                       betweenness=Q1C1.term.betweenness,
+                       component=as.numeric(membership(Q1C1.termclusters))) 
 
-Q1.term.df<-data.frame(name= V(Q1.terms.graph)$name,
-                       degree=Q1.term.degree,
-                       betweenness=Q1.term.betweenness,
-                       component=as.numeric(membership(Q1.termclusters))) 
+write.csv(Q1C1.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C1.term.df.csv", row.names=FALSE)
 
-write.csv(Q1.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.term.data.csv", row.names=FALSE)
-
-Q1.term.df %>%
+Q1C1.term.df %>%
   filter( betweenness == max(betweenness))%>%
   select(name, betweenness)
-#  environmental protection   0.2157232
+#  EU programme   0.1358529
 
-Q1.term.df %>%
+Q1C1.term.df %>%
   filter( degree == max(degree))%>%
   select(name, degree)
-# fishing rights     35
+# environmental protection     68
 
 
-plot_dendrogram(Q1.termclusters)
+plot_dendrogram(Q1C1.termclusters)
 
-l2 <- layout.fruchterman.reingold(Q1.terms.graph)
+l2 <- layout.fruchterman.reingold(Q1C1.terms.graph)
 
-plot(Q1.termclusters, Q1.terms.graph, 
-    #vertex.label.color="black",
+plot(Q1C1.termclusters, Q1C1.terms.graph, 
      vertex.shape="circle",
      vertex.label = NA,
-     # vertex.label.cex=V(Q1.terms.graph)$total.count*.05,
-     edge.width=E(Q1.terms.graph)$n*1,
+     edge.width=E(Q1C1.terms.graph)$n*1,
      rescale = TRUE,
-     ylim=c(-.8,.85),xlim=c(-.9,.9),
      vertex.size=1,
      layout=l2
      )
 
-plot(Q1.terms.graph,
-     vertex.label.color=membership(Q1.termclusters),
+plot(Q1C1.terms.graph,
+     vertex.label.color=membership(Q1C1.termclusters),
      vertex.shape="none",
-    # vertex.label.cex=V(Q1.terms.graph)$total.count*.05,
-     edge.width=E(Q1.terms.graph)$n*1,
+     edge.width=E(Q1C1.terms.graph)$n*1,
      rescale = TRUE,
-     ylim=c(-.8,.85),xlim=c(-.9,.9),
      vertex.size=1,
      layout = l2)
 
-# to make the plot slightly more legable lets remove those that have edges >= 9 (the median)
-member.attributesQ1 <- as.data.frame(as.matrix(membership(Q1.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
+# to make the plot slightly more legable lets remove those that have degree >= 9 (the median)
+member.attributesQ1C1 <- as.data.frame(as.matrix(membership(Q1C1.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
 
-Q1.terms.meta2 <-
-    Q1.terms.meta %>%
-    left_join(.,member.attributesQ1, by = c("labels"="rowname"))
-
-
-Q1.network.updated <- graph_from_data_frame(d=Q1.terms, vertices = Q1.terms.meta2, directed = FALSE)
+Q1C1.terms.meta2 <-
+    Q1C1.terms.meta %>%
+    left_join(.,member.attributesQ1C1, by = c("labels"="rowname"))
 
 
-Q1.network.updated1 <-  Q1.network.updated                    #delete_vertices(Q1.network.updated, V(Q1.network.updated)[degree(Q1.network.updated)<9])
-
-n_distinct(V(Q1.network.updated1)$membership)
+Q1C1.network.updated <- graph_from_data_frame(d=Q1C1.terms, vertices = Q1C1.terms.meta2, directed = FALSE)
 
 
-colors <- brewer.pal(n = 7, name = "Dark2")
+Q1C1.network.updated1 <-  Q1C1.network.updated                    #delete_vertices(Q1.network.updated, V(Q1.network.updated)[degree(Q1.network.updated)<9])
+
+n_distinct(V(Q1C1.network.updated1)$membership)
+# 9 clusters
+
+colors <- brewer.pal(n = 9, name = "Set1")
 colors3 <- c(colors)
 
-V(Q1.network.updated1)$color <- colors3[as.numeric(as.factor(V(Q1.network.updated1)$membership))]
+V(Q1C1.network.updated1)$color <- colors3[as.numeric(as.factor(V(Q1C1.network.updated1)$membership))]
 
 degrees <- 
-    as.data.frame(cbind(degree(Q1.terms.graph))) %>%
+    as.data.frame(cbind(degree(Q1C1.terms.graph))) %>%
     rownames_to_column() %>%
     rename("degree" = "V1")
 
-as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+as.data.frame(cbind(V(Q1C1.network.updated1)$color, V(Q1C1.network.updated1)$membership)) %>%
     mutate(V2 = as.numeric(V2)) %>%
     distinct(., .keep_all=TRUE) %>%
-    right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+    right_join(.,Q1C1.terms.meta2, by = c("V2" = "membership")) %>%
     left_join(.,degrees, by = c("labels"= "rowname")) %>%
     mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
     mutate(V2= as.factor(V2)) %>%
@@ -301,33 +308,39 @@ as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$members
           title = element_blank())+
     theme(strip.text.x = element_text(size = 15, face = "bold")) + 
     scale_color_manual(breaks = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                  "Cluster 4", "Cluster 5", "Cluster 6"),
-                       values=c("#1B9E77", 
-                                "#D95F02", 
-                                "#7570B3", 
-                                "#E7298A", 
-                                "#66A61E", 
-                                "#E6AB02"))
+                                  "Cluster 4", "Cluster 5", "Cluster 6",
+                                  "Cluster 7", "Cluster 8", "Cluster 9"),
+                       values=c("#E41A1C", 
+                                "#377EB8", 
+                                "#4DAF4A", 
+                                "#984EA3", 
+                                "#FF7F00", 
+                                "#FFFF33",
+                                "#A65628",
+                                "#F781BF",
+                                "#999999"))
 
 
 
 
-png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1.eurovocterm.network.png",
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1C1.eurovocterm.network.png",
     width = 3000, height = 3000)
 
 
-plot(Q1.network.updated1,
-     edge.width=E(Q1.network.updated1)$n,
+plot(Q1C1.network.updated1,
+     edge.width=E(Q1C1.network.updated1)$n,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=1.5,
-     vertex.label.cex=(degree(Q1.network.updated1)/sum(degree(Q1.network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
-     vertex.label.color=V(Q1.network.updated1)$color, #membership(Q2.termclusters),
+     vertex.label.cex=(degree(Q1C1.network.updated1)/sum(degree(Q1C1.network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.color=V(Q1C1.network.updated1)$color, #membership(Q2.termclusters),
      vertex.shape="none",
      vertex.label.family = "sans",
      layout = layout.fruchterman.reingold,
      vertex.label.family = "sans")
 
 dev.off()
+
+# EuroVoc Citation 2 --------------------------
 
 Clus.1.PLOT.Q1 <- 
   as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
@@ -579,6 +592,8 @@ Q2.1st.df %>%
 #  32021R1139             66
 # ------------------- eurovo terms -------------------
 
+# EuroVoc Citation 1 --------------------------
+
 # degree 
 Q2.term.degree<-degree(Q2.terms.graph)
 sum(Q2.term.degree)
@@ -799,6 +814,8 @@ ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4
 
 
 dev.off()
+
+# EuroVoc Citation 2 --------------------------
 
 
 # So some of the word clouds are more legiable I will make a wordcloud for each and then patchwork them together
