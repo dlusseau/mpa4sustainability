@@ -55,9 +55,15 @@ Q2.net2nd.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universit
 
 # -- terms co-occurance -- #
 
-Q2.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2term.edgelist.csv")                         # edge list
-Q2.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2term.verticesmetadata.csv")            # vertices meta data
-Q2.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2.termnetwork.rds")                     # the network object 
+#citation order 1
+Q2C1.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2C1term.edgelist.csv")                         # edge list
+Q2C1.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2C1term.verticesmetadata.csv")            # vertices meta data
+Q2C1.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2C1.termnetwork.rds")                     # the network object 
+
+#citation order 2
+Q2C2.terms<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2C2term.edgelist.csv")                         # edge list
+Q2C2.terms.meta<-read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2C2term.verticesmetadata.csv")            # vertices meta data
+Q2C2.terms.graph<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2C2.termnetwork.rds")                     # the network object 
 
 # Network Stats ---------------------------------------------------------------
 
@@ -88,7 +94,7 @@ plot(Q1.1st.degree.out ~ Q1.1st.betweenness )
 # first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
 
 Q1.1st.comp.weak<-components(Q1.net1st.graph,mode="weak")
-componen
+
 Q1.1st.df<-data.frame(name= V(Q1.net1st.graph)$name,
                         degree.in=Q1.1st.degree.in,
                         degree.out=Q1.1st.degree.out,
@@ -96,6 +102,9 @@ Q1.1st.df<-data.frame(name= V(Q1.net1st.graph)$name,
                         component=as.numeric(membership(Q1.1st.comp.weak))) 
 
 rownames(Q1.1st.df) <- NULL
+
+write.csv(Q1.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C1.networkdata.csv", row.names=FALSE)
+
 
 head(Q1.1st.df)
 #cluster_edge_betweenness because we deal with a directed network
@@ -105,6 +114,21 @@ head(Q1.1st.df)
 
 # membership(graph1st.cluster)
 sort(table(Q1.1st.comp.weak$membership))
+
+Q1.1st.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+#  32013R1380 0.009405111
+
+Q1.1st.df %>%
+  filter( degree.in == max(degree.in))%>%
+  select(name, degree.in)
+# 32013R1380        10
+
+Q1.1st.df %>%
+  filter( degree.out == max(degree.out))%>%
+  select(name, degree.out)
+# 32021R1139         33
 
 # ------------------- Second order citations -------------------
 
@@ -143,48 +167,35 @@ Q1.2nd.df<-data.frame(name= V(Q1.net2nd.graph)$name,
 
 rownames(Q1.2nd.df) <- NULL
 
+write.csv(Q1.2nd.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.networkdata.csv", row.names=FALSE)
+
 head(Q1.2nd.df)
 
 plot(degree.in~degree.out,data=Q1.2nd.df)
 
-Q1.1st.df$degree.in.2nd<-Q1.2nd.df$degree.in[match(Q1.1st.df$name,Q1.2nd.df$name)]
-Q1.1st.df$degree.out.2nd<-Q1.2nd.df$degree.out[match(Q1.1st.df$name,Q1.2nd.df$name)]
-Q1.1st.df$betweenness.2nd<-Q1.2nd.df$betweenness[match(Q1.1st.df$name,Q1.2nd.df$name)]
-Q1.1st.df$component.2nd<-Q1.2nd.df$component[match(Q1.1st.df$name,Q1.2nd.df$name)]
+#Q1.1st.df$degree.in.2nd<-Q1.2nd.df$degree.in[match(Q1.1st.df$name,Q1.2nd.df$name)]
+#Q1.1st.df$degree.out.2nd<-Q1.2nd.df$degree.out[match(Q1.1st.df$name,Q1.2nd.df$name)]
+#Q1.1st.df$betweenness.2nd<-Q1.2nd.df$betweenness[match(Q1.1st.df$name,Q1.2nd.df$name)]
+#Q1.1st.df$component.2nd<-Q1.2nd.df$component[match(Q1.1st.df$name,Q1.2nd.df$name)]
 
-summary(Q1.1st.df)
+#summary(Q1.1st.df)
 
-write.csv(Q1.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.networkdata.csv", row.names=FALSE)
+#write.csv(Q1.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.networkdata.csv", row.names=FALSE)
 
-Q1.1st.df %>%
+Q1.2nd.df %>%
   filter( betweenness == max(betweenness))%>%
-  select(name, betweenness)
-#  32013R1380 0.009405111
+  dplyr::select(name, betweenness)
+#  32014R0508 0.005869453
 
-Q1.1st.df %>%
-  filter( betweenness.2nd == max(betweenness.2nd))%>%
-  select(name, betweenness.2nd)
-#32014R0508     0.005869453
-
-
-Q1.1st.df %>%
+Q1.2nd.df %>%
   filter( degree.in == max(degree.in))%>%
   select(name, degree.in)
-# 32013R1380        10
+# 32011R0182        34
 
-Q1.1st.df %>%
-  filter( degree.in.2nd == max(degree.in.2nd))%>%
-  select(name, degree.in.2nd)
-# 32011R0182            34
-
-Q1.1st.df %>%
+Q1.2nd.df %>%
   filter( degree.out == max(degree.out))%>%
   select(name, degree.out)
-# 32021R1139         33
-Q1.1st.df %>%
-  filter( degree.out.2nd == max(degree.out.2nd)) %>%
-  select(name, degree.out.2nd)
-# 32021R1139             66
+# 32021R1139         66
 
 
 # ------------------- eurovo terms -------------------
@@ -263,7 +274,7 @@ plot(Q1C1.terms.graph,
      vertex.size=1,
      layout = l2)
 
-# to make the plot slightly more legable lets remove those that have degree >= 9 (the median)
+# to make the plot slightly more legable lets remove those that have degree >= 13 (mean)
 member.attributesQ1C1 <- as.data.frame(as.matrix(membership(Q1C1.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
 
 Q1C1.terms.meta2 <-
@@ -274,12 +285,12 @@ Q1C1.terms.meta2 <-
 Q1C1.network.updated <- graph_from_data_frame(d=Q1C1.terms, vertices = Q1C1.terms.meta2, directed = FALSE)
 
 
-Q1C1.network.updated1 <-  Q1C1.network.updated                    #delete_vertices(Q1.network.updated, V(Q1.network.updated)[degree(Q1.network.updated)<9])
+Q1C1.network.updated1 <-  delete_vertices(Q1C1.network.updated, V(Q1C1.network.updated)[degree(Q1C1.network.updated)<13])
 
 n_distinct(V(Q1C1.network.updated1)$membership)
-# 9 clusters
+# 8 clusters
 
-colors <- brewer.pal(n = 9, name = "Set1")
+colors <- brewer.pal(n = 8, name = "Dark2")
 colors3 <- c(colors)
 
 V(Q1C1.network.updated1)$color <- colors3[as.numeric(as.factor(V(Q1C1.network.updated1)$membership))]
@@ -289,44 +300,12 @@ degrees <-
     rownames_to_column() %>%
     rename("degree" = "V1")
 
-as.data.frame(cbind(V(Q1C1.network.updated1)$color, V(Q1C1.network.updated1)$membership)) %>%
-    mutate(V2 = as.numeric(V2)) %>%
-    distinct(., .keep_all=TRUE) %>%
-    right_join(.,Q1C1.terms.meta2, by = c("V2" = "membership")) %>%
-    left_join(.,degrees, by = c("labels"= "rowname")) %>%
-    mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
-    mutate(V2= as.factor(V2)) %>%
-    ggplot(., aes(label = labels, 
-                  size = degree,
-                   x=V2,
-                  color = V2)) +
-    geom_text_wordcloud(shape = "circle", eccentricity = 1) +
-    scale_size_area(max_size = 25) +
-    theme_minimal()  +
-    theme(line = element_blank(),
-          text = element_blank(),
-          title = element_blank())+
-    theme(strip.text.x = element_text(size = 15, face = "bold")) + 
-    scale_color_manual(breaks = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                  "Cluster 4", "Cluster 5", "Cluster 6",
-                                  "Cluster 7", "Cluster 8", "Cluster 9"),
-                       values=c("#E41A1C", 
-                                "#377EB8", 
-                                "#4DAF4A", 
-                                "#984EA3", 
-                                "#FF7F00", 
-                                "#FFFF33",
-                                "#A65628",
-                                "#F781BF",
-                                "#999999"))
-
-
 
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1C1.eurovocterm.network.png",
     width = 3000, height = 3000)
 
-
+set.seed(01)
 plot(Q1C1.network.updated1,
      edge.width=E(Q1C1.network.updated1)$n,
      edge.color=adjustcolor("gray", alpha.f = .5),
@@ -342,11 +321,155 @@ dev.off()
 
 # EuroVoc Citation 2 --------------------------
 
+
+# degree 
+Q1C2.term.degree<-degree(Q1C2.terms.graph)
+sum(Q1C2.term.degree) #19112 interactions
+summary(Q1C2.term.degree)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1.0     6.0     9.0    15.7    18.0   189.0  
+V(Q1C2.terms.graph)
+#1217 labels
+
+# betweenness
+Q1C2.term.betweenness<-betweenness(Q1C2.terms.graph, directed = FALSE, normalized=TRUE)
+
+summary(Q1C2.term.betweenness)
+#     Min.   1st Qu.   Median     Mean   3rd Qu.     Max. 
+#  0.000e+00 0.000e+00 8.700e-07 1.639e-03 6.781e-04 9.104e-02 
+plot(Q1C2.term.degree ~ Q1C2.term.betweenness)
+
+# term clusters/groups
+# cluster_leading_eigen: 
+
+#   "Community structure detecting based on the leading eigenvector of the community matrix" 
+#   "This function tries to find densely connected subgraphs in a graph by calculating the leading nonnegative 
+#    eigenvector of the modularity matrix of the graph." - CRAN PDF
+E(Q1C2.terms.graph)$n
+E(Q1C2.terms.graph)
+
+
+Q1C2.termclusters <-cluster_leading_eigen(Q1C2.terms.graph,
+                                          steps = -1,
+                                          weights = E(Q1C2.terms.graph)$n)
+#Error in cluster_leading_eigen(Q1C2.terms.graph, steps = -1, weights = E(Q1C2.terms.graph)$n) : 
+#At core/linalg/arpack.c:992 : ARPACK error, Maximum number of iterations reached
+
+# maxiter is 1000 
+arpack_defaults
+
+arpack_defaults$maxiter = 10000
+#lets change the options so it allows more iterations
+arpack_defaults$maxiter = 10000
+Q1C2.termclusters <-cluster_leading_eigen(Q1C2.terms.graph,
+                                          steps = -1,
+                                          weights = E(Q1C2.terms.graph)$n,
+                                          options = arpack_defaults)
+
+  
+table(membership(Q1C2.termclusters))
+#    1   2   3   4   5   6   7   8   9  10  11 
+#  266   2 141 242  83 232 139  75  10   3  24 
+
+Q1C2.term.df<-data.frame(name= V(Q1C2.terms.graph)$name,
+                         degree=Q1C2.term.degree,
+                         betweenness=Q1C2.term.betweenness,
+                         component=as.numeric(membership(Q1C2.termclusters))) 
+
+write.csv(Q1C2.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.term.data.csv", row.names=FALSE)
+
+Q1C2.term.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+#  environmental protection  0.09104448
+
+Q1C2.term.df %>%
+  filter( degree == max(degree))%>%
+  select(name, degree)
+# environmental protection    189
+
+
+plot_dendrogram(Q1C2.termclusters)
+
+l2 <- layout.fruchterman.reingold(Q1C2.terms.graph)
+
+plot(Q1C2.termclusters, Q1C2.terms.graph, 
+     vertex.shape="circle",
+     vertex.label = NA,
+     edge.width=E(Q1C2.terms.graph)$n*1,
+     rescale = TRUE,
+     vertex.size=1,
+     layout=l2
+)
+
+plot(Q1C2.terms.graph,
+     vertex.label.color=membership(Q1C2.termclusters),
+     vertex.shape="none",
+     edge.width=E(Q1C2.terms.graph)$n*1,
+     rescale = TRUE,
+     vertex.size=1,
+     layout = l2)
+
+# to make the plot slightly more legable lets remove those that have degree >= 16 (the mean)
+member.attributesQ1C2 <- as.data.frame(as.matrix(membership(Q1C2.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
+
+
+Q1C2.terms.meta2 <-
+  Q1C2.terms.meta %>%
+  left_join(.,member.attributesQ1C2, by = c("labels"="rowname"))
+
+
+Q1C2.network.updated <- graph_from_data_frame(d=Q1C2.terms, vertices = Q1C2.terms.meta2, directed = FALSE)
+
+
+Q1C2.network.updated1 <-  delete_vertices(Q1C2.network.updated, V(Q1C2.network.updated)[degree(Q1C2.network.updated)<16])
+
+V(Q1C2.network.updated)
+V(Q1C2.network.updated1)
+
+n_distinct(V(Q1C2.network.updated1)$membership)
+# 8 clusters
+
+colors <- brewer.pal(n = 8, name = "Dark2")
+colors3 <- c(colors)
+
+V(Q1C2.network.updated1)$color <- colors3[as.numeric(as.factor(V(Q1C2.network.updated1)$membership))]
+
+degrees <- 
+  as.data.frame(cbind(degree(Q1C2.terms.graph))) %>%
+  rownames_to_column() %>%
+  rename("degree" = "V1")
+
+btwn<-
+  Q1C2.term.df %>%
+  filter(degree>=16) %>%
+  select(name,betweenness) %>%
+  deframe()
+
+
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1C2.eurovocterm.network.png",
+    width = 4000, height = 4000)
+
+set.seed(01)
+plot(Q1C2.network.updated1,
+     edge.width=E(Q1C2.network.updated1)$n,
+     edge.color=adjustcolor("gray", alpha.f = .5),
+     vertex.size=1.5,
+     vertex.label.cex= (degree(Q1C2.network.updated1)/sum(degree(Q1C2.network.updated1))*650), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.color=V(Q1C2.network.updated1)$color, #membership(Q2.termclusters),
+     vertex.shape="none",
+     vertex.label.family = "sans",
+     layout = layout.fruchterman.reingold,
+     vertex.label.family = "sans")
+
+dev.off()
+
+# EuroVoc Cluster Plots -----------------------
 Clus.1.PLOT.Q1 <- 
-  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees, by = c("labels"= "rowname")) %>%
   mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V2= as.factor(V2)) %>%
@@ -358,16 +481,16 @@ Clus.1.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#1B9E77")+
-  ggtitle("Cluster 1: Environmental Protection (n=7)") +
+  ggtitle("Cluster 1: Environmental protection & EU programme") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.1.PLOT.Q1
+#Clus.1.PLOT.Q1
 
 Clus.2.PLOT.Q1 <- 
-  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees, by = c("labels"= "rowname")) %>%
   mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V2= as.factor(V2)) %>%
@@ -378,17 +501,17 @@ Clus.2.PLOT.Q1 <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#D95F02")+
-  ggtitle("Cluster 2: Fishing rights and areas (n=12)") +
+  scale_color_manual(values = "black")+
+  ggtitle("Cluster 2: ") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.2.PLOT.Q1
+#Clus.2.PLOT.Q1
 
 Clus.3.PLOT.Q1 <- 
-  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees, by = c("labels"= "rowname")) %>%
   mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V2= as.factor(V2)) %>%
@@ -399,18 +522,18 @@ Clus.3.PLOT.Q1 <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#7570B3")+
-  ggtitle("Cluster 3: Sustainable development (n=5)") +
+  scale_color_manual(values = "#D95F02")+
+  ggtitle("Cluster 3: Fisheries sustainable development") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.3.PLOT.Q1
+#Clus.3.PLOT.Q1
 
 
 Clus.4.PLOT.Q1 <- 
-  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees, by = c("labels"= "rowname")) %>%
   mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V2= as.factor(V2)) %>%
@@ -421,17 +544,17 @@ Clus.4.PLOT.Q1 <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#E7298A")+
-  ggtitle("Cluster 4: Fisheries agreements (n=5)") +
+  scale_color_manual(values = "#7570B3")+
+  ggtitle("Cluster 4: Health/market standards and controls") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
-
-Clus.4.PLOT.Q1
+#
+#Clus.4.PLOT.Q1
 
 Clus.5.PLOT.Q1 <- 
-  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees, by = c("labels"= "rowname")) %>%
   mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V2= as.factor(V2)) %>%
@@ -442,17 +565,17 @@ Clus.5.PLOT.Q1 <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#66A61E")+
-  ggtitle("Cluster 5: Aquaculture & gov't aid (n=3)") +
+  scale_color_manual(values = "#E7298A")+
+  ggtitle("Cluster 5: Economic and social development") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.5.PLOT.Q1
+#Clus.5.PLOT.Q1
 
 Clus.6.PLOT.Q1 <- 
-  as.data.frame(cbind(V(Q1.network.updated1)$color, V(Q1.network.updated1)$membership)) %>%
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q1.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees, by = c("labels"= "rowname")) %>%
   mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V2= as.factor(V2)) %>%
@@ -463,17 +586,133 @@ Clus.6.PLOT.Q1 <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#E6AB02")+
-  ggtitle("Cluster 6: Antarctica (n=1)") +
+  scale_color_manual(values = "#66A61E")+
+  ggtitle("Cluster 6: Information and data") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.6.PLOT.Q1
+#Clus.6.PLOT.Q1
+
+Clus.7.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 7") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#E6AB02")+
+  ggtitle("Cluster 7: Administrative services, support and transparency ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.7.PLOT.Q1
+
+
+Clus.8.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 8") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#A6761D")+
+  ggtitle("Cluster 8: EU competativness and economics") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.8.PLOT.Q1
+
+Clus.9.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 9") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "black")+
+  ggtitle("Cluster 9: Limited and small companies/markets") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.9.PLOT.Q1
+
+
+Clus.10.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 10") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "black")+
+  ggtitle("Cluster 10") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.10.PLOT.Q1
+
+Clus.11.PLOT.Q1 <- 
+  as.data.frame(cbind(V(Q1C2.network.updated1)$color, V(Q1C2.network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q1C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees, by = c("labels"= "rowname")) %>%
+  mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V2= as.factor(V2)) %>%
+  filter(V2 == "Cluster 11") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V2)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#666666")+
+  ggtitle("Cluster 11: Mutual recognition principle and Admin. cooperation") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.11.PLOT.Q1
+
 
 (Clus.1.PLOT.Q1 + Clus.2.PLOT.Q1 + Clus.3.PLOT.Q1) /
 (Clus.4.PLOT.Q1 + Clus.5.PLOT.Q1 + Clus.6.PLOT.Q1) 
 
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1.termclusterspt1.png",
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1C2.termclusters.pt1.png",
+       width = 35, height = 15)
+
+
+(Clus.7.PLOT.Q1 + Clus.8.PLOT.Q1 + Clus.9.PLOT.Q1) /
+(Clus.10.PLOT.Q1 + Clus.11.PLOT.Q1) 
+
+
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1C2.termclusters.pt2.png",
        width = 35, height = 15)
 
 # Query 2 ---------------------------------------------------------
@@ -487,7 +726,7 @@ Q2.1st.degree.out<-degree(Q2.net1st.graph,mode="out")
 plot(Q2.1st.degree.in ~ Q2.1st.degree.out)
 
 # betweenness
-Q2.1st.betweenness<-betweenness(Q2.net1st.graph,directed = TRUE,normalized=TRUE) # normalized so we can compare to different size networks later
+Q2.1st.betweenness<-betweenness(Q2.net1st.graph,directed = TRUE, normalized=TRUE) # normalized so we can compare to different size networks later
 
 plot(Q2.1st.degree.in ~ Q2.1st.betweenness)
 plot(Q2.1st.degree.out ~ Q2.1st.betweenness )
@@ -507,6 +746,25 @@ Q2.1st.df<-data.frame(name= V(Q2.net1st.graph)$name,
 rownames(Q2.1st.df) <- NULL
 
 head(Q2.1st.df)
+
+write.csv(Q2.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C1.networkdata.csv", row.names=FALSE)
+
+Q2.1st.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+# 32008L0056 0.005448802
+
+
+Q2.1st.df %>%
+  filter( degree.in == max(degree.in))%>%
+  select(name, degree.in)
+#  31992L0043        22
+
+
+Q2.1st.df %>%
+  filter( degree.out == max(degree.out))%>%
+  select(name, degree.out)
+# 32011R0142         39
 
 # ------------------- Second order citations -------------------
 
@@ -549,175 +807,148 @@ rownames(Q2.2nd.df) <- NULL
 
 head(Q2.2nd.df)
 
-Q2.1st.df$degree.in.2nd<-Q2.2nd.df$degree.in[match(Q2.1st.df$name,Q2.2nd.df$name)]
-Q2.1st.df$degree.out.2nd<-Q2.2nd.df$degree.out[match(Q2.1st.df$name,Q2.2nd.df$name)]
-Q2.1st.df$betweenness.2nd<-Q2.2nd.df$betweenness[match(Q2.1st.df$name,Q2.2nd.df$name)]
-Q2.1st.df$component.2nd<-Q2.2nd.df$component[match(Q2.1st.df$name,Q2.2nd.df$name)]
+write.csv(Q2.2nd.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.networkdata.csv", row.names=FALSE)
 
-summary(Q2.1st.df)
+#Q2.1st.df$degree.in.2nd<-Q2.2nd.df$degree.in[match(Q2.1st.df$name,Q2.2nd.df$name)]
+#Q2.1st.df$degree.out.2nd<-Q2.2nd.df$degree.out[match(Q2.1st.df$name,Q2.2nd.df$name)]
+#Q2.1st.df$betweenness.2nd<-Q2.2nd.df$betweenness[match(Q2.1st.df$name,Q2.2nd.df$name)]
+#Q2.1st.df$component.2nd<-Q2.2nd.df$component[match(Q2.1st.df$name,Q2.2nd.df$name)]
+#summary(Q2.1st.df)
 
-write.csv(Q2.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2.networkdata.csv", row.names=FALSE)
-
-Q2.1st.df %>%
+Q2.2nd.df %>%
   filter( betweenness == max(betweenness))%>%
   select(name, betweenness)
-# 32008L0056 0.005448802
-
-Q2.1st.df %>%
-  filter( betweenness.2nd == max(betweenness.2nd))%>%
-  select(name, betweenness.2nd)
-# 1 32000L0060     0.004303183
+# 32000L0060 0.004303183
 
 
-Q2.1st.df %>%
+Q2.2nd.df %>%
   filter( degree.in == max(degree.in))%>%
   select(name, degree.in)
-#  31992L0043        22
+#  31999D0468        68
 
 
-Q2.1st.df %>%
-  filter( degree.in.2nd == max(degree.in.2nd))%>%
-  select(name, degree.in.2nd)
-# 31999D0468            68
-
-Q2.1st.df %>%
+Q2.2nd.df %>%
   filter( degree.out == max(degree.out))%>%
   select(name, degree.out)
-# 32011R0142         39
+# 32021R1139         66
 
 
-Q2.1st.df %>%
-  filter( degree.out.2nd == max(degree.out.2nd))%>%
-  select(name, degree.out.2nd)
-#  32021R1139             66
 # ------------------- eurovo terms -------------------
 
 # EuroVoc Citation 1 --------------------------
 
 # degree 
-Q2.term.degree<-degree(Q2.terms.graph)
-sum(Q2.term.degree)
-summary(Q2.term.degree)
-
-V(Q2.terms.graph)
-
+Q2C1.term.degree<-degree(Q2C1.terms.graph)
+sum(Q2C1.term.degree)
+#9900
+summary(Q2C1.term.degree)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  1.00    6.00    9.00   14.62   17.00  138.00 
+V(Q2C1.terms.graph)
+#677
 # betweenness
-Q2.term.betweenness<-betweenness(Q2.terms.graph, directed = FALSE, normalized=TRUE)
+Q2C1.term.betweenness<-betweenness(Q2C1.terms.graph, directed = FALSE, normalized=TRUE)
 
-summary(Q2.term.betweenness)
+summary(Q2C1.term.betweenness)
+# 0.000000 0.000000 0.000000 0.002813 0.001711 0.134770 
 
-plot(Q2.term.degree ~ Q2.term.betweenness)
+plot(Q2C1.term.degree ~ Q2C1.term.betweenness)
 
 # term clusters/groups
-Q2.termclusters <-cluster_leading_eigen(Q2.terms.graph,
+Q2C1.termclusters <-cluster_leading_eigen(Q2C1.terms.graph,
                                         steps = -1,
-                                        weights = E(Q2.terms.graph)$n,
-                                        options = list(maxiter=10000))
-# 9 clusters
+                                        weights = E(Q2C1.terms.graph)$n)
+table(membership(Q2C1.termclusters))
+#  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18 
+# 59   6   3  96  21 175   9  62  23   1   5   4 148  10   2   1  27  25 
 
-Q2.term.df<-data.frame(name= V(Q2.terms.graph)$name,
-                      degree=Q2.term.degree,
-                      betweenness=Q2.term.betweenness,
-                      component=as.numeric(membership(Q2.termclusters)))
+Q2C1.term.df<-data.frame(name= V(Q2C1.terms.graph)$name,
+                      degree=Q2C1.term.degree,
+                      betweenness=Q2C1.term.betweenness,
+                      component=as.numeric(membership(Q2C1.termclusters)))
 
-write.csv(Q2.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2.term.data.csv", row.names=FALSE)
 
-Q2.term.df %>%
+write.csv(Q2C1.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C1.term.data.csv", row.names=FALSE)
+
+Q2C1.term.df %>%
   filter( degree == max(degree))%>%
   select(name, degree)
 
-# environmental protection    103
+# environmental protection    138
 
-Q2.term.df %>%
+Q2C1.term.df %>%
   filter( betweenness == max(betweenness))%>%
   select(name, betweenness)
-#  environmental protection    0.379143
+#  environmental protection    0.13477
 
-plot_dendrogram(Q2.termclusters)
+plot_dendrogram(Q2C1.termclusters)
 
-l <- layout.fruchterman.reingold(Q2.terms.graph)
+l <- layout.fruchterman.reingold(Q2C1.terms.graph)
 
-plot(Q2.termclusters,Q2.terms.graph)
+plot(Q2C1.termclusters,Q2C1.terms.graph)
      
-plot(Q2.terms.graph,
-     vertex.label.color=membership(Q2.termclusters),
+plot(Q2C1.terms.graph,
+     vertex.label.color=membership(Q2C1.termclusters),
      vertex.shape="none",
-     # vertex.label.cex=V(Q1.terms.graph)$total.count*.05,
-     edge.width=E(Q2.terms.graph)$n*1,
+     edge.width=E(Q2C1.terms.graph)$n*1,
      vertex.label.cex= 1 ,
      rescale = TRUE,
-     #ylim=c(-.8,.85),xlim=c(-.9,.9),
      vertex.size=1,
-     layout = l,
-     ylim=c(-.85,.85),
-     xlim=c(-.8,.8))
+     layout = l)
 # very messy....
 
 
 dist <- seq(-.025,0.25, by=.0024)
 dist <- rep(c(0.18, -0.18), length.out = 226)
 #try to jitter the labels a little to avoid overlap 
-V(Q2.terms.graph)$dist <- dist[as.numeric(as.factor(V(Q2.terms.graph)$name))]
+V(Q2C1.terms.graph)$dist <- dist[as.numeric(as.factor(V(Q2C1.terms.graph)$name))]
 
-membership(Q2.termclusters)
+membership(Q2C1.termclusters)
 
 library(RColorBrewer)
 
 colors <- brewer.pal(n = 9, name = "Set1")
-#colors2 <- brewer.pal(n = 12, name = "Paired")
-colors3 <- c(colors)
+colors2 <- brewer.pal(n = 9, name = "Paired")
+colors3 <- c(colors,colors2)
 
-V(Q2.terms.graph)$color <- colors3[as.numeric(as.factor(membership(Q2.termclusters)))]
+V(Q2C1.terms.graph)$color <- colors3[as.numeric(as.factor(membership(Q2C1.termclusters)))]
 
-l3 <- layout.fruchterman.reingold(Q2.terms.graph)
+l3 <- layout.fruchterman.reingold(Q2C1.terms.graph)
 
-plot(Q2.terms.graph,
-     edge.width=E(Q2.terms.graph)$n,
+plot(Q2C1.terms.graph,
+     edge.width=E(Q2C1.terms.graph)$n,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
-     vertex.label.cex= V(Q2.terms.graph)$total.count*.015 ,
-     vertex.label.color=V(Q2.terms.graph)$color, #membership(Q2.termclusters),
+     vertex.label.cex= V(Q2C1.terms.graph)$total.count*.015 ,
+     vertex.label.color=V(Q2C1.terms.graph)$color, 
      vertex.shape="none",
      layout = l3,
      vertex.label.family = "sans",
-    # rescale = TRUE,
-     ylim=c(-.85,.85),
-     xlim=c(-.87,.87)
-     #vertex.label.dist = V(Q2.terms.graph)$dist
-     # trying this layout based on pdf above...
 )
 
 
-Q2.term.df<-data.frame(name= V(Q2.terms.graph)$name,
-                       degree=Q2.term.degree,
-                       betweenness=Q2.term.betweenness,
-                       component=as.numeric(membership(Q2.termclusters)))
 
-rownames(Q2.term.df) <- NULL
-
-head(Q2.term.df)
-
-# to make the plot slightly more legable lets remove those that have edges >= 9 (the median)
+# to make the plot slightly more legable lets remove those that have edges >= 15 (the mean)
 member.attributes <- 
-    as.data.frame(as.matrix(membership(Q2.termclusters))) %>%   
+    as.data.frame(as.matrix(membership(Q2C1.termclusters))) %>%   
     rownames_to_column() %>% 
     rename("membership" = "V1" )
 
-Q2.terms.meta2 <-
-    Q2.terms.meta %>%
+Q2C1.terms.meta2 <-
+    Q2C1.terms.meta %>%
     left_join(.,member.attributes, by = c("labels"="rowname")) %>%
     filter(!is.na(.$labels))
 
 
-network.updated <- graph_from_data_frame(d=Q2.terms, vertices = Q2.terms.meta2, directed = FALSE)
+network.updated <- graph_from_data_frame(d=Q2C1.terms, vertices = Q2C1.terms.meta2, directed = FALSE)
 class(network.updated)
 
 
 
-network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(network.updated)<9])
+network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(network.updated)<15])
 
 n_distinct(V(network.updated1)$membership)
-#8 in the filtered network
+#10 in the filtered network
 
 V(network.updated)
 V(network.updated1)
@@ -725,17 +956,17 @@ V(network.updated1)
 library(RColorBrewer)
 
 colors <- brewer.pal(n = 8, name = "Dark2")
-#colors2 <- brewer.pal(n = 10, name = "Paired")
-#colors2.5 <- colors2[-4] # remove the unreadable yellow
+colors2 <- brewer.pal(n = 3, name = "Set1")
+colors2.5 <- colors2[-3] # remove the unreadable yellow
 #colors2.5 <- colors2.5[-6] # remove the unreadable yellow
 
 set.seed(022)
-colors3 <- sample(c(colors))
+colors3 <- c(colors,colors2.5)
 V(network.updated1)$color <- colors3[as.numeric(as.factor(V(network.updated1)$membership))]
 
 
 degrees1 <- 
-    as.data.frame(cbind(degree(Q2.terms.graph))) %>%
+    as.data.frame(cbind(degree(Q2C1.terms.graph))) %>%
     rownames_to_column() %>%
     rename("degree" = "V1")
 
@@ -749,18 +980,19 @@ V(network.updated1)$dist <- dist[as.numeric(as.factor(V(network.updated1)$name))
 #dev.off()
 n_distinct(V(network.updated1)$color)
 
-png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2.eurovocterm.network.png",
+
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2C1.eurovocterm.network.png",
     width = 2525, height = 2500)
 
+setseed(01)
 plot(network.updated1,
      edge.width=E(network.updated1)$n,
      edge.color=adjustcolor("gray", alpha.f = .5),
      vertex.size=2,
-     vertex.label.cex=(degree(network.updated1)/sum(degree(network.updated1))*200), # label size is equiv. to percent of edges associated to the word out of total edges
-     vertex.label.color=V(network.updated1)$color, #membership(Q2.termclusters),
+     vertex.label.cex=(degree(network.updated1)/sum(degree(network.updated1))*350), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.color=V(network.updated1)$color, 
      vertex.shape="none",
      vertex.label.family = "sans",
-     ylim=c(-.9,.9),xlim=c(-.9,.9),
      layout = layout.fruchterman.reingold,
      vertex.label.family = "sans",
      vertex.label.dist = V(network.updated1)$dist
@@ -769,53 +1001,154 @@ plot(network.updated1,
 dev.off()
 
 
-# cluster plot wordcloud
+# EuroVoc Citation 2 --------------------------
 
-as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
-    mutate(V2 = as.numeric(V2)) %>%
-    distinct(., .keep_all=TRUE) %>%
-    right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-    left_join(.,degrees1, by = c("labels"= "rowname")) %>%
-    mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-    mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                       "Cluster 4", "Cluster 5", "Cluster 6",
-                                       "Cluster 7","Cluster 8","Cluster 9"))) %>%
-    ggplot(., aes(label = labels, 
-                  size = degree,
-                  color = V22,
-                  x=V22)) +
-    geom_text_wordcloud(shape = "circle",eccentricity = 1) +
-    scale_size_area(max_size = 37) +
-    theme_minimal() +
-    theme(line = element_blank(),
-          text = element_blank(),
-          title = element_blank()) + 
-    facet_wrap(~V22, ncol = 3,scales = "free")+
-    scale_color_manual(breaks = c("Cluster 1", "Cluster 2","Cluster 3",
-                                  "Cluster 4", "Cluster 5", "Cluster 6",
-                                  "Cluster 7","Cluster 8","Cluster 9"),
-                       # cluster 5not in the network...but will still need a color that is not present in the network for the word clouds 
-                       
-                       values=c("#E6AB02", #1
-                                "#1B9E77",   #2
-                                "#D95F02",  #3
-                                "#E7298A", #4
-                                "black", #5
-                                "#66A61E", #6 
-                                "#7570B3", #7
-                                "#A6761D", #8
-                                "#666666" #9
-                             
-                       )) 
+# degree 
+Q2C2.term.degree<-degree(Q2C2.terms.graph)
+sum(Q2C2.term.degree)
+#25670
+summary(Q2C2.term.degree)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#  1.00    6.00    9.00   17.33   19.00  230.00 
+V(Q2C2.terms.graph)
+#1481
+# betweenness
+Q2C2.term.betweenness<-betweenness(Q2C2.terms.graph, directed = FALSE, normalized=TRUE)
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusterspt1.png",
-       width = 50, height = 50,
-       limitsize = FALSE)
+summary(Q2C2.term.betweenness)
+# 0.000e+00 0.000e+00 2.886e-05 1.321e-03 5.340e-04 8.517e-02  
 
+plot(Q2C2.term.degree ~ Q2C2.term.betweenness)
+
+# term clusters/groups
+Q2C2.termclusters <-cluster_leading_eigen(Q2C2.terms.graph,
+                                          steps = -1,
+                                          weights = E(Q2C2.terms.graph)$n)
+table(membership(Q2C2.termclusters))
+#    1   2   3   4   5   6   7   8   9  10  11  12  13  14 
+#  216 274   2   1   2   3 283 265 176 178  45   6   3  27 
+
+Q2C2.term.df<-data.frame(name= V(Q2C2.terms.graph)$name,
+                         degree=Q2C2.term.degree,
+                         betweenness=Q2C2.term.betweenness,
+                         component=as.numeric(membership(Q2C2.termclusters)))
+
+
+write.csv(Q2C2.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.term.data.csv", row.names=FALSE)
+
+
+Q2C2.term.df %>%
+  filter( degree == max(degree))%>%
+  select(name, degree)
+
+# environmental protection    230
+# exchange of information    230
+
+Q2C2.term.df %>%
+  filter( betweenness == max(betweenness))%>%
+  select(name, betweenness)
+#  exchange of information  0.08516511
+
+plot_dendrogram(Q2C2.termclusters)
+
+l <- layout.fruchterman.reingold(Q2C2.terms.graph)
+
+plot(Q2C2.termclusters,Q2C2.terms.graph)
+
+plot(Q2C2.terms.graph,
+     vertex.label.color=membership(Q2C2.termclusters),
+     vertex.shape="none",
+     edge.width=E(Q2C2.terms.graph)$n*1,
+     vertex.label.cex= 1 ,
+     rescale = TRUE,
+     vertex.size=1,
+     layout = l)
+# very messy....
+
+
+dist <- seq(-.025,0.25, by=.0024)
+dist <- rep(c(0.18, -0.18), length.out = 226)
+#try to jitter the labels a little to avoid overlap 
+V(Q2C2.terms.graph)$dist <- dist[as.numeric(as.factor(V(Q2C2.terms.graph)$name))]
+
+membership(Q2C2.termclusters)
+
+library(RColorBrewer)
+
+
+# to make the plot slightly more legable lets remove those that have edges >= 18 (the mean)
+member.attributes <- 
+  as.data.frame(as.matrix(membership(Q2C2.termclusters))) %>%   
+  rownames_to_column() %>% 
+  rename("membership" = "V1" )
+
+Q2C2.terms.meta2 <-
+  Q2C2.terms.meta %>%
+  left_join(.,member.attributes, by = c("labels"="rowname")) %>%
+  filter(!is.na(.$labels))
+
+
+network.updated <- graph_from_data_frame(d=Q2C2.terms, vertices = Q2C2.terms.meta2, directed = FALSE)
+class(network.updated)
+
+
+
+network.updated1 <- delete_vertices(network.updated, V(network.updated)[degree(network.updated)<18])
+
+n_distinct(V(network.updated1)$membership)
+#10 in the filtered network
+
+V(network.updated)
+V(network.updated1)
+
+library(RColorBrewer)
+
+colors <- brewer.pal(n = 8, name = "Dark2")
+colors2 <- brewer.pal(n = 3, name = "Set1")
+colors2.5 <- colors2[-3] # remove the unreadable yellow
+#colors2.5 <- colors2.5[-6] # remove the unreadable yellow
+
+set.seed(022)
+colors3 <- sample(c(colors,colors2.5))
+V(network.updated1)$color <- colors3[as.numeric(as.factor(V(network.updated1)$membership))]
+
+
+degrees1 <- 
+  as.data.frame(cbind(degree(Q2C2.terms.graph))) %>%
+  rownames_to_column() %>%
+  rename("degree" = "V1")
+
+# network plot 
+
+dist <- seq(-.025,0.25, by=.0024)
+dist <- rep(c(0.18, -0.18), length.out = 226)
+#try to jitter the labels a little to avoid overlap 
+V(network.updated1)$dist <- dist[as.numeric(as.factor(V(network.updated1)$name))]
+
+#dev.off()
+n_distinct(V(network.updated1)$color)
+
+png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query2C2.eurovocterm.network.png",
+    width = 2525, height = 2500)
+
+set.seed(01)
+plot(network.updated1,
+     edge.width=E(network.updated1)$n,
+     edge.color=adjustcolor("gray", alpha.f = .5),
+     vertex.size=2,
+     vertex.label.cex=(degree(network.updated1)/sum(degree(network.updated1))*550), # label size is equiv. to percent of edges associated to the word out of total edges
+     vertex.label.color=V(network.updated1)$color, #membership(Q2.termclusters),
+     vertex.shape="none",
+     vertex.label.family = "sans",
+     layout = layout.fruchterman.reingold,
+     vertex.label.family = "sans",
+     vertex.label.dist = V(network.updated1)$dist
+)
 
 dev.off()
 
-# EuroVoc Citation 2 --------------------------
+
+# EuroVoc Cluster Plots --------------
 
 
 # So some of the word clouds are more legiable I will make a wordcloud for each and then patchwork them together
@@ -824,12 +1157,14 @@ Clus.1.PLOT <-
   as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees1, by = c("labels"= "rowname")) %>%
   mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                     "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1",  "Cluster 2", "Cluster 3",
+                                     "Cluster 4",  "Cluster 5", "Cluster 6",
+                                     "Cluster 7",  "Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
   filter(V22 == "Cluster 1") %>%
   ggplot(., aes( label = labels, 
                  size = degree,
@@ -838,22 +1173,24 @@ Clus.1.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#E6AB02")+
-  ggtitle("Cluster 1: Environmental Protection (emph. pollution) (n=59)") +
+  ggtitle("Cluster 1: EU harmonization of Environmental protections and information exchange") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.1.PLOT
+#Clus.1.PLOT
 
 
 Clus.2.PLOT <- 
   as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees1, by = c("labels"= "rowname")) %>%
   mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
                                      "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
   filter(V22 == "Cluster 2") %>%
   ggplot(., aes( label = labels, 
                  size = degree,
@@ -861,11 +1198,11 @@ Clus.2.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#1B9E77")+
-  ggtitle("Cluster 2: Telecommunications infrastructure (n=1)") +
+  scale_color_manual(values = "#E41A1C")+
+  ggtitle("Cluster 2: EU and member state sustainable development programmes") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.2.PLOT
+#Clus.2.PLOT
 
 
 
@@ -873,12 +1210,14 @@ Clus.3.PLOT <-
   as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees1, by = c("labels"= "rowname")) %>%
   mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
                                      "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
   filter(V22 == "Cluster 3") %>%
   ggplot(., aes( label = labels, 
                  size = degree,
@@ -886,143 +1225,25 @@ Clus.3.PLOT <-
   geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
   scale_size_area(max_size = 15) +
   theme_minimal() +
-  scale_color_manual(values = "#D95F02")+
-  ggtitle("Cluster 3: Fishing rights and areas (n=29)") +
+  scale_color_manual(values = "Black")+
+  ggtitle("Cluster 3: water resources") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.3.PLOT
+#Clus.3.PLOT
 
 Clus.4.PLOT <- 
   as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
   mutate(V2 = as.numeric(V2)) %>%
   distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
   left_join(.,degrees1, by = c("labels"= "rowname")) %>%
   mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
   mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
                                      "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
-  filter(V22 == "Cluster 4") %>%
-  ggplot(., aes( label = labels, 
-                 size = degree,
-                 color = V22)) +
-  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 15) +
-  theme_minimal() +
-  scale_color_manual(values = "#E7298A")+
-  ggtitle("Cluster 4: Protected species & areas / Biodiversity (n=48)") +
-  theme(plot.title = element_text(hjust = 0.5, size = 30))
-
-Clus.4.PLOT
-
-
-Clus.5.PLOT <- 
-  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
-  mutate(V2 = as.numeric(V2)) %>%
-  distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
-  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                     "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
-  filter(V22 == "Cluster 5") %>%
-  ggplot(., aes( label = labels, 
-                 size = degree,
-                 color = V22)) +
-  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 15) +
-  theme_minimal() +
-  scale_color_manual(values = "black")+
-  ggtitle("Cluster 5: Water resources and managment (n=4)") +
-  theme(plot.title = element_text(hjust = 0.5, size = 30))
-
-Clus.5.PLOT
-
-
-Clus.6.PLOT <- 
-  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
-  mutate(V2 = as.numeric(V2)) %>%
-  distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
-  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                     "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
-  filter(V22 == "Cluster 6") %>%
-  ggplot(., aes( label = labels, 
-                 size = degree,
-                 color = V22)) +
-  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 15) +
-  theme_minimal() +
-  scale_color_manual(values = "#66A61E")+
-  ggtitle("Cluster 6: European directives, regulations, specifications (n=12)") +
-  theme(plot.title = element_text(hjust = 0.5, size = 30))
-
-Clus.6.PLOT
-
-
-Clus.7.PLOT <- 
-  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
-  mutate(V2 = as.numeric(V2)) %>%
-  distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
-  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                     "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
-  filter(V22 == "Cluster 7") %>%
-  ggplot(., aes( label = labels, 
-                 size = degree,
-                 color = V22)) +
-  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 15) +
-  theme_minimal() +
-  scale_color_manual(values = "#7570B3")+
-  ggtitle("Cluster 7: Susatinable development (n=13)") +
-  theme(plot.title = element_text(hjust = 0.5, size = 30))
-
-Clus.7.PLOT
-
-
-
-Clus.8.PLOT <- 
-  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
-  mutate(V2 = as.numeric(V2)) %>%
-  distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
-  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                     "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
-  filter(V22 == "Cluster 8") %>%
-  ggplot(., aes( label = labels, 
-                 size = degree,
-                 color = V22)) +
-  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
-  scale_size_area(max_size = 15) +
-  theme_minimal() +
-  scale_color_manual(values = "#A6761D")+
-  ggtitle("Cluster 8: Law of the sea and international law (n=2)") +
-  theme(plot.title = element_text(hjust = 0.5, size = 30))
-
-Clus.8.PLOT
-
-Clus.9.PLOT <- 
-  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
-  mutate(V2 = as.numeric(V2)) %>%
-  distinct(., .keep_all=TRUE) %>%
-  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
-  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
-  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
-  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
-                                     "Cluster 4", "Cluster 5", "Cluster 6",
-                                     "Cluster 7","Cluster 8","Cluster 9")))  %>%
-  filter(V22 == "Cluster 9") %>%
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 4:") %>%
   ggplot(., aes( label = labels, 
                  size = degree,
                  color = V22)) +
@@ -1030,19 +1251,288 @@ Clus.9.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#666666")+
-  ggtitle("Cluster 9: German Reunification (1990) (n=2)") +
+  ggtitle("Cluster 4: Power of the institutions") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-Clus.9.PLOT
+#Clus.4.PLOT
 
-big.clsuplot <-
+
+Clus.5.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 5") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#D95F02")+
+  ggtitle("Cluster 5: EU Budget") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.5.PLOT
+
+
+Clus.6.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 6") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#377EB8")+
+  ggtitle("Cluster 6: Agriculture") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.6.PLOT
+
+
+Clus.7.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 7") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#E7298A")+
+  ggtitle("Cluster 7: Health/market standards and controls") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.7.PLOT
+
+
+
+Clus.8.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 8") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#66A61E")+
+  ggtitle("Cluster 8: EU cooperation and data") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.8.PLOT
+
+Clus.9.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 9") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#7570B3")+
+  ggtitle("Cluster 9: Eu competitiveness and financing") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.9.PLOT
+
+
+
+Clus.10.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 10") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#1B9E77")+
+  ggtitle("Cluster 10: Single markets") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.10.PLOT
+
+
+
+Clus.11.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 11") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "#A6761D")+
+  ggtitle("Cluster 11: Technical standards and regulations") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.11.PLOT
+
+Clus.12.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 12") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "Black")+
+  ggtitle("Cluster 12: Alcohol") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.12.PLOT
+
+Clus.13.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 13") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "Black")+
+  ggtitle("Cluster 13: Chemistry") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.13.PLOT
+
+
+Clus.14.PLOT <- 
+  as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+  mutate(V2 = as.numeric(V2)) %>%
+  distinct(., .keep_all=TRUE) %>%
+  right_join(.,Q2C2.terms.meta2, by = c("V2" = "membership")) %>%
+  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+                                     "Cluster 4", "Cluster 5", "Cluster 6",
+                                     "Cluster 7","Cluster 8","Cluster 9",
+                                     "Cluster 10", "Cluster 11", "Cluster 12",
+                                     "Cluster 13", "Cluster 14")))  %>%
+  filter(V22 == "Cluster 14") %>%
+  ggplot(., aes( label = labels, 
+                 size = degree,
+                 color = V22)) +
+  geom_text_wordcloud_area(area_corr = TRUE, eccentricity = 1) +
+  scale_size_area(max_size = 15) +
+  theme_minimal() +
+  scale_color_manual(values = "Black")+
+  ggtitle("Cluster 14 ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
+
+#Clus.14.PLOT
+
+big.clsuplot1 <-
 (Clus.1.PLOT + Clus.2.PLOT + Clus.3.PLOT)/
-(Clus.4.PLOT + Clus.5.PLOT + Clus.6.PLOT)/
-(Clus.7.PLOT + Clus.8.PLOT + Clus.9.PLOT)
+(Clus.4.PLOT + Clus.5.PLOT + Clus.6.PLOT)
 
-ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusterspt1.png",
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2C2.termclusters.pt1.png",
        width = 37, height = 24,
        limitsize = FALSE)
+
+big.clsuplot2 <-
+  (Clus.7.PLOT + Clus.8.PLOT + Clus.9.PLOT )/
+  (Clus.10.PLOT + Clus.11.PLOT + Clus.12.PLOT)/
+  (Clus.13.PLOT + Clus.14.PLOT)
+
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2C2.termclusters.pt2.png",
+       width = 40, height = 31,
+       limitsize = FALSE)
+
 
 # archival wordcloud cluster plots ----------------
 
@@ -1129,4 +1619,85 @@ ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4
 
 #ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusters2.png",
 #       width = 35, height = 35)
+
+
+
+# cluster plot wordcloud
+
+#as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
+#  mutate(V2 = as.numeric(V2)) %>%
+#  distinct(., .keep_all=TRUE) %>%
+#  right_join(.,Q2.terms.meta2, by = c("V2" = "membership")) %>%
+#  left_join(.,degrees1, by = c("labels"= "rowname")) %>%
+#  mutate(V22 =paste("Cluster", V2, sep = " ")) %>%
+#  mutate(V22= factor(V22, levels = c("Cluster 1", "Cluster 2", "Cluster 3",
+#                                     "Cluster 4", "Cluster 5", "Cluster 6",
+#                                     "Cluster 7","Cluster 8","Cluster 9"))) %>%
+#  ggplot(., aes(label = labels, 
+#                size = degree,
+#                color = V22,
+#                x=V22)) +
+#  geom_text_wordcloud(shape = "circle",eccentricity = 1) +
+#  scale_size_area(max_size = 37) +
+#  theme_minimal() +
+#  theme(line = element_blank(),
+#        text = element_blank(),
+#        title = element_blank()) + 
+#  facet_wrap(~V22, ncol = 3,scales = "free")+
+#  scale_color_manual(breaks = c("Cluster 1", "Cluster 2","Cluster 3",
+#                                "Cluster 4", "Cluster 5", "Cluster 6",
+#                                "Cluster 7","Cluster 8","Cluster 9"),
+                     # cluster 5not in the network...but will still need a color that is not present in the network for the word clouds 
+                     
+##                     values=c("#E6AB02", #1
+#                              "#1B9E77",   #2
+#                              "#D95F02",  #3
+#                              "#E7298A", #4
+#                              "black", #5
+#                              "#66A61E", #6 
+#                              "#7570B3", #7
+#                              "#A6761D", #8
+#                              "#666666" #9
+#                              
+     #                )) 
+
+#ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2.termclusterspt1.png",
+   #    width = 50, height = 50,
+  #     limitsize = FALSE)
+
+
+#dev.off()
+
+
+#as.data.frame(cbind(V(Q1C1.network.updated1)$color, V(Q1C1.network.updated1)$membership)) %>%
+#  mutate(V2 = as.numeric(V2)) %>%
+#  distinct(., .keep_all=TRUE) %>%
+#  right_join(.,Q1C1.terms.meta2, by = c("V2" = "membership")) %>%
+ # left_join(.,degrees, by = c("labels"= "rowname")) %>%
+#mutate(V2 =paste("Cluster", V2, sep = " ")) %>%
+#  mutate(V2= as.factor(V2)) %>%
+#  ggplot(., aes(label = labels, 
+#                size = degree,
+#                x=V2,
+#                color = V2)) +
+#  geom_text_wordcloud(shape = "circle", eccentricity = 1) +
+#  scale_size_area(max_size = 25) +
+#  theme_minimal()  +
+#  theme(line = element_blank(),
+#        text = element_blank(),
+#        title = element_blank())+
+#  theme(strip.text.x = element_text(size = 15, face = "bold")) + 
+#  scale_color_manual(breaks = c("Cluster 1", "Cluster 2", "Cluster 3",
+#                                "Cluster 4", "Cluster 5", "Cluster 6",
+#                                "Cluster 7", "Cluster 8", "Cluster 9"),
+#                     values=c("#E41A1C", 
+#                              "#377EB8", 
+#                              "#4DAF4A", 
+#                              "#984EA3", 
+#                              "#FF7F00", 
+#                              "#FFFF33",
+#                              "#A65628",
+#                              "#F781BF",
+#                              "#999999"))
+
 
