@@ -7,196 +7,342 @@ Sys.setenv(LANG = "en") # change the language to english
 # Load libraries ----------------------------------------------------------
 
 library("dplyr")
+library("tidyr")
 library("knitr")
 
 # Load data ---------------------------------------------------------------
 
+# we are only doing this for the second order citations:
+Q1C2.term.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.term.df.csv")
+Q2C2.term.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.term.data.csv")
 
-Q1.term.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.term.data.csv")
-Q2.term.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2.term.data.csv")
 
-# Query 1 document data
-mpa.policy.notext.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
+Q1.Order2.docs <- read.csv("WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv")
+Q2.Order2.docs <- read.csv("WP4/Policy_Interactions/data/04.Q2secondordercit.verticesmetadata.csv")
 
-Q1.policy.df <- 
-  mpa.policy.notext.df %>%
-  select(-work,-type)
-
-# query 2 document data 
-# EU mpa directives search: 
-EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX2.csv")
-
-n_distinct(EU.mpa.termsearch$CELEX)
-#100
-# lets join the new mpa search documents to their associated document data
-Q2.policy.df<-
-  EU.mpa.termsearch %>%
-  filter(CELEX != "32006R1967R(01)") %>% #removing this celex bc it is a Corrigendum to a regulation that was already pulled and it is tech. not within the legal act types
-  select(-work,-type) # we dont need this info anymore
-
-n_distinct(Q2.policy.df$CELEX)
-#99
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 #----------- Query 1 --------------------
 
-### join term network data with the celexs
-Q1.term.celex <- 
-  Q1.policy.df %>%
-  distinct(CELEX,labels)
+#remove unnec. columns for this 
+Q1.Order2.docs <-
+  Q1.Order2.docs %>%
+  select(-color,-shape,-remove)
+
+#the key doc only keep celex and eurovoc
+celex.label.key <- 
+  document.key.df %>%
+  distinct(celex,labels)
+
+#now get the network docs eurovoc descriptors 
+Q1.Order2.docsdescript <- 
+  Q1.Order2.docs %>%
+  left_join(.,celex.label.key, by = c("CELEX" = "celex")) %>%
+  distinct(CELEX,labels,pulled.from) %>%
+  drop_na(labels) # 3 celexes (all references) were given no EuroVoc descriptors
 
 Q1.eurovoc.clusters <-
-  Q1.term.df %>%
+  Q1C2.term.df %>%
   distinct(name, component)
 
-Q1.cluster.profiles <- left_join(Q1.eurovoc.clusters,Q1.term.celex, by = c("name"="labels"))
+Q1.cluster.profiles <- right_join(Q1.eurovoc.clusters,Q1.Order2.docsdescript, by = c("name"="labels"))
 
 
 Q1.cluster.profiles2 <-
   Q1.cluster.profiles %>%
   group_by(CELEX,component) %>%
-  mutate(component.terms.n = n_distinct(name)) %>%
+  mutate(component.terms.n = n_distinct(name)) %>% # how many eurovocs a celex has within a cluster
   ungroup() %>%
   group_by(CELEX) %>%
-  mutate(total.terms = n_distinct(name)) %>%
+  mutate(total.terms = n_distinct(name)) %>% # how many EuroVocs a celex has
   ungroup() %>%
   mutate(cluster.prop = component.terms.n/total.terms) %>%
-  distinct(CELEX,component,cluster.prop)
+  #check
+ # distinct(CELEX,component,cluster.prop) %>% group_by(CELEX) %>% summarise(sum = sum(cluster.prop)) %>% filter(sum != 1) # none so the all prop == 1
+  distinct(CELEX,component,cluster.prop,pulled.from)
 
 
 Q1.cluster.profiles2 %>%
   group_by(component) %>%
   summarise( n = n_distinct(CELEX))
+#how many celexs in each clusters?
 #  component     n
-#         1     7
-#         2    12
-#         3     5
-#         4     5
-#         5     3
-#         6     1
+#         1   241
+#         2     1
+#         3   280
+#         4   285
+#         5    71
+#         6   186
+#         7    94
+#         8    67
+#         9     5
+#        10     3
+#        11    22
+
+
+Q1.cluster.profiles2 %>%
+  group_by(component,pulled.from) %>%
+  summarise( n = n_distinct(CELEX)) %>% #
+  group_by(component) %>%
+  mutate(sum = sum(n),
+         prop = n/sum) %>% print(n = 35)
+#6 clusters have both a seed and citation
+# component pulled.from     n   sum    prop
+#         1 both            2   241 0.00830
+#         1 eurlex.web      3   241 0.0124 
+#         1 reference      15   241 0.0622 
+#         1 reference2    177   241 0.734  
+#         1 reference3     44   241 0.183  
+#         3 both            5   280 0.0179 
+#         3 eurlex.web     11   280 0.0393 
+#         3 reference      21   280 0.075  
+#         3 reference2    174   280 0.621  
+#         3 reference3     69   280 0.246  
+#         4 eurlex.web      1   285 0.00351
+#         4 reference      10   285 0.0351 
+#         4 reference2    249   285 0.874  
+#         4 reference3     25   285 0.0877 
+#         5 both            1    71 0.0141 
+#         5 reference2     59    71 0.831  
+#         5 reference3     11    71 0.155  
+#         6 both            2   186 0.0108 
+#         6 reference       4   186 0.0215 
+#         6 reference2    154   186 0.828  
+#         6 reference3     26   186 0.140  
+#         7 eurlex.web      1    94 0.0106 
+#         7 reference       3    94 0.0319 
+#         7 reference2     82    94 0.872  
+#         7 reference3      8    94 0.0851 
+
+
+# 5 clusters only composed of citations
+#         2 reference2      1     1 1      
+#         8 reference       2    67 0.0299 
+#         8 reference2     60    67 0.896  
+#         8 reference3      5    67 0.0746 
+#         9 reference2      5     5 1      
+#        10 reference2      3     3 1      
+#        11 reference2     22    22 1  
 
 Q1.cluster.profiles2 %>%
   group_by(CELEX) %>%
   summarise( n = n_distinct(component)) %>%
   arrange(desc(n))
-
-#   CELEX          n
-# 32019D0867     5
-# 32013R1380     4
-# 32014R0508     3
-# 32022R2343     3
-# 31984D0132     2
-# 32010D0814     2
-# 32012D0091     2
-# 32021R1139     2
-# 32008L0056     1
-# 32013D1386     1
-# 32013L0030     1
-# 32018R0120     1
-# 32019R0124     1
-# 32020R0123     1
-# 32021D1796     1
-# 32021R0092     1
-# 32022R0109     1
-# 32022R2473     1
+# how many components a document is within
 
 Q1.cluster.profiles2 %>%
   filter(cluster.prop >=0.5) %>%
-  arrange(desc(cluster.prop))
+  arrange(desc(cluster.prop)) %>% dim() # 658 have a cluster > 50%
   
+xxx <-
+  Q1.cluster.profiles2 %>%
+  filter(cluster.prop >=0.5) %>%
+  arrange(desc(cluster.prop))
 
-#component CELEX      cluster.prop
-#         1 32008L0056        1    
-#         1 32013D1386        1    
-#         1 32013L0030        1    
-#         1 32021D1796        1    
-#         5 32022R2473        1    
-#         2 32019R0124        1    
-#         2 32022R0109        1    
-#         2 32021R0092        1    
-#         2 32018R0120        1    
-#         2 32020R0123        1    
-#         3 32021R1139        0.9  
-#         4 32012D0091        0.857
-#         1 31984D0132        0.833
-#         2 32022R2343        0.778
-#         4 32010D0814        0.75 
-#         3 32014R0508        0.714
-#         3 32013R1380        0.5 
+less.than.fifty <-
+  anti_join(Q1.cluster.profiles2,xxx, by = c("CELEX"))
+# 122 docs done have a 50% majority cluster 
+# 122/675 only 18% of the total network
 
+
+Q1.cluster.profiles2 %>%
+  filter(cluster.prop ==1) %>%
+  dim() # 273
+
+675-122-273
+#280 docs are between .5-.99
+
+# need the citation netwrok stats DF: 
+Q1C2.netstats <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.networkdata.csv")
+
+Q1C2.netstats <-
+  Q1C2.netstats %>%
+  rename("cit.component" = "component")
+
+Q1.glm.df <-
+  Q1.cluster.profiles2 %>%
+  rename("cluster" = "component") %>%
+  left_join(., Q1C2.netstats, by = c("CELEX" = "name"))
+
+
+Q1.glmwide <- 
+  Q1.glm.df %>% 
+  pivot_wider(names_from = cluster, values_from = cluster.prop , values_fill = 0)
+
+write.csv(glmwide, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmwide.csv", row.names=FALSE)
+
+write.csv(glm.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmdf.csv", row.names=FALSE)
+
+# what the df looks like for ref: 
+head(glm.df)
 #----------- Query 2 --------------------
 
-### join term network data with the celexs
-Q2.term.celex <- 
-  Q2.policy.df %>%
-  distinct(CELEX,labels)
+#remove unnec. columns for this 
+Q2.Order2.docs <-
+  Q2.Order2.docs %>%
+  select(-color,-shape,-remove)
+
+#the key doc only keep celex and eurovoc
+celex.label.key <- 
+  document.key.df %>%
+  distinct(celex,labels)
+
+#now get the network docs eurovoc descriptors 
+Q2.Order2.docsdescript <- 
+  Q2.Order2.docs %>%
+  left_join(.,celex.label.key, by = c("CELEX" = "celex")) %>%
+  distinct(CELEX,labels,pulled.from) %>%
+  drop_na(labels) # 9 celexes (all references) were given no EuroVoc descriptors
 
 Q2.eurovoc.clusters <-
-  Q2.term.df %>%
+  Q2C2.term.df %>%
   distinct(name, component)
 
-Q2.cluster.profiles <- left_join(Q2.eurovoc.clusters,Q2.term.celex, by = c("name"="labels"))
-
+Q2.cluster.profiles <- right_join(Q2.eurovoc.clusters,Q2.Order2.docsdescript, by = c("name"="labels"))
 
 Q2.cluster.profiles2 <-
   Q2.cluster.profiles %>%
   group_by(CELEX,component) %>%
-  mutate(component.terms.n = n_distinct(name)) %>%
+  mutate(component.terms.n = n_distinct(name)) %>% # how many eurovocs a celex has within a cluster
   ungroup() %>%
   group_by(CELEX) %>%
-  mutate(total.terms = n_distinct(name)) %>%
+  mutate(total.terms = n_distinct(name)) %>% # how many EuroVocs a celex has
   ungroup() %>%
   mutate(cluster.prop = component.terms.n/total.terms) %>%
-  distinct(CELEX,component,cluster.prop)  %>%
-  arrange(desc(CELEX)) %>%
-  mutate(cluster.prop = round(cluster.prop, digits = 2))
+  #check
+  #distinct(CELEX,component,cluster.prop) %>% group_by(CELEX) %>% summarise(sum = sum(cluster.prop)) %>% filter(sum != 1) # none so the all prop == 1
+  distinct(CELEX,component,cluster.prop,pulled.from)
 
-Q2.cluster.profiles2%>%
-  select(CELEX,component,cluster.prop) %>%
-  kable(.,"latex")
-  
 
 Q2.cluster.profiles2 %>%
   group_by(component) %>%
-  summarise( n = n_distinct(CELEX)) %>%
-  kable(.,"latex")
+  summarise( n = n_distinct(CELEX))
+#how many celexs in each clusters?
+#  component     n
+#         1   522
+#         2   505
+#         3     1
+#         4    11
+#         5    13
+#         6    11
+#         7   443
+#         8   220
+#         9   152
+#        10   164
+#        11    52
+#        12     3
+#        13     3
+#        14    14
+
+
+Q2.cluster.profiles2 %>%
+  group_by(component,pulled.from) %>%
+  summarise( n = n_distinct(CELEX)) %>% #
+  group_by(component) %>%
+  mutate(sum = sum(n),
+         prop = n/sum) %>% print(n = 46)
+# 8 clusters have both a seed and citation
+# component pulled.from     n   sum    prop
+#         1 both           14   522 0.0268 
+#         1 eurlex.web     35   522 0.0670 
+#         1 reference      34   522 0.0651 
+#         1 reference2    345   522 0.661  
+#         1 reference3     94   522 0.180  
+#         2 both           20   505 0.0396 
+#         2 eurlex.web     45   505 0.0891 
+#         2 reference      48   505 0.0950 
+#         2 reference2    283   505 0.560  
+#         2 reference3    109   505 0.216  
+#         3 both            1     1 1      
+#         7 both            2   443 0.00451
+#         7 eurlex.web     11   443 0.0248 
+#         7 reference      31   443 0.0700 
+#         7 reference2    337   443 0.761  
+#         7 reference3     62   443 0.140  
+#         8 both            2   220 0.00909
+#         8 eurlex.web      2   220 0.00909
+#         8 reference      13   220 0.0591 
+#         8 reference2    174   220 0.791  
+#         8 reference3     29   220 0.132  
+#         9 both            1   152 0.00658
+#         9 eurlex.web      3   152 0.0197 
+#         9 reference      10   152 0.0658 
+#         9 reference2    123   152 0.809  
+#         9 reference3     15   152 0.0987 
+#        10 both            1   164 0.00610
+#        10 eurlex.web      3   164 0.0183 
+#        10 reference      13   164 0.0793 
+#        10 reference2    131   164 0.799  
+#        10 reference3     16   164 0.0976 
+#        14 eurlex.web      1    14 0.0714 
+#        14 reference2     13    14 0.929 
+
+# 6 clusters with only citations:
+#         4 reference       1    11 0.0909 
+#         4 reference2      8    11 0.727  
+#         4 reference3      2    11 0.182 
+#         5 reference       1    13 0.0769 
+#         5 reference2      6    13 0.462  
+#         5 reference3      6    13 0.462  
+#         6 reference2     11    11 1      
+#        11 reference       2    52 0.0385 
+#        11 reference2     45    52 0.865  
+#        11 reference3      5    52 0.0962 
+#        12 reference2      3     3 1      
+#        13 reference2      2     3 0.667  
+#        13 reference3      1     3 0.333 
 
 Q2.cluster.profiles2 %>%
   group_by(CELEX) %>%
   summarise( n = n_distinct(component)) %>%
   arrange(desc(n))
-
-
-Q2.term.search <- 
-  Q2.policy.df %>%
-  distinct(CELEX,search.term)
-
+# how many components a document is within
 
 Q2.cluster.profiles2 %>%
-  ungroup() %>%
-  group_by(component)%>%
-  summarise(n=n_distinct(CELEX))
-
+  filter(cluster.prop >=0.5) %>%
+  arrange(desc(cluster.prop)) %>% dim() # 1009 have a cluster > 50%
 
 xxx <-
   Q2.cluster.profiles2 %>%
   filter(cluster.prop >=0.5) %>%
   arrange(desc(cluster.prop))
 
-Q2.cluster.profiles2 %>%
-  filter(cluster.prop >=0.5 & 
-           cluster.prop < 1) %>%
-  arrange(desc(cluster.prop))
-
-
 less.than.fifty <-
   anti_join(Q2.cluster.profiles2,xxx, by = c("CELEX"))
+# 257 docs done have a 50% majority cluster 
+# 257/1049 around 24.49% of the total network
 
+Q2.cluster.profiles2 %>%
+  filter(cluster.prop ==1) %>%
+  dim() # 327 
+
+1049-257-327
+# 465 have from .5-.99
 
 # Design title search clusters ------------------
 
-x <- Q2.term.search %>% 
-  right_join(.,Q2.cluster.profiles2, by = c("CELEX"))
+# EU mpa directives search: 
+EU.mpa.termsearch<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_EUmpa.searchterm.CELEX2.csv")
 
+n_distinct(EU.mpa.termsearch$CELEX)
+#100
+# lets join the new mpa search documents to their associated document data
+EU.mpa.termsearch.data <-
+  EU.mpa.termsearch %>%
+  filter(CELEX != "32006R1967R(01)") %>% #removing this celex bc it is a Corrigendum to a regulation that was already pulled and it is tech. not within the legal act types
+  select(-work,-type) %>% # we dont need this info anymore
+  distinct(CELEX,search.term)
+
+n_distinct(EU.mpa.termsearch.data$CELEX)
+#99
+
+x <- EU.mpa.termsearch.data %>% 
+  right_join(.,Q2.cluster.profiles2, by = c("CELEX")) %>%
+# increased slightly dim since a doc can come up for multiple search terms
+  filter(pulled.from == "both" | pulled.from == "eurlex.web")
+
+n_distinct(x$CELEX)
+#76 --> correct there are only 76 doc citing another leg 
 
 # lets combine the titles that overlap:
 unique(x$search.term)
@@ -204,10 +350,10 @@ unique(x$search.term)
 xz <- 
   x %>%
   mutate(new.title = case_when(search.term ==  "sites of community importance*?" ~ "habitats directive*?" ,
-                               search.term == "site of community importance*?" ~ "habitats directive*?",
-                               search.term == "special areas of conservation*?" ~ "habitats directive*?",
-                               search.term == "special protection area*?" ~ "birds directive*?",
-                               search.term == "marine protected area*?" ~ "ospar*?",
+                               search.term ==  "site of community importance*?" ~ "habitats directive*?",
+                               search.term ==  "special areas of conservation*?" ~ "habitats directive*?",
+                               search.term ==  "special protection area*?" ~ "birds directive*?",
+                               search.term ==  "marine protected area*?" ~ "ospar*?",
                                TRUE ~ search.term ))
 unique(xz$new.title)
 
@@ -252,6 +398,16 @@ y%>%
   group_by(new.title)%>%
   mutate(sum = sum(prop))
 
+dup <- 
+  xz %>%
+  group_by(CELEX,new.title) %>%
+  filter(cluster.prop == max(cluster.prop)) %>%
+  distinct(new.title,component,CELEX)%>%
+  filter(new.title =="barcelona convention*?") %>%
+  ungroup()
+
+which(duplicated(dup$CELEX))
+
 y%>%
   filter(new.title =="habitats directive*?") %>%
   ungroup() %>%
@@ -280,7 +436,6 @@ y%>%
   ungroup() %>%
   group_by(new.title)%>%
   mutate(sum = sum(prop))
-
 
 dup <- 
   xz %>%
@@ -319,4 +474,87 @@ y%>%
   kable(.,"latex")
 
   
-  
+### GLMs -----------------------  
+
+# need the citation netwrok stats DF: 
+Q2C2.netstats <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.networkdata.csv")
+
+Q2C2.netstats <-
+  Q2C2.netstats %>%
+  rename("cit.component" = "component")
+
+Q2glm.df <-
+  Q2.cluster.profiles2 %>%
+  rename("cluster" = "component") %>%
+  left_join(., Q2C2.netstats, by = c("CELEX" = "name"))
+
+write.csv(Q2glm.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmdf.csv", row.names=FALSE)
+
+# what the df looks like for ref: 
+head(glm.df)
+#   Cluster CELEX      pulled.from cluster.prop degree.in degree.out betweenness cit.component
+#         1 32008L0056 both               0.333        22         38   0.00188               1
+#         1 32011L0092 both               1             6          4   0.0000837             1
+#         1 31999D0801 both               0.167         5          4   0.0000934             1
+#         1 32009D0089 both               0.2           1          4   0                     1
+#         1 32002D1600 both               0.5          16         26   0.00227               1
+#         1 32000D0340 both               0.167         2          6   0                     1
+
+Q2glmwide <- 
+  Q2glm.df %>% 
+  pivot_wider(names_from = cluster, values_from = cluster.prop , values_fill = 0)
+
+write.csv(Q2glmwide, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmwide.csv", row.names=FALSE)
+
+# Glm for between vs cluster prevalence one for each cluster
+  #   (response) vs (term)
+
+library("MASS")
+
+# Cluster 1 GLM:
+cluster1.model <-
+  glm.df %>%
+  filter(cluster == 1) %>%
+  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
+
+# plot
+plot(cluster1.model)
+
+# Cluster 2 GLM:
+cluster2.model <-
+  glm.df %>%
+  filter(cluster == 2) %>%
+  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
+
+# plot
+plot(cluster2.model)
+
+# Cluster 3 GLM:
+cluster3.model <-
+  glm.df %>%
+  filter(cluster == 3) %>%
+  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
+
+# plot
+plot(cluster3.model)
+
+# Cluster 4 GLM:
+cluster4.model <-
+  glm.df %>%
+  filter(cluster == 4) %>%
+  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
+
+# plot
+plot(cluster4.model)
+
+# Cluster 5 GLM:
+cluster5.model <-
+  glm.df %>%
+  filter(cluster == 5) %>%
+  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
+
+# plot
+plot(cluster5.model)
+
+
+
