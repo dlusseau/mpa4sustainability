@@ -481,7 +481,7 @@ Clus.1.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#1B9E77")+
-  ggtitle("Cluster 1: Environmental protection & EU programme") +
+  ggtitle("Cluster 1: Environmental protection & EU programme (n = 241)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.1.PLOT.Q1
@@ -502,7 +502,7 @@ Clus.2.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "black")+
-  ggtitle("Cluster 2: ") +
+  ggtitle("Cluster 2 (n* = 1)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.2.PLOT.Q1
@@ -523,7 +523,7 @@ Clus.3.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#D95F02")+
-  ggtitle("Cluster 3: Fisheries sustainable development") +
+  ggtitle("Cluster 3: Fisheries sustainable development (n = 280)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.3.PLOT.Q1
@@ -545,7 +545,7 @@ Clus.4.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#7570B3")+
-  ggtitle("Cluster 4: Health/market standards and controls") +
+  ggtitle("Cluster 4: Health/market standards and controls (n = 285)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 #
 #Clus.4.PLOT.Q1
@@ -566,7 +566,7 @@ Clus.5.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#E7298A")+
-  ggtitle("Cluster 5: Economic and social development") +
+  ggtitle("Cluster 5: Economic and social development (n = 71)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.5.PLOT.Q1
@@ -587,7 +587,7 @@ Clus.6.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#66A61E")+
-  ggtitle("Cluster 6: Information and data") +
+  ggtitle("Cluster 6: Information and data (n = 186)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.6.PLOT.Q1
@@ -608,7 +608,7 @@ Clus.7.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#E6AB02")+
-  ggtitle("Cluster 7: Administrative services, support and transparency ") +
+  ggtitle("Cluster 7: Administrative services, \n support and transparency (n = 94)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.7.PLOT.Q1
@@ -630,7 +630,7 @@ Clus.8.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#A6761D")+
-  ggtitle("Cluster 8: EU competativness and economics") +
+  ggtitle("Cluster 8: EU competativness and economics (n* = 67)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.8.PLOT.Q1
@@ -651,7 +651,7 @@ Clus.9.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "black")+
-  ggtitle("Cluster 9: Limited and small companies/markets") +
+  ggtitle("Cluster 9: Limited and small companies/markets (n* = 5)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.9.PLOT.Q1
@@ -673,7 +673,7 @@ Clus.10.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "black")+
-  ggtitle("Cluster 10") +
+  ggtitle("Cluster 10 (n* = 3)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.10.PLOT.Q1
@@ -694,7 +694,7 @@ Clus.11.PLOT.Q1 <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#666666")+
-  ggtitle("Cluster 11: Mutual recognition principle and Admin. cooperation") +
+  ggtitle("Cluster 11: Mutual recognition principle and Admin. cooperation (n* = 22)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.11.PLOT.Q1
@@ -1173,7 +1173,7 @@ Clus.1.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#E6AB02")+
-  ggtitle("Cluster 1: EU harmonization of Environmental protections and information exchange") +
+  ggtitle("Cluster 1: EU harmonization of Environmental protections \n and information exchange (n = 522)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.1.PLOT
@@ -1199,7 +1199,7 @@ Clus.2.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#E41A1C")+
-  ggtitle("Cluster 2: EU and member state sustainable development programmes") +
+  ggtitle("Cluster 2: EU and member state \n sustainable development programmes (n = 505)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.2.PLOT
@@ -1226,7 +1226,7 @@ Clus.3.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "Black")+
-  ggtitle("Cluster 3: water resources") +
+  ggtitle("Cluster 3: water resources (n = 1)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.3.PLOT
@@ -1243,7 +1243,7 @@ Clus.4.PLOT <-
                                      "Cluster 7","Cluster 8","Cluster 9",
                                      "Cluster 10", "Cluster 11", "Cluster 12",
                                      "Cluster 13", "Cluster 14")))  %>%
-  filter(V22 == "Cluster 4:") %>%
+  filter(V22 == "Cluster 4") %>%
   ggplot(., aes( label = labels, 
                  size = degree,
                  color = V22)) +
@@ -1251,7 +1251,7 @@ Clus.4.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#666666")+
-  ggtitle("Cluster 4: Power of the institutions") +
+  ggtitle("Cluster 4: Power of the institutions (n* = 11)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.4.PLOT
@@ -1277,7 +1277,7 @@ Clus.5.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#D95F02")+
-  ggtitle("Cluster 5: EU Budget") +
+  ggtitle("Cluster 5: EU Budget (n* = 13)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.5.PLOT
@@ -1303,7 +1303,7 @@ Clus.6.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#377EB8")+
-  ggtitle("Cluster 6: Agriculture") +
+  ggtitle("Cluster 6: Agriculture (n* = 11)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.6.PLOT
@@ -1329,7 +1329,7 @@ Clus.7.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#E7298A")+
-  ggtitle("Cluster 7: Health/market standards and controls") +
+  ggtitle("Cluster 7: Health/market standards and controls (n = 443)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.7.PLOT
@@ -1356,7 +1356,7 @@ Clus.8.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#66A61E")+
-  ggtitle("Cluster 8: EU cooperation and data") +
+  ggtitle("Cluster 8: EU cooperation and data (n = 220)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.8.PLOT
@@ -1381,7 +1381,7 @@ Clus.9.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#7570B3")+
-  ggtitle("Cluster 9: Eu competitiveness and financing") +
+  ggtitle("Cluster 9: Eu competitiveness and financing (n = 152)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.9.PLOT
@@ -1408,7 +1408,7 @@ Clus.10.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#1B9E77")+
-  ggtitle("Cluster 10: Single markets") +
+  ggtitle("Cluster 10: Single markets (n = 164)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.10.PLOT
@@ -1435,7 +1435,7 @@ Clus.11.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "#A6761D")+
-  ggtitle("Cluster 11: Technical standards and regulations") +
+  ggtitle("Cluster 11: Technical standards and regulations (n* = 52)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.11.PLOT
@@ -1460,7 +1460,7 @@ Clus.12.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "Black")+
-  ggtitle("Cluster 12: Alcohol") +
+  ggtitle("Cluster 12: Alcohol (n* = 3)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.12.PLOT
@@ -1485,7 +1485,7 @@ Clus.13.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "Black")+
-  ggtitle("Cluster 13: Chemistry") +
+  ggtitle("Cluster 13: Chemistry (n* = 3)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.13.PLOT
@@ -1511,7 +1511,7 @@ Clus.14.PLOT <-
   scale_size_area(max_size = 15) +
   theme_minimal() +
   scale_color_manual(values = "Black")+
-  ggtitle("Cluster 14 ") +
+  ggtitle("Cluster 14 (n = 14)") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
 #Clus.14.PLOT
@@ -1521,7 +1521,7 @@ big.clsuplot1 <-
 (Clus.4.PLOT + Clus.5.PLOT + Clus.6.PLOT)
 
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2C2.termclusters.pt1.png",
-       width = 37, height = 24,
+       width = 37, height = 20,
        limitsize = FALSE)
 
 big.clsuplot2 <-
@@ -1530,7 +1530,7 @@ big.clsuplot2 <-
   (Clus.13.PLOT + Clus.14.PLOT)
 
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2C2.termclusters.pt2.png",
-       width = 40, height = 31,
+       width = 40, height = 20,
        limitsize = FALSE)
 
 
