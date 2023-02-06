@@ -618,11 +618,21 @@ n_distinct(Order1.docsdescript$CELEX)
 n_distinct(Order2.docsdescript$CELEX)
 # 1049 --> all good :)
 
+#but not counting the networks that dont have labels:
+Order2.docsdescript %>% drop_na(labels) %>%
+  summarise(n_distinct(CELEX))
+# 1040
+
 #how many labels?
 n_distinct(Order1.docsdescript$labels)
 #678
 n_distinct(Order2.docsdescript$labels)
 #1482
+
+#but not counting the networks that dont have labels:
+Order2.docsdescript %>% drop_na(labels) %>%
+  summarise(n_distinct(labels))
+# 1481
 
 
 Order1.label.pairs <- 
