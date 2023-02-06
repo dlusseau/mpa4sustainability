@@ -9,6 +9,7 @@ Sys.setenv(LANG = "en") # change the language to english
 library("dplyr")
 library("tidyr")
 library("knitr")
+library("glmmTMB")
 
 # Load data ---------------------------------------------------------------
 
@@ -152,29 +153,48 @@ Q1.cluster.profiles2 %>%
 675-122-273
 #280 docs are between .5-.99
 
+
+### betweenness association to cluster prevalence -----------------------  
+
 # need the citation netwrok stats DF: 
-Q1C2.netstats <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.networkdata.csv")
+#Q1C2.netstats <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.networkdata.csv")
 
-Q1C2.netstats <-
-  Q1C2.netstats %>%
-  rename("cit.component" = "component")
+#Q1C2.netstats <-
+#  Q1C2.netstats %>%
+#  rename("cit.component" = "component")
 
-Q1.glm.df <-
-  Q1.cluster.profiles2 %>%
-  rename("cluster" = "component") %>%
-  left_join(., Q1C2.netstats, by = c("CELEX" = "name"))
+#Q1.clus.df <-
+ # Q1.cluster.profiles2 %>%
+ # rename("cluster" = "component") %>%
+ # left_join(., Q1C2.netstats, by = c("CELEX" = "name"))
+
+#write.csv(Q1.clus.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q1C2clus.df.csv", row.names=FALSE)
 
 
-Q1.glmwide <- 
-  Q1.glm.df %>% 
-  pivot_wider(names_from = cluster, values_from = cluster.prop , values_fill = 0)
-
-write.csv(glmwide, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmwide.csv", row.names=FALSE)
-
-write.csv(glm.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmdf.csv", row.names=FALSE)
+Q1.clus.df <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q1C2clus.df.csv")
 
 # what the df looks like for ref: 
-head(glm.df)
+head(Q1.clus.df)
+
+
+# betweenness association to cluster prevalence -------- 
+
+Q1.clus.df$cluster.f<-factor(Q1.clus.df$cluster)
+
+Q1.clus.df %>%
+  group_by(cluster.f) %>%
+  count(n_distinct(CELEX))
+
+glm0<-glmmTMB(betweenness~cluster.f,data=Q1.clus.df,family="tweedie")
+#1: In fitTMB(TMBStruc) :
+#  Model convergence problem; extreme or very small eigenvalues detected. See vignette('troubleshooting')
+#2: In fitTMB(TMBStruc) :
+#  Model convergence problem; singular convergence (7). See vignette('troubleshooting')
+
+glm0<-glmmTMB(betweenness~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="10"&cluster.f!="5"),family="tweedie") #the disconnected clusters
+#glm0b<-glmmTMB(betweenness~cluster.f,offset=cluster.prop,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the disconnected clusters
+
+
 #----------- Query 2 --------------------
 
 #remove unnec. columns for this 
@@ -474,87 +494,94 @@ y%>%
   kable(.,"latex")
 
   
-### GLMs -----------------------  
+### GLMM -----------------------  
 
 # need the citation netwrok stats DF: 
-Q2C2.netstats <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.networkdata.csv")
+#Q2C2.netstats <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.networkdata.csv")
 
-Q2C2.netstats <-
-  Q2C2.netstats %>%
-  rename("cit.component" = "component")
+#Q2C2.netstats <-
+#  Q2C2.netstats %>%
+ # rename("cit.component" = "component")
 
-Q2glm.df <-
-  Q2.cluster.profiles2 %>%
-  rename("cluster" = "component") %>%
-  left_join(., Q2C2.netstats, by = c("CELEX" = "name"))
+#Q2.clus.df <-
+#  Q2.cluster.profiles2 %>%
+#  rename("cluster" = "component") %>%
+#  left_join(., Q2C2.netstats, by = c("CELEX" = "name"))
 
-write.csv(Q2glm.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmdf.csv", row.names=FALSE)
+# write.csv(Q2.clus.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2clus.df.csv", row.names=FALSE)
+Q2.clus.df <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2clus.df.csv")
 
 # what the df looks like for ref: 
-head(glm.df)
-#   Cluster CELEX      pulled.from cluster.prop degree.in degree.out betweenness cit.component
-#         1 32008L0056 both               0.333        22         38   0.00188               1
-#         1 32011L0092 both               1             6          4   0.0000837             1
-#         1 31999D0801 both               0.167         5          4   0.0000934             1
-#         1 32009D0089 both               0.2           1          4   0                     1
-#         1 32002D1600 both               0.5          16         26   0.00227               1
-#         1 32000D0340 both               0.167         2          6   0                     1
-
-Q2glmwide <- 
-  Q2glm.df %>% 
-  pivot_wider(names_from = cluster, values_from = cluster.prop , values_fill = 0)
-
-write.csv(Q2glmwide, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/11.Q2C2.glmwide.csv", row.names=FALSE)
-
-# Glm for between vs cluster prevalence one for each cluster
-  #   (response) vs (term)
-
-library("MASS")
-
-# Cluster 1 GLM:
-cluster1.model <-
-  glm.df %>%
-  filter(cluster == 1) %>%
-  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
-
-# plot
-plot(cluster1.model)
-
-# Cluster 2 GLM:
-cluster2.model <-
-  glm.df %>%
-  filter(cluster == 2) %>%
-  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
-
-# plot
-plot(cluster2.model)
-
-# Cluster 3 GLM:
-cluster3.model <-
-  glm.df %>%
-  filter(cluster == 3) %>%
-  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
-
-# plot
-plot(cluster3.model)
-
-# Cluster 4 GLM:
-cluster4.model <-
-  glm.df %>%
-  filter(cluster == 4) %>%
-  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
-
-# plot
-plot(cluster4.model)
-
-# Cluster 5 GLM:
-cluster5.model <-
-  glm.df %>%
-  filter(cluster == 5) %>%
-  glm(betweenness ~ cluster.prop, data =., family = gaussian() )
-
-# plot
-plot(cluster5.model)
+head(Q2.clus.df)
 
 
+
+# betweenness association to cluster prevalence -------- 
+
+Q2.clus.df$cluster.f<-factor(Q2.clus.df$cluster)
+
+Q2.clus.df %>%
+  group_by(cluster.f) %>%
+  count(n_distinct(CELEX))
+
+glm1<-glm(betweenness~cluster.prop,data=subset(Q2.clus.df,cluster==1))
+glm0<-glm(betweenness~cluster.f,data=Q2.clus.df)
+
+glm0<-glmmTMB(betweenness~cluster.f,data=Q2.clus.df,family="tweedie")
+#1: In fitTMB(TMBStruc) :
+#  Model convergence problem; extreme or very small eigenvalues detected. See vignette('troubleshooting')
+#2: In fitTMB(TMBStruc) :
+#  Model convergence problem; singular convergence (7). See vignette('troubleshooting')
+
+#glm0<-glmmTMB(betweenness~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the disconnected clusters
+#glm0b<-glmmTMB(betweenness~cluster.f,offset=cluster.prop,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the disconnected clusters
+
+#cluster 5 has higher betweenness on average, offset does very little
+library(DHARMa)
+res0<-simulateResiduals(glm0)
+plot(res0)
+
+res0b<-simulateResiduals(glm0b)
+plot(res0b)
+
+library(ggeffects)
+pred0<-ggpredict(glm0,terms=c("cluster.f"))
+plot(pred0)
+
+pred0b<-ggpredict(glm0b,terms=c("cluster.f"))
+plot(pred0b)
+
+
+# degree.out to cluster prevalence -------- 
+
+
+glmd<-glmmTMB(degree.out~cluster.f,data=subset(clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2") 
+glmdb<-glmmTMB(degree.out~cluster.f,ziformula=~1,data=subset(clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2")
+AIC(glmdb,glmd)
+resd<-simulateResiduals(glmdb)
+plot(resd)
+
+predd<-ggpredict(glmdb,terms=c("cluster.f"))
+plot(predd)
+#cluster 5 has higher degree out
+
+# degree.in to cluster prevalence -------- 
+
+# need to fix later
+
+
+# degree ratio to cluster prevalence -------- 
+
+clus.df$deg.ratio<-clus.df$degree.out/clus.df$degree.in
+clus.df$deg.ratio[clus.df$deg.ratio==Inf]<-0
+
+glmdoi<-glmmTMB(deg.ratio~cluster.f,data=subset(clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the disconnected clusters
+resdoi<-simulateResiduals(glmdoib)
+plot(resdoi)
+
+preddoi<-ggpredict(glmdoi,terms=c("cluster.f"))
+plot(preddoi)
+
+
+## TO do or not to do the wide format?
 
