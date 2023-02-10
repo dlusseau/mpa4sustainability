@@ -55,16 +55,6 @@ directive.titles$titles<-test
 
 write.csv(directive.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
        
-# -------------
-#directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv")
-
-#directive.titles <-
-#  directive.titles %>%
-#  select(-X) %>% 
- # mutate(title.code =  str_extract(titles, "[:digit:]+/[:digit:]+/[:alpha:]+"))
-
-
-# ok this is taking FOREVER AND WORSE THAN BEFORE RUNNING THE DIRECTIVES... trying somthing new     
 # --- Decisions --- #
 
 decision.titles <- 
@@ -345,7 +335,7 @@ decision.titles1.16727.48008$titles<-dec.test
 
 write.csv(decision.titles1.16727.48008, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.16727.48008.csv") 
 
-# let combine the four directives part ----
+# let combine the four decision parts ----
 
 dec.1 <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles1.4725.csv")
 dec.2 <- read.csv("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/TESTEurLexKey.decision.titles.4725.8725.csv")
@@ -366,7 +356,7 @@ write.csv(Eurlexkey.decision.titles1, file = "C:/Users/aeljor/OneDrive - Danmark
 
 # --- Regulation --- #
 
-# ok the harvard database has up to 2019 so lets extract 2020-2022
+# ok the harvard database has up to 2019 so we will only extract 2020-2022 and then combine the hardvad dataset later
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0EGYWY 
 
