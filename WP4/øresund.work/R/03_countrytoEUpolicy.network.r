@@ -18,9 +18,6 @@ library("ggwordcloud")
 library("patchwork")
 library("kableExtra")
 
-# Define functions -------------------------------------------------------------
-
-# No defined function for this script
 
 # Load data --------------------------------------------------------------------
 
@@ -139,7 +136,7 @@ legend(x=-1.2,y=-1.025, c("31992L0043: Protecting Europe’s biodiversity (Natur
 
 dev.off()
 
-# network stats ------------------------------------------------------
+# modules ------------------------------------------------------
 
 library("bipartite")
 
@@ -155,57 +152,6 @@ DKEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Un
 plotModuleWeb(DKEU.modules)
 listModuleInformation(DKEU.modules)
 printoutModuleInformation(DKEU.modules) # total 18 modules
-
-indices <- c( "degree","PDI","nestedrank")
-
-DKEU.CELEX.networkstats <- 
-  specieslevel(DKEU.matrix, index=indices, level = "lower",
-               nested.weighted=FALSE,  PDI.normalise=TRUE,
-               nested.method="NODF", 
-               nested.normalised=TRUE)
-
-summary(DKEU.CELEX.networkstats)
-# Min.   : 1.000   Min.   :0.00   Min.   :0.6143  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9952  
-#Median : 1.000   Median :0.50   Median :1.0000  
-#Mean   : 2.498   Mean   :0.50   Mean   :0.9929  
-#3rd Qu.: 2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :82.000   Max.   :1.00   Max.   :1.0000  
-
-DKEU.CELEX.networkstats %>%
-  slice_max(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
-#            degree nestedrank PDI
-#32009L0119      1          1   1 # most specialized
-
-DKEU.CELEX.networkstats %>%
-  slice_max(., order_by = PDI, n=3) # specalist
-
-DKEU.CELEX.networkstats %>%
-  slice_min(., order_by = nestedrank, n=3) %>%
-  kable(., "latex")
-#            degree  nestedrank       PDI # most generalized
-#31992L0043     82          0 0.6142857
-
-
-DKEU.CELEX.networkstats %>%
-  slice_min(., order_by = PDI, n=3)
-# 31992L0043     82          0 0.6142857
-
-
-DKEU.COUNTRY.networkstats <- 
-  specieslevel(DKEU.matrix, index=indices, level = "higher",
-               nested.weighted=FALSE,  PDI.normalise=TRUE,
-               nested.method="NODF", 
-               nested.normalised=TRUE)
-
-summary(DKEU.COUNTRY.networkstats)       
-# Min.   : 1.000   Min.   :0.00   Min.   :0.9174  
-#1st Qu.: 1.500   1st Qu.:0.25   1st Qu.:0.9917  
-#Median : 2.000   Median :0.50   Median :0.9959  
-#Mean   : 2.877   Mean   :0.50   Mean   :0.9922  
-#3rd Qu.: 3.000   3rd Qu.:0.75   3rd Qu.:0.9979  
-#Max.   :21.000   Max.   :1.00   Max.   :1.0000 
 
 ################################################################################
 ###########################        SWEDEN          #############################
@@ -278,7 +224,7 @@ plot(seeu.network,
      layout = l.se)
 #labels are those EU docs that are >= the 95% percentile for the degree number
 
-# network stats ------------------------------------------------------
+# modules ------------------------------------------------------
 
 library("bipartite")
 
@@ -293,65 +239,6 @@ SEEU.matrix <-
 SEEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEEU.modules.RDS")
 plotModuleWeb(SEEU.modules)
 printoutModuleInformation(SEEU.modules) # total 22 modules
-
-indices <- c( "degree","PDI","nestedrank")
-
-SEEU.CELEX.networkstats <- 
-  specieslevel(SEEU.matrix, index=  indices, level = "lower",
-               nested.weighted=FALSE,  PDI.normalise=TRUE,
-               nested.method="NODF", 
-               nested.normalised=TRUE)
-
-summary(SEEU.CELEX.networkstats)
-#Min.   : 1.000   Min.   :0.00   Min.   :0.9011  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:1.0000  
-#Median : 1.000   Median :0.50   Median :1.0000  
-#Mean   : 1.561   Mean   :0.50   Mean   :0.9938  
-#3rd Qu.: 1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :10.000   Max.   :1.00   Max.   :1.0000 
-
-SEEU.CELEX.networkstats %>%
-  slice_max(., order_by = nestedrank, n=3)%>%
-     kable(., "latex")
-#              degree nestedrank PDI
-# 32014L0052 & 1 & 1.0000000 & 1\\
-#32010L0075 & 1 & 0.9966667 & 1\\
-#32006L0021 & 1 & 0.9933333 & 1\\# most specialized
-
-SEEU.CELEX.networkstats %>%
-  slice_max(., order_by = PDI, n=1) # specalist
-
-SEEU.CELEX.networkstats %>%
-  slice_min(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
-#            degree  nestedrank       PDI # most generalized
-#32016R0679 & 10 & 0.0000000 & 0.9010989\\
-#31976L0769 & 8 & 0.0033333 & 0.9230769\\
-#31991L0155 & 8 & 0.0066667 & 0.9230769\\
-
-SEEU.CELEX.networkstats %>%
-  slice_min(., order_by = PDI, n=3)
-# 32016R0679     10 0.000000000 0.9010989
-# 31976L0769      8 0.003333333 0.9230769
-#31991L0155      8 0.006666667 0.9230769
-#31993L0067      8 0.010000000 0.9230769
-#31993L0105      8 0.013333333 0.9230769
-#32000L0021      8 0.016666667 0.9230769
-
-
-SEEU.COUNTRY.networkstats <- 
-  specieslevel(SEEU.matrix, index=  indices, level = "higher",
-               nested.weighted=FALSE,  PDI.normalise=TRUE,
-               nested.method="NODF", 
-               nested.normalised=TRUE)
-
-summary(SEEU.COUNTRY.networkstats)
-#  Min.   : 1.000   Min.   :0.00   Min.   :0.9033  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9825  
-#Median : 2.000   Median :0.50   Median :0.9967  
-#Mean   : 5.109   Mean   :0.50   Mean   :0.9863  
-#3rd Qu.: 6.250   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :30.000   Max.   :1.00   Max.   :1.0000  
 
 ## plot them side-by-side for the report -----------------
 
