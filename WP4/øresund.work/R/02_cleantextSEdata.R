@@ -18,10 +18,6 @@ library("tidyverse")
 library("readxl")
 library("dplyr")
 
-# Define functions -------------------------------------------------------------
-
-# No defined function for this script
-
 # Load data --------------------------------------------------------------------
 
 # list of result text
@@ -87,13 +83,7 @@ n_distinct(SEtext.dk$doc.id) # 223
 n_distinct(SEmeta.dk$id)
 # unique ids there are 223 documents
 
-#looking for the other forms of hunting and fishing 
-#fisheries (commercial, recreational and spear fishing) : fiske (yrkesfiske, fritidsfiske, harpunfiske). 
-# You could possibly also look for “husbehovsfiske” or “fiske för husbehov” (approx. subsidiary fishing).
-#hunting (along with bird and seal hunting): jakt, fågeljakt/sjöfågeljakt, säljakt
-#and maritime traffic: sjöfart (general term, name of the sector), båttrafik (boating), småbåtstrafik (small private vessels), fritidsbåtstrafik (recreational vessels), fartygstrafik (large vessels), 
-#Routes: farled (general term), fartygsled/sjöfartsled/transportled (routes for larger vessels), farled/båtled (route for smaller vessels)
-
+#looking for the other forms of related words in the texts
 SEtext.dk1 <-
   SEtext.dk %>%
   mutate(harpun = case_when(search.term == "fiske" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
@@ -183,11 +173,6 @@ SEtext.dk1 %>%
 
 # Getting Eurlex links ---------------------------------------------------------
 
-#https://eur-lex.europa.eu/content/help/eurlex-content/numbering-of-acts.html 
-# they do put habitatdirektiv and fågeldirektiv ramdirektiv för vatten
-# maybe they sight others
-
-
 # Example of how directives could be cited: 
 # Utredaren ska även föreslå de författningsändringar som krävs för att säkerställa att kraven i artikel 6.2 och 6.3 i 
 # rådets direktiv 92/43/EEG av den 21 maj 1992 om bevarande av livsmiljöer samt vilda djur och växter (art- och habitatdirektivet) tillämpas fullt ut på fiske i enlighet med Sveriges EU-rättsliga åtaganden.
@@ -269,7 +254,7 @@ document.dir.key.df1 <-
   select(work,celex)
 
 
-
+# directives: title key from another r script:
 directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
 
 
@@ -300,9 +285,9 @@ EU.links4 <-
   rename(celex.dir = celex)
 
 
+# decisions: title key from another r script:
 
 decision.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv") 
-
 
 decision.titles.cut <-
   decision.titles %>%
@@ -328,6 +313,7 @@ EU.links5 <-
   rename(celex.dec = celex)%>%
   mutate(celex.dir = as.character(celex.dir))
 
+# reccomendations: : title key from another r script:
 
 reccomendation.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.reccomendations.titles.csv") 
 
@@ -364,7 +350,7 @@ EU.links6 <-
   left_join(., reccomendation.titles1, by = c("type", "code")) %>%
   rename(celex.rec = celex)
 
-#load the data from Harvard that has all Eurlex infor up until 2019
+#load the data from Harvard that has all Eurlex info up until 2019
 regulation.titles <-  read_excel("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/EurLex_regulations_no_text_all.xlsx") 
 #load the years that are not in harvard data
 regulation.titles.yr2020.2022 <- 
