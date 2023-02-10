@@ -152,8 +152,8 @@ library(igraph)
 library(bipartite)
 
 ############################################
-#### DK - EU first , chaning the order to make sure it is an information flow network
-
+#### DK - EU first --------------
+#  chaning the order to make sure it is an information flow network 
 DKEU<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/dkeu.networkigraph.rds")
 
 dkeu.edge<-as.data.frame(get.edgelist(DKEU))
@@ -242,7 +242,8 @@ EUstats %>%
   kable(., "latex")
 
 ############################################
-#### SE - EU  , chaning the order to make sure it is an information flow network
+#### SE - EU  --------------------------------
+# chaning the order to make sure it is an information flow network
 
 SEEU<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/seeu.networkigraph.rds")
 
@@ -312,9 +313,7 @@ SEstats$betweenness[sort(SEstats$betweenness,decreasing=TRUE,index=TRUE)$ix][1:3
 #corresponding values  0.13578202 0.09790169 0.07481312
 
 
-
-
-
+# latex tables ------------
 EUstats %>%
   select(name,degree,betweenness) %>%
   rownames_to_column(., var = "delete") %>%
