@@ -13,10 +13,6 @@ library("corpus")
 library("stringr")
 library("dplyr")
 
-# Define functions -------------------------------------------------------------
-
-# No defined function for this script
-
 # Load data --------------------------------------------------------------------
 
 setwd("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
@@ -73,7 +69,6 @@ str(DK.text.df2)
 # it has two rows since it appears in both the fiskeri and jagt search queries so 1365 obs. is correct
 
 #looking for the other forms of hunting and fishing (fulglejagt, sæljagt, harpunfiskeri)
-
 DK.text.df3 <-
   DK.text.df2 %>%
     mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
@@ -222,8 +217,9 @@ write.csv(DK.EU.links2, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Uni
 
 
 # Cleaning Pre-processing the text data --------------------------------------
+# This part is unrelated to our Manuscript but was preformed because we might use it later for further investigation
 gc()
-# this is taking wayyyyy to long than it ever did before???? trying it again on oct 14th
+# this is taking wayyyyy to long than it ever did before...trying it again later another day when there is time
 # cleaning and pre-processing text data 
 DKtext.df.clean <-
   DK.text.df3 %>%
@@ -256,78 +252,3 @@ DKtext.df.clean1 <-
 # Save -------
 
 write.csv(DKtext.df.clean1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKtext.clean.csv", row.names=FALSE)
-
-# Archival for making it into a stm corpus will probably need to do later ------------ 
-
-# lets mak it into the good df format
-#DKtext.df <- 
-#  DKtext.df.clean1 %>%
-#  as.data.frame(.) %>% 
-#  select(ID,search.term,country,text) %>%
-#  mutate(search.term = as.factor(search.term),
-#         doc_id = as.factor(ID),
-#         country = as.factor(country)) %>%
-#  select(doc_id,text,search.term,country)
-
-# lets make it into a corpus object (tm package)
-mar.protected.corpus <- DataframeSource(mar.protected.text.df.clean)
-mar.protected.corpus <- SimpleCorpus(mar.protected.corpus, control = list(language = "da"))
-
-mar.protected.corpus <- corpus(mar.protected.corpus) #should convert it to quanteda package formate since it is the only type I could get a successful conversion to stm
-meta(mar.protected.corpus)
-docvars(mar.protected.corpus)
-ndoc(mar.protected.corpus)
-
-mar.protected.dfm <- dfm(tokens(mar.protected.corpus)) # Create a document feature matrix
-Q1.textprocessed <- convert(mar.protected.dfm, to="stm") # convert dfm to stm format corpus
-
-docs  <- Q1.textprocessed$documents
-vocab <- Q1.textprocessed$vocab
-meta  <- Q1.textprocessed$meta
-
-Q1.out <- prepDocuments(docs, vocab, meta)
-
-
-# lets make it into a corpus object
-DK.corpus <- DataframeSource(DKtext.df.clean)
-DK.corpus <- SimpleCorpus(DK.corpus, control = list(language = "da"))
-
-
-# OK so now we have a cleaned corpus: 
-
-# convert corpus to a document-term matrix
-# document term matrix: lists word occurances within a document 
-dtm <- DocumentTermMatrix(DK.corpus)
-inspect(dtm)
-#<<DocumentTermMatrix (documents: 20, terms: 3531)>>
-#Non-/sparse entries: 9183/61437
-#Sparsity           : 87%
-#Maximal term length: 66
-#Weighting          : term frequency (tf)
-#Sample             :
-  
-# remove sparse terms.. those that occur in only a few documents
-inspect(removeSparseTerms(dtm, 0.40))
-# so for this terms that have at least a 40 sparse are removed.
-# the larger the value the smaller the sparity 
-# so sparity = .99, means terms within 1% of the data are kept.
-# if sparity = .3, means terms within 70% of the data are kept.
-
-
-# for our data the sparity is kinda high: 87% of the cells are zero!
-# So we should remove terms that have low frequencies: 
-# so those terms that are only in 30% of the data lets remove them: 
-inspect(removeSparseTerms(dtm, 0.70))
-
-# I assume since we are dealing with gov't documents there is a very distinct writing style,
-# thus we should remove terms that appear in almost every document...
-inspect(removeSparseTerms(dtm, 0.90))
-
-
-# convert corpus to a term-document matrix
-# document term matrix: lists word occurances within a document 
-tdm <- TermDocumentMatrix(DK.corpus)
-inspect(tdm)
-
-
-
