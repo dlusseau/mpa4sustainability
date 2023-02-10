@@ -10,6 +10,14 @@ library("dplyr")
 library("tidyr")
 library("knitr")
 library("glmmTMB")
+library("cars")
+library("ggeffects")
+library("ggplot2")
+library("DHARMa")
+library("ggeffects")
+library("forcats")
+library("car")
+library("patchwork")
 
 # Load data ---------------------------------------------------------------
 
@@ -181,26 +189,62 @@ head(Q1.clus.df)
 
 Q1.clus.df$cluster.f<-factor(Q1.clus.df$cluster)
 
-Q1.clus.df %>%
-  group_by(cluster.f) %>%
-  count(n_distinct(CELEX))
-
 glm0<-glmmTMB(betweenness~cluster.f,data=Q1.clus.df,family="tweedie")
 #1: In fitTMB(TMBStruc) :
 #  Model convergence problem; extreme or very small eigenvalues detected. See vignette('troubleshooting')
 #2: In fitTMB(TMBStruc) :
 #  Model convergence problem; singular convergence (7). See vignette('troubleshooting')
 
-glm0<-glmmTMB(betweenness~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="tweedie") #the disconnected clusters
+# ok seems like it is due to the issue that there a a few clusters with very very low sample sizes: 
+Q1.clus.df %>%
+  group_by(cluster.f) %>%
+  count(n_distinct(CELEX))
+# cluster.f `n_distinct(CELEX)`     n
+# 1                         672   241
+# 2                         672     1 -- Very small
+# 3                         672   280
+# 4                         672   285
+# 5                         672    71
+# 6                         672   186
+# 7                         672    94
+# 8                         672    67
+# 9                         672     5 -- Very small
+# 10                        672     3 -- Very small
+# 11                        672    22
 
-# check: 
-library(DHARMa)
+set.seed(01)
+glm0<-glmmTMB(betweenness~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="tweedie") #the small clusters
+
 res0<-simulateResiduals(glm0)
 plot(res0)
 
+Anova(glm0)
+# Analysis of Deviance Table (Type II Wald chisquare tests)
+#Response: betweenness
+#Chisq Df Pr(>Chisq)  
+#cluster.f 12.746  7    0.07856 .
 
-library(ggeffects)
-library(forcats)
+summary(glm0)
+#  Family: tweedie  ( log )
+#Formula:          betweenness ~ cluster.f
+#Data: subset(Q1.clus.df, cluster.f != "2" & cluster.f != "9" & cluster.f !=      "10")
+
+#AIC      BIC   logLik deviance df.resid 
+#-1787.2  -1736.0    903.6  -1807.2     1236 
+
+
+#Dispersion parameter for tweedie family (): 0.787 
+
+#Conditional model:
+#  Estimate Std. Error z value Pr(>|z|)    
+#(Intercept)   -9.9090     0.2767  -35.82   <2e-16 ***
+#cluster.f3     0.6103     0.3616    1.69   0.0915 .  
+#cluster.f4    -0.4304     0.3883   -1.11   0.2676    
+#cluster.f5     0.6414     0.5370    1.19   0.2323    
+#cluster.f6     0.4681     0.4025    1.16   0.2448    
+#cluster.f7     0.4691     0.4955    0.95   0.3438    
+#cluster.f8    -0.5190     0.6335   -0.82   0.4126    
+#cluster.f11  -54.0232  8811.1817   -0.01   0.9951 
 
 pred0<-ggpredict(glm0,terms=c("cluster.f"))
 plot(pred0)
@@ -209,7 +253,8 @@ mod.res.df <- as.data.frame(pred0)
 
 head(mod.res.df)
 
-mod.res.df %>%
+Q1.betweenness.plot <-
+  mod.res.df %>%
   mutate( name = factor(case_when(x == "1" ~ "Environmental protection and EU programme",
                                   x == "3" ~ "Fisheries sustainable development",
                                   x == "4" ~ "Health/market standards and controls",
@@ -232,32 +277,56 @@ mod.res.df %>%
   theme_minimal() +
   ylab("") +
   xlab("predicted betweenness") +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        text = element_text(size = 15)) +
+  ggtitle("(A) Betweenness")
 
-# degree.out to cluster prevalence -------- 
+# social and economic development has the highest betweenness
 
 
-glmd.tweedie<-glmmTMB(degree.out~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="tweedie") 
-glmd<-glmmTMB(degree.out~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2") 
-glmdb<-glmmTMB(degree.out~cluster.f,ziformula=~1,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2")
 
-resd.tweedie<-simulateResiduals(glmd)
-plot(resd.tweedie)
-resd.glmdb<-simulateResiduals(glmd)
-plot(resd.glmdb)
-resd.glmdb<-simulateResiduals(glmdb)
-plot(resd.glmdb)
-#AIC(glmdb,glmd)
-#df      AIC
-#glmdb 13 5804.548 --> lower AIC
-#glmd  12 5838.178
-resd<-simulateResiduals(glmd)
-plot(resd)
+# degree ratio to cluster prevalence -------- 
 
-predd<-ggpredict(glmdb,terms=c("cluster.f"))
-plot(predd)
 
-as.data.frame(predd) %>%
+Q1.clus.df$deg.ratio<-Q1.clus.df$degree.in/Q1.clus.df$degree.out
+Q1.clus.df$deg.ratio[Q1.clus.df$deg.ratio==Inf]<-0
+
+set.seed(01)
+glmdoi<-glmmTMB(deg.ratio~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="tweedie") #the disconnected clusters
+resdoi<-simulateResiduals(glmdoi)
+plot(resdoi)
+
+Anova(glmdoi)
+#Response: deg.ratio
+#Chisq Df Pr(>Chisq)    
+#cluster.f 29.655  7  0.0001098 ***
+
+summary(glmdoi)
+#  Family: tweedie  ( log )
+#Formula:          deg.ratio ~ cluster.f
+#Data: subset(Q1.clus.df, cluster.f != "2" & cluster.f != "9" & cluster.f !=      "10")
+
+#AIC      BIC   logLik deviance df.resid 
+#1697.2   1748.5   -838.6   1677.2     1236 
+
+#Dispersion parameter for tweedie family (): 11.6 
+
+#Conditional model:
+#  Estimate Std. Error z value Pr(>|z|)    
+#  (Intercept) -9.286e-01  2.544e-01  -3.649 0.000263 ***
+#  cluster.f3   3.468e-01  3.386e-01   1.024 0.305675    
+#  cluster.f4  -8.963e-01  3.709e-01  -2.416 0.015682 *  
+#  cluster.f5   3.015e-01  5.141e-01   0.586 0.557543    
+#  cluster.f6  -1.987e-02  3.862e-01  -0.051 0.958960    
+#  cluster.f7  -1.891e+00  6.068e-01  -3.117 0.001826 ** 
+#  cluster.f8  -1.647e+00  6.771e-01  -2.432 0.015009 *  
+#  cluster.f11 -5.551e+01  1.044e+04  -0.005 0.995757 
+preddoi<-ggpredict(glmdoi,terms=c("cluster.f"))
+plot(preddoi)
+
+
+Q1.deg.ratio.plot <-
+  as.data.frame(preddoi) %>%
   mutate( name = factor(case_when(x == "1" ~ "Environmental protection and EU programme",
                                   x == "3" ~ "Fisheries sustainable development",
                                   x == "4" ~ "Health/market standards and controls",
@@ -279,9 +348,21 @@ as.data.frame(predd) %>%
   geom_errorbar(aes(y=name, xmin=conf.low, xmax=conf.high), width=.1) +
   theme_minimal() +
   ylab("") +
-  xlab("predicted betweenness") +
-  theme(legend.position = "none")
-#cluster 5 has higher degree out
+  xlab("predicted degree ratio (in/out)") +
+  theme(legend.position = "none",
+        axis.text.y = element_blank(),
+        text = element_text(size = 15)) +
+  ggtitle("(B) Degree ratio") 
+
+# patch them together: 
+
+Q1.betweenness.plot + Q1.deg.ratio.plot
+
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q1_glmmsplot.png")
+
+
+# ================================================================================
+
 #----------- Query 2 --------------------
 
 #remove unnec. columns for this 
@@ -634,27 +715,67 @@ Q2.clus.df %>%
 #   13                       1040     3 -- Very Small
 #   14                       1040    14
 
+set.seed(01)
 #sub set the very small clusters out
-glm0<-glmmTMB(betweenness~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the disconnected clusters
+glm0<-glmmTMB(betweenness~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the small clusters
 
-# check: 
-library(DHARMa)
-res0<-simulateResiduals(glm0)
-plot(res0)
+#offset better? 
+glm0b<-glmmTMB(betweenness~cluster.f,offset=cluster.prop,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the small clusters
 
 #cluster 5 has higher betweenness on average, offset does very little
 
-library(ggeffects)
-library(forcats)
+res0<-simulateResiduals(glm0)
+plot(res0)
+
+res0b<-simulateResiduals(glm0b)
+plot(res0b)
+
+AIC(glm0,glm0b)
+#       df       AIC
+#glm0  13 -4371.127 *lower
+#glm0b 13 -4364.078 
 
 pred0<-ggpredict(glm0,terms=c("cluster.f"))
 plot(pred0)
+
+
+Anova(glm0)
+# Analysis of Deviance Table (Type II Wald chisquare tests)
+
+#Response: betweenness
+#Chisq Df Pr(>Chisq)    
+#cluster.f 29.868 10  0.0009002 ***
+
+summary(glm0)
+#  Family: tweedie  ( log )
+#Formula:          betweenness ~ cluster.f
+#Data: subset(Q2.clus.df, cluster.f != "3" & cluster.f != "12" & cluster.f !=      "13")
+
+#AIC      BIC   logLik deviance df.resid 
+#-4371.1  -4297.6   2198.6  -4397.1     2094 
+
+#Dispersion parameter for tweedie family (): 1.08 
+
+#Conditional model:
+#  Estimate Std. Error z value Pr(>|z|)    
+#  (Intercept)   -9.8561     0.1746  -56.43  < 2e-16 ***
+#  cluster.f2     0.2530     0.2448    1.03  0.30127    
+#  cluster.f4    -2.9033     1.7963   -1.62  0.10604    
+#  cluster.f5     1.7464     0.8893    1.96  0.04955 *  
+#  cluster.f6   -58.0595  6374.0990   -0.01  0.99273    
+#  cluster.f7    -0.2120     0.2619   -0.81  0.41813    
+#  cluster.f8    -0.3568     0.3321   -1.07  0.28261    
+#  cluster.f9    -1.2578     0.4221   -2.98  0.00288 ** 
+#  cluster.f10   -1.1320     0.4034   -2.81  0.00501 ** 
+#  cluster.f11    0.1486     0.5697    0.26  0.79416    
+#  cluster.f14  -61.8531  9483.3222   -0.01  0.99480
 
 mod.res.df <- as.data.frame(pred0)
 
 head(mod.res.df)
 
-mod.res.df %>%
+Q2.betweenness.plot <-
+  mod.res.df %>%
   mutate( name = factor(case_when(x == "1" ~ "EU harmonization of environmental protections and information exchange",
                            x == "2" ~ "EU & member state sustainable development programmes",
                            x == "4" ~ "Power of the institutions",
@@ -665,7 +786,65 @@ mod.res.df %>%
                            x == "9" ~ "EU competitiveness and financing",
                            x == "10" ~ "Single markets",
                            x == "11" ~ "Technical standards and regulations",
-                           x == "14" ~ "14")),
+                           x == "14" ~ "Cluster 14")),
+          levels = c("EU harmonization of environmental protections and information exchange",
+                     "EU & member state sustainable development programmes",
+                     "Power of the institutions",
+                     "EU budget",
+                     "Agriculture",
+                     "Health/market standards and controls",
+                     "EU cooperation and data",
+                     "EU competitiveness and financing",
+                     "Single markets",
+                     "Technical standards and regulations",
+                     "Cluster 14"))%>%
+  ggplot(., aes(x=predicted, y=fct_inorder(name), color=x)) +
+  geom_point() +
+  geom_errorbar(aes(y=name, xmin=conf.low, xmax=conf.high), width=.1) +
+  theme_minimal() +
+  ylab("") +
+  xlab("predicted betweenness") +
+  theme(legend.position = "none",
+        text = element_text(size = 15)) +
+  ggtitle("(A) Betweenness")
+
+
+# degree ratio to cluster prevalence -------- 
+
+Q2.clus.df$deg.ratio<-Q2.clus.df$degree.in/Q2.clus.df$degree.out
+Q2.clus.df$deg.ratio[Q2.clus.df$deg.ratio==Inf]<-0
+
+set.seed(01)
+glmdoi<-glmmTMB(deg.ratio~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the disconnected clusters
+resdoi<-simulateResiduals(glmdoi)
+plot(resdoi)
+
+
+Anova(glmdoi)
+# Analysis of Deviance Table (Type II Wald chisquare tests)
+
+#Response: deg.ratio
+#Chisq Df Pr(>Chisq)    
+#cluster.f 66.976 10  1.694e-10 ***
+
+summary(glmdoi)
+
+preddoi<-ggpredict(glmdoi,terms=c("cluster.f"))
+plot(preddoi)
+
+Q2.deg.ratio.plot <-
+  as.data.frame(preddoi)%>%
+  mutate( name = factor(case_when(x == "1" ~ "EU harmonization of environmental protections and information exchange",
+                                  x == "2" ~ "EU & member state sustainable development programmes",
+                                  x == "4" ~ "Power of the institutions",
+                                  x == "5" ~ "EU budget",
+                                  x == "6" ~ "Agriculture",
+                                  x == "7" ~ "Health/market standards and controls",
+                                  x == "8" ~ "EU cooperation and data", 
+                                  x == "9" ~ "EU competitiveness and financing",
+                                  x == "10" ~ "Single markets",
+                                  x == "11" ~ "Technical standards and regulations",
+                                  x == "14" ~ "14")),
           levels = c("EU harmonization of environmental protections and information exchange",
                      "EU & member state sustainable development programmes",
                      "Power of the institutions",
@@ -682,14 +861,92 @@ mod.res.df %>%
   geom_errorbar(aes(y=name, xmin=conf.low, xmax=conf.high), width=.1) +
   theme_minimal() +
   ylab("") +
-  xlab("predicted betweenness") +
-  theme(legend.position = "none")
+  xlab("predicted degrees ratio (in/out)") +
+  theme(legend.position = "none",
+        axis.text.y = element_blank(),
+        text = element_text(size = 15)) +
+  ggtitle("(B) Degree ratio")
 
-# degree.out to cluster prevalence -------- 
+# patch them together: 
+
+Q2.betweenness.plot + Q2.deg.ratio.plot
+  
+ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/Q2_glmmsplot.png")
 
 
+
+# Archival -----------------
+# we decided not to do these
+# degree.out to cluster prevalence 
+
+set.seed(01)
+glmd<-glmmTMB(degree.out~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2") 
+glmdb<-glmmTMB(degree.out~cluster.f,ziformula=~1,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2") # ziformula for producing a structural zero
+
+AIC(glmdb,glmd)
+#glmdb 10 2748.543 # lower AIC
+#glmd   9 2785.270
+
+resd.glmdb<-simulateResiduals(glmdb)
+plot(resd.glmdb) 
+Anova(glmdb)
+summary(glmdb)
+
+predd<-ggpredict(glmdb,terms=c("cluster.f"))
+plot(predd)
+
+Q1.deg.out.plot <-
+  as.data.frame(predd) %>%
+  mutate( name = factor(case_when(x == "1" ~ "Environmental protection and EU programme",
+                                  x == "3" ~ "Fisheries sustainable development",
+                                  x == "4" ~ "Health/market standards and controls",
+                                  x == "5" ~ "Economic and social development",
+                                  x == "6" ~ "Information and data",
+                                  x == "7" ~ "Admin. services, support, and transparency",
+                                  x == "8" ~ "EU competativeness and economics",
+                                  x == "11" ~ "Mutual recognition principle and admin. cooperation")),
+          levels = c("Environmental protection and EU programme",
+                     "Fisheries sustainable development",
+                     "Health/market standards and controls",
+                     "Economic and social development",
+                     "Information and data",
+                     "Admin. services, support, and transparency",
+                     "EU competativeness and economics",
+                     "Mutual recognition principle and admin. cooperation"))%>%
+  ggplot(., aes(x=predicted, y=fct_inorder(name), color=x)) +
+  geom_point() +
+  geom_errorbar(aes(y=name, xmin=conf.low, xmax=conf.high), width=.1) +
+  theme_minimal() +
+  ylab("") +
+  xlab("predicted degree out") +
+  theme(legend.position = "none") +
+  ggtitle("(B) Degree out")
+#economic and social development has higher degree out
+
+# degree.in to cluster prevalence
+set.seed(01)
+glmdi<-glmmTMB(degree.in~cluster.f,ziformula=~1,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2") 
+glmdib<-glmmTMB(degree.in~cluster.f,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2") 
+glmdib2<-glmmTMB(degree.in~cluster.f,offset=cluster.prop,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2") 
+glmdib<-glmmTMB(degree.in~1,data=subset(Q1.clus.df,cluster.f!="2"&cluster.f!="9"&cluster.f!="10"),family="nbinom2") 
+
+AIC(glmdib,glmdi,glmdib2)
+# glmdib   9 4922.199 # lowest
+# glmdi   10 4924.199
+# glmdib2  9 5064.740
+
+resdi<-simulateResiduals(glmdib)
+plot(resdi)
+
+hist(Q1.clus.df$degree.in,50)
+
+###we need to fix this
+
+# degree.out to cluster prevalence  
+
+set.seed(01)
 glmd<-glmmTMB(degree.out~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2") 
-glmdb<-glmmTMB(degree.out~cluster.f,ziformula=~1,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2")
+glmdb<-glmmTMB(degree.out~cluster.f,ziformula=~1,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2") # ziformula for producing a structural zero
 AIC(glmdb,glmd)
 #df      AIC
 #glmdb 13 5804.548 --> lower AIC
@@ -701,7 +958,8 @@ predd<-ggpredict(glmdb,terms=c("cluster.f"))
 plot(predd)
 #cluster 5 has higher degree out
 
-as.data.frame(predd)%>%
+Q2.deg.out.plot <-
+  as.data.frame(predd)%>%
   mutate( name = factor(case_when(x == "1" ~ "EU harmonization of environmental protections and information exchange",
                                   x == "2" ~ "EU & member state sustainable development programmes",
                                   x == "4" ~ "Power of the institutions",
@@ -712,7 +970,7 @@ as.data.frame(predd)%>%
                                   x == "9" ~ "EU competitiveness and financing",
                                   x == "10" ~ "Single markets",
                                   x == "11" ~ "Technical standards and regulations",
-                                  x == "14" ~ "14")),
+                                  x == "14" ~ "Cluster 14")),
           levels = c("EU harmonization of environmental protections and information exchange",
                      "EU & member state sustainable development programmes",
                      "Power of the institutions",
@@ -723,67 +981,39 @@ as.data.frame(predd)%>%
                      "EU competitiveness and financing",
                      "Single markets",
                      "Technical standards and regulations",
-                     "14"))%>%
+                     "Cluster 14"))%>%
   ggplot(., aes(x=predicted, y=fct_inorder(name), color=x)) +
   geom_point() +
   geom_errorbar(aes(y=name, xmin=conf.low, xmax=conf.high), width=.1) +
   theme_minimal() +
   ylab("") +
   xlab("predicted degrees out") +
-  theme(legend.position = "none")
-# degree.in to cluster prevalence -------- 
+  theme(legend.position = "none",
+        text = element_text(size = 20)) +
+  ggtitle("(B) Degree out")
 
-# need to fix later
+# degree.in to cluster prevalence 
 
-glmd<-glmmTMB(degree.out~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2") 
-glmdb<-glmmTMB(degree.out~cluster.f,ziformula=~1,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2")
-AIC(glmdb,glmd)
-#df      AIC
-#glmdb 13 5804.548 --> lower AIC
-#glmd  12 5838.178
-resd<-simulateResiduals(glmdb)
-plot(resd)
+set.seed(01)
+glmdi<-glmmTMB(degree.in~cluster.f,ziformula=~1,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2") 
+glmdib<-glmmTMB(degree.in~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2") 
+glmdib2<-glmmTMB(degree.in~cluster.f,offset=cluster.prop,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="nbinom2") 
 
-# degree ratio to cluster prevalence -------- 
+AIC(glmdib,glmdi,glmdib2)
+#        df      AIC
+#glmdib  12 8432.091
+#glmdi   13 8434.091
+#glmdib2 12 8537.601
 
-Q2.clus.df$deg.ratio<-Q2.clus.df$degree.out/Q2.clus.df$degree.in
-Q2.clus.df$deg.ratio[Q2.clus.df$deg.ratio==Inf]<-0
+glmdib<-glmmTMB(degree.in~cluster.f,data=subset(clus.df,cluster.f!="3"),family="nbinom2") #the disconnected clusters
 
-glmdoi<-glmmTMB(deg.ratio~cluster.f,data=subset(Q2.clus.df,cluster.f!="3"&cluster.f!="12"&cluster.f!="13"),family="tweedie") #the disconnected clusters
-resdoi<-simulateResiduals(glmdoi)
-plot(resdoi)
+resdi<-simulateResiduals(glmdib)
+plot(resdi)
 
-preddoi<-ggpredict(glmdoi,terms=c("cluster.f"))
-plot(preddoi)
+###we need to fix this
 
-as.data.frame(preddoi)%>%
-  mutate( name = factor(case_when(x == "1" ~ "EU harmonization of environmental protections and information exchange",
-                                  x == "2" ~ "EU & member state sustainable development programmes",
-                                  x == "4" ~ "Power of the institutions",
-                                  x == "5" ~ "EU budget",
-                                  x == "6" ~ "Agriculture",
-                                  x == "7" ~ "Health/market standards and controls",
-                                  x == "8" ~ "EU cooperation and data", 
-                                  x == "9" ~ "EU competitiveness and financing",
-                                  x == "10" ~ "Single markets",
-                                  x == "11" ~ "Technical standards and regulations",
-                                  x == "14" ~ "14")),
-          levels = c("EU harmonization of environmental protections and information exchange",
-                     "EU & member state sustainable development programmes",
-                     "Power of the institutions",
-                     "EU budget",
-                     "Agriculture",
-                     "Health/market standards and controls",
-                     "EU cooperation and data",
-                     "EU competitiveness and financing",
-                     "Single markets",
-                     "Technical standards and regulations",
-                     "14"))%>%
-  ggplot(., aes(x=predicted, y=fct_inorder(name), color=x)) +
-  geom_point() +
-  geom_errorbar(aes(y=name, xmin=conf.low, xmax=conf.high), width=.1) +
-  theme_minimal() +
-  ylab("") +
-  xlab("predicted degrees ratio (out/in)") +
-  theme(legend.position = "none")
+predd<-ggpredict(glmdib,terms=c("cluster.f"))
+plot(predd)
+
+#cluster 4 has higher degree in
 
