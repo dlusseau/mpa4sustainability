@@ -209,18 +209,6 @@ plot(network,
      edge.arrow.width=2,
      layout = l
      )
-#legend(x=-1,y=-1.075,c("2008L0056: Marine Strategy Framework Directive",
-  #                     "32013R1380: CFP, amending CRs",
- #                      "32014R0508: European Maritime and Fisheries Fund & repealing CRs",
-   #                    "52016AE4426: Opin. of the European Economic & Social Committee on ‘An integrated European Union policy for the Arctic’"),
-    #   cex=1 )
-#legend(x=-1,y=-.93,c("Both (result & citation)",
- #                    "Search result",
-#                     "Citation"), 
-#       pch=21,
-#       col="#777777", 
-#       pt.bg=unique(V(network)$color), 
-#       pt.cex=2, cex=1, bty="n", ncol=1)
 
 dev.off()
 
@@ -364,7 +352,7 @@ docs <- unique(Doc.citations3$from)
 cit <-  unique(Doc.citations3$to)
 xx <- as.data.frame(c(docs,cit))
 xx <- distinct(xx) #721 documents
-# ok so both the document citataion df and the network attributes df have the same dimentions 
+# ok so both the document citataion df and the network attributes df have the same dimensions 
 
 network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
 print(network2, e=TRUE, v=TRUE)
