@@ -1022,7 +1022,7 @@ Q2C2.term.df<-data.frame(name= V(Q2C2.terms.graph)$name,
                          betweenness=Q2C2.term.betweenness,
                          component=as.numeric(membership(Q2C2.termclusters)))
 
-
+# saving Q2C2 term networks stats:
 write.csv(Q2C2.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.term.data.csv", row.names=FALSE)
 
 
