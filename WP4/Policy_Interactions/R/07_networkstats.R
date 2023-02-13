@@ -174,15 +174,6 @@ head(Q1.2nd.df)
 
 plot(degree.in~degree.out,data=Q1.2nd.df)
 
-#Q1.1st.df$degree.in.2nd<-Q1.2nd.df$degree.in[match(Q1.1st.df$name,Q1.2nd.df$name)]
-#Q1.1st.df$degree.out.2nd<-Q1.2nd.df$degree.out[match(Q1.1st.df$name,Q1.2nd.df$name)]
-#Q1.1st.df$betweenness.2nd<-Q1.2nd.df$betweenness[match(Q1.1st.df$name,Q1.2nd.df$name)]
-#Q1.1st.df$component.2nd<-Q1.2nd.df$component[match(Q1.1st.df$name,Q1.2nd.df$name)]
-
-#summary(Q1.1st.df)
-
-#write.csv(Q1.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1.networkdata.csv", row.names=FALSE)
-
 Q1.2nd.df %>%
   filter( betweenness == max(betweenness))%>%
   dplyr::select(name, betweenness)
