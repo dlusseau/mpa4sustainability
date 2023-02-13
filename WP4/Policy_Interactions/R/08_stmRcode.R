@@ -1,5 +1,5 @@
 ###########################
-### all the text - updated preptext so no double merged words - first run on Jan  18th 
+### all the network texts - was ran on DTU super computer since this was gonna take a very long time
 library(stringr)
 library(stm)
 library(geometry)
