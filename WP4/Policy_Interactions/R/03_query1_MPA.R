@@ -13,10 +13,6 @@ library("igraph")
 library("widyr")
 library("ggplot2")
 
-# Define functions --------------------------------------------------------
-
-# No defined function for this script
-
 # Load data ---------------------------------------------------------------
 
 mpa.policy.notext.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv")
@@ -76,7 +72,7 @@ ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4
 
 # NOTE: there is a total of 208 unique citation documents but only 146 have eurolex data associated... 
 # this is bc our key is only leg. documents...
-# Since we are only interested in legislative documents we will only keep citations that are legislation categorized 
+# Since we are only interested in legislative documents we will only keep citations that are legislation categorized (sector 3) 
 
 leg.citation_info <- 
   document.key.df %>%
@@ -100,7 +96,7 @@ Doc.citations <-
 citation.info <-  leg.citation_info
 
 n_distinct(Doc.citations$CELEX)
-# when from 18 to 17 documents that cite since 2 only cited non-leg
+# went from 18 to 17 documents that cite only legislation
 
 
 network.attributes <-
@@ -227,9 +223,7 @@ plot(network,
 #       pt.cex=2, cex=1, bty="n", ncol=1)
 
 dev.off()
-# blue are documents referenced within text
-# green are those pulled from out MPA eurlex search
-# red/pink are those that were pulled in the MPA search and also referenced within other documents pulled
+
 
 edges <- degree(network)
 sum(edges) #606
@@ -241,7 +235,6 @@ network.attributes.final %>%
   summarise(n=n_distinct(CELEX))
 
 # Save files ---------------------------------------------------------------------
-
 
 # first order citation data:
 write.csv(Doc.citations, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1firstordercit.edgelist.csv", row.names=FALSE)
