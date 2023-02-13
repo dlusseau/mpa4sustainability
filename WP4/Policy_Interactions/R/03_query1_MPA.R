@@ -333,7 +333,7 @@ network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
 	
 network.attributes.final4 <- 
   network.attributes.final4 %>%
-  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove",
+  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove", 
                             CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
                             CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
                             TRUE ~ "keep")) %>%
@@ -416,7 +416,7 @@ saveRDS(network2, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universi
 
 # Making a EuroVoc term co-occurance for the seed and citations!
 
-# get the network attributes:
+# get the network attributes (seed and citation data):
 
 Order1.docs <- read.csv("WP4/Policy_Interactions/data/03.Q1firstordercit.verticesmetadata.csv")
 Order2.docs <- read.csv("WP4/Policy_Interactions/data/03.Q1secondordercit.verticesmetadata.csv")
@@ -457,7 +457,7 @@ n_distinct(Order1.docsdescript$CELEX)
 n_distinct(Order2.docsdescript$CELEX)
 # 675 --> all good :)
 
-#but not counting the networks that dont have labels:
+#but only counting the networks that dont have labels (NAs counted above):
 Order2.docsdescript %>% drop_na(labels) %>%
   summarise(n_distinct(CELEX))
 # 673
@@ -527,133 +527,8 @@ write.csv(Order1.term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Teknisk
 write.csv(Order1.final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1term.verticesmetadata.csv", row.names=FALSE)
 saveRDS(Order1.EuroVoc.network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C1.termnetwork.rds")
 
-# 2nd order citations
+# 2nd order citations - this are the ones we are interested for the mauscript
 write.csv(Order2.term.pairs, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2term.edgelist.csv", row.names=FALSE)
 write.csv(Order2.final.attributes, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2term.verticesmetadata.csv", row.names=FALSE)
 saveRDS(Order2.EuroVoc.network, file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/03.Q1C2.termnetwork.rds")
-
-# Archival code for EuroVoc graphics --------------------------------------
-# (graphics we actually use are in the network stats rscript
-#l <- layout.fruchterman.reingold(network3)
-#l <- layout.norm(l, ymin=-1, ymax=1, xmin=-1, xmax=1)
-
-#degree(network3)
-#n_distinct(V(network3)$MT)
-
-#library("viridis")   
-
-#colors <- inferno(29)
-#colors <- colors[-1:-5]
-#(network3)$color <- colors[as.numeric(as.factor(V(network3)$MT))]
-
-#dist <- rep(c(0.18, -0.18), length.out = 103)
-#try to jitter the labels a little to avoid overlap 
-#V(network3)$dist <- dist[as.numeric(as.factor(V(network3)$name))]
-
-
-#plot(network3,
- #    edge.width=E(network3)$n*1,
- #    edge.color=adjustcolor("gray", alpha.f = .5),
- #    vertex.size=2,
- #    vertex.label.cex=(degree(network3)/sum(degree(network3))*100),
-#     vertex.label.color=V(network3)$color,
-#     vertex.shape="none",
-#     rescale = TRUE,
- #    layout = l,
-#     vertex.label.dist = V(network)$dist,
-#     vertex.label.family = "sans"
-     
-#)
-
-#legend(x=-.1,y=1.2,unique(V(network3)$MT), 
- #      pch=21,
- #      col="#777777", 
- #      pt.bg=unique(V(network3)$color), 
- #      pt.cex=2, 
- #      cex=1, 
- #      bty="n", # no box around the legen 
- #      ncol=2)
-
-
-
-#edges <- degree(network3)
-#sum(edges)
-#term.pairs%>%
-#summarise(total = sum(n))
-#V(network3)
-
-# O.K. so the network viz is more legable 
-# I will only plot those that are the median or above edges
-
-#I1 <-
-#  term.pairs %>%
-#  group_by(item1) %>%
-#  summarise(n=n())
-#I2 <-
-#  term.pairs %>%
-#  group_by(item2) %>%
-#  summarise(n=n())
-
-#I3 <- full_join(I1,I2, by=c("item1"="item2")) %>%
-#  mutate(n.x = replace_na(n.x,0),
-#         n.y = replace_na(n.y,0))%>%
-#  mutate(edge.number = n.x+n.y )
-
-#summary(I3$edge.number)
-#  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 2.00    7.00    9.00   11.79   14.50   47.00 
-
-#edges.remove <- V(network3)[degree(network3)<9]
-#degree(network3)
-#graphNetwork <-  igraph::delete.vertices(network3,edges.remove) 
-#degree(graphNetwork)
-
-#n_distinct(V(graphNetwork)$MT)
-#17 themes 
-
-#library("viridis")   
-
-#colors <- inferno(17)
-#colors <- colors[-1]
-#V(graphNetwork)$color <- colors[as.numeric(as.factor(V(graphNetwork)$MT))]
-
-#dist <- seq(-.025,0.25, by=.0024)
-#dist <- rep(c(0.25, -0.25), length.out = 54)
-#try to jitter the labels a little to avoid overlap 
-#V(graphNetwork)$dist <- dist[as.numeric(as.factor(V(graphNetwork)$name))]
-
-
-#l2 <- layout.fruchterman.reingold(graphNetwork)
-
-#plot(graphNetwork,
- #    edge.width=E(graphNetwork)$n*1,
-#     edge.color=adjustcolor("gray", alpha.f = .25),
-   #  vertex.size=2,
-  #   vertex.label.cex=(degree(graphNetwork)/sum(degree(graphNetwork))*75), # label size is equiv. to percent of edges associated to the word out of total edges
- #    vertex.label.color=V(graphNetwork)$color,
-#     vertex.shape="none",
-    # rescale = TRUE,
-   #  layout = l2,
-  #   vertex.label.family = "sans",
-#     vertex.label.dist = V(graphNetwork)$dist
-     # trying this layout based on pdf above...
-#)
-
-#legend(x=-.1,y=-.7,unique(V(graphNetwork)$MT), 
-#       pch=21,
-#       col="#777777", 
-#       pt.bg=unique(V(graphNetwork)$color), 
-#       pt.cex=2, 
-#       cex=1, 
-#       bty="n", # no box around the legen 
-#       ncol=2)
-
-
-
-#edges <- degree(graphNetwork)
-#sum(edges)
-
-#V(graphNetwork)
-
-
 
