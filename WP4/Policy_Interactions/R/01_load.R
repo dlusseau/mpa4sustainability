@@ -14,11 +14,8 @@ library("tidyr")
 
 # Define functions --------------------------------------------------------
 
-# pull the function David created: 
+# pull the function David created which does the eurlex search term query 
 source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
-
-#Notes: this was rerun on Dec 20th since I found out that there need to be better cleaning so I am implementing that now. 
-# never finished on the 20th will finish today Jan 3rd
 
 # Load data ---------------------------------------------------------------
 
@@ -35,32 +32,6 @@ source(file = "WP4/Policy_Interactions/R/freetext_eurlex")
 # Opinions: OPIN 
 
 # --------  1st term eur-lex website search ---------------
-
-# Notes on this function and working through this: 
-
-# We first tried the query term: marine protected area* (no quotation marks) with the function exactly = FALSE
-# however everytime we run the funtion call the results are inconsistent. Sometimes there is more or less document results 
-# in addition there seems to be no clear pattern of the inconsistency
-
-# For example:
-# try without *,
-# first try: with exactly=FALSE without * --> 1108 obs 
-# second try: with exactly=FALSE without * --> 1108 obs
-# third try: with exactly=FALSE without * --> 1108 obs
-# (ok this happened on Friday Sep 16th) --> re-did it Monday to officailly make the new df and...
-# 1098 results... a second time now it was back to 1108... athird time it was 1088 
-
-# we also tried some other terms f.x.
-#"marine protected site"
-# first try --> 390 obs
-# second try --> 390 obs
-
-#"marine protected" --> friday it was 1,465 and  monday it was 1,485
-
-#also not wild card ? at the end is not useful --> when I use it it produces NA results... I think it is taking it as a literal part of the query term, not a wild card
-
-# O.K. after this whole issue we decided that exactly needs to be = TRUE and "marine protected" to encompass all was of interpreting a protected area within leg. (i.e. site, area, species)
-
 
 # Moving forward with the search query as "marine protected" exactly = TRUE 
 
@@ -103,8 +74,7 @@ mpaCELEX.df <-
 # now we have the document ids that mention our term but we want associated document data.
 # thus we have to create a legislation document-data key to link the celex to their associated data. Next step below
 
-# ok now we need to remove the celexes that start with the number 5 since these are prepatory documents and thus not Legal acts
-
+# ok now we need to remove the celexes that start with the number 5 since these are within the prepatory documents sector and thus not in the Legal acts sector
 mpaCELEX.df <- 
   mpaCELEX.df %>%
   mutate(remove = str_detect(CELEX, "^5" )) %>%
