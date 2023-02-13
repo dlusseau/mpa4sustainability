@@ -333,7 +333,7 @@ network.attributes.final4 <- rbind(network.attributes.final4,both.cit2)
 	
 network.attributes.final4 <- 
   network.attributes.final4 %>%
-  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove", 
+  mutate(remove = case_when(CELEX == "32008L0056" & pulled.from == "reference2" ~ "remove",
                             CELEX == "32013R1380" & pulled.from == "reference2" ~ "remove",
                             CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
                             TRUE ~ "keep")) %>%
