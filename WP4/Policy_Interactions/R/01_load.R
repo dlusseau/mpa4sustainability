@@ -412,6 +412,7 @@ mpaterms.text.data1 <-
 
 n_distinct(mpaterms.text.data1$CELEX)
 # 100 
+
 # Save files ---------------------------------------------------------------------
 
 # files saved Jan 3rd 
@@ -421,7 +422,7 @@ write.csv(x = mpa.policy.df,
           file = "WP4/Policy_Interactions/data/01_MPApolicy.notextdf.csv", row.names=FALSE)
 
 # Large df as a Celex-data key:
-write.csv(x = SPARQL.CELEX.df, #date sep19th this is "marine protected"
+write.csv(x = SPARQL.CELEX.df, 
           file = "WP4/Policy_Interactions/data/01_SPARQL.key.df.csv", row.names=FALSE)
 
 # "marine protected" associated text data:
