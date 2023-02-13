@@ -81,7 +81,7 @@ mpaCELEX.df <-
   filter(remove == "FALSE") %>%
   select(-remove)
 
-# --------  make a key to link key terms ---------------
+# --------  make a eurlex key to link key terms ---------------
 
 SPARQL.resource.type <- c("directive","regulation", 
                           "decision", "recommendation")
@@ -128,10 +128,10 @@ opinion.key <- elx_make_query(resource_type = "manual",
 
 SPARQL.CELEX.df <- rbind(SPARQL.CELEX.df,opinion.key)
 
-# Now we have the eurovoc codes but lets conver them to actual words so it is more useful: 
+# Now we have the eurovoc codes but lets convert them to actual words so it is more useful: 
 eurovoc_lookup.key <- elx_label_eurovoc(uri_eurovoc = SPARQL.CELEX.df$eurovoc)
 
-# I also found that these eurocov terms are grouping into a microthusarus, which is basically like themes. 
+# I also found that these eurocov terms are grouping into a microthusarus, which is basically like themes maybe will use this maybe not but will attach in case... 
 # I Downloaded this data from: 
 # https://op.europa.eu/en/web/eu-vocabularies/dataset/-/resource?uri=http://publications.europa.eu/resource/dataset/eurovoc
 eurovoc.themes <- read.csv("WP4/Policy_Interactions/data/raw_data/eurovoc_export_en.csv")
@@ -232,7 +232,7 @@ EU.mpa.char <-
 unique(EU.mpa.char$DESIG_TYPE)
 # [1] "National" "International" "Regional"     
 
-# We are only sticking to international and regional designation areas:
+# We are only interested in international and regional designation areas:
 EU.mpa.char.edit <-
   EU.mpa.char %>%
   filter(DESIG_TYPE == "International" | 
@@ -271,6 +271,7 @@ mpa.DES.key <-
 
 head(mpa.DES.key)
 
+# Split up the designation titles into the search terms we wanted:
 mpa.DES.key1 <- 
   mpa.DES.key %>%
   mutate(site1 = str_extract(DESIG_ENG,".+\\,"),
@@ -375,6 +376,7 @@ mpaCELEX.list.mpaterms.DF2 <-
 n_distinct(mpaCELEX.list.mpaterms.DF2$CELEX)
 # 182
 
+# remove sector 5 documents (prepatory docs)
 mpaCELEX.list.mpaterms.DF2 <- 
   mpaCELEX.list.mpaterms.DF2 %>%
   mutate(remove = str_detect(CELEX, "^5" )) %>%
