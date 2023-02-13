@@ -140,7 +140,6 @@ Q1.2nd.degree.out<-degree(Q1.net2nd.graph,mode="out")
 plot(Q1.2nd.degree.in ~ Q1.2nd.degree.out)
 
 # betweenness
-#graph1st.betweenness<-estimate_betweenness(graph1st,directed = TRUE,cutoff = -1)
 Q1.2nd.betweenness<-betweenness(Q1.net2nd.graph,directed = TRUE,normalized=TRUE)
 
 plot(Q1.2nd.degree.in ~ Q1.2nd.betweenness)
@@ -741,6 +740,7 @@ rownames(Q2.1st.df) <- NULL
 
 head(Q2.1st.df)
 
+# Saving Q1C1 networks stats:
 write.csv(Q2.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C1.networkdata.csv", row.names=FALSE)
 
 Q2.1st.df %>%
@@ -769,7 +769,6 @@ Q2.2nd.degree.out<-degree(Q2.net2nd.graph,mode="out")
 plot(Q2.2nd.degree.in ~ Q2.2nd.degree.out)
 
 # betweenness
-#graph1st.betweenness<-estimate_betweenness(graph1st,directed = TRUE,cutoff = -1)
 Q2.2nd.betweenness<-betweenness(Q2.net2nd.graph,directed = TRUE,normalized=TRUE)
 
 plot(Q2.2nd.degree.in ~ Q2.2nd.betweenness)
