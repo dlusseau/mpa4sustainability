@@ -1,5 +1,5 @@
 
-# extracting the citation network text to later get topic prediction within 
+# extracting the citation network text to later get topic prediction within vis STMS
 
 # Clear work space ---------------------------------------------------------
 rm(list = ls())
@@ -35,7 +35,7 @@ MPA.DESG.text <- read.csv(file = "WP4/Policy_Interactions/data/01_mpaterms.text.
 # Get text for all of the network vertices --------------------------------
 
 # Will only do this for the second order citation network since 
-# it can then just be filtered later to only include first order ciation network
+# it can then just be filtered later to only include first order citation network
 
 # Query one ---------------------
 
@@ -116,7 +116,7 @@ Q1edge.NOtext <-
   mutate(total.text = paste0(.$title,.$text)) %>%
   select(CELEX, total.text)
 
-gc() # clear up some space before the text pulling
+gc() # clear up some space 
 
 
 Q1.edge.text <-
