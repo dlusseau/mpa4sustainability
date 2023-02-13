@@ -740,7 +740,7 @@ rownames(Q2.1st.df) <- NULL
 
 head(Q2.1st.df)
 
-# Saving Q1C1 networks stats:
+# Saving Q2C1 networks stats:
 write.csv(Q2.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C1.networkdata.csv", row.names=FALSE)
 
 Q2.1st.df %>%
@@ -800,6 +800,7 @@ rownames(Q2.2nd.df) <- NULL
 
 head(Q2.2nd.df)
 
+# Saving Q2C2 networks stats:
 write.csv(Q2.2nd.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C2.networkdata.csv", row.names=FALSE)
 
 
@@ -855,7 +856,7 @@ Q2C1.term.df<-data.frame(name= V(Q2C1.terms.graph)$name,
                       betweenness=Q2C1.term.betweenness,
                       component=as.numeric(membership(Q2C1.termclusters)))
 
-
+# Saving Q2C1 term networks stats:
 write.csv(Q2C1.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q2C1.term.data.csv", row.names=FALSE)
 
 Q2C1.term.df %>%
@@ -1137,9 +1138,6 @@ dev.off()
 
 
 # EuroVoc Cluster Plots --------------
-
-
-# So some of the word clouds are more legiable I will make a wordcloud for each and then patchwork them together
 
 Clus.1.PLOT <- 
   as.data.frame(cbind(V(network.updated1)$color, V(network.updated1)$membership)) %>%
