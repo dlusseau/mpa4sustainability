@@ -29,17 +29,13 @@ Q2C2.text<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skr
 Q2C2.edgelist<- read.csv(file =  "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/04.Q2secondordercit.edgelist.csv")
 
 # Topic predictions
-
+# From the super computer i then moved the r objects into one drive and downloaded them on to my computer
 # query 1
-# Q1C1.stm<-stm(Q1C1.text$documents,Q1C1.text$vocab,data=Q1C1.text$meta,K=0,init.type="Spectral")
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1C1_stm.Rdata")
-# Q1C2.stm<-stm(Q1C2.text$documents,Q1C2.text$vocab,data=Q1C2.text$meta,K=0,init.type="Spectral")
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q1C2_stm.Rdata")
 
 # query 2
-# Q2C1.stm<-stm(Q2C1.text$documents,Q2C1.text$vocab,data=Q2C1.text$meta,K=0,init.type="Spectral")
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q2C1_stm.Rdata")
-# Q2C2.stm<-stm(Q2C2.text$documents,Q2C2.text$vocab,data=Q2C2.text$meta,K=0,init.type="Spectral")
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q2C2_stm.Rdata")
 
 
@@ -49,8 +45,8 @@ load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord
 
 # ---- first order citations ----- #
 Q1C1.DT.matrix <- Q1C1.stm$theta # rows are the text/"document" and columns are the topics, values are the topic proportions
-Q1C1.TW.list <- Q1C1.stm$beta # list of log word probabilities for each topic
-Q1C1.vocab <- Q1C1.stm$vocab # the vocab within the list above
+Q1C1.TW.list <- Q1C1.stm$beta    # list of log word probabilities for each topic
+Q1C1.vocab <- Q1C1.stm$vocab     # the vocab within the list above
 
 Q1C1.sentence.names <- as.data.frame(names(Q1C1.text$documents))
 # lets make this into a long df
@@ -83,7 +79,7 @@ Q1C1max.topic <-
   Q1C1.Doctopic.longdf %>%
   group_by(document_sentence) %>%
   filter(percent.doc == max(percent.doc)) %>%
-  filter(percent.doc > 50)
+  filter(percent.doc > 50) # we only interested if prop is more than 50
 
 Q1C1topic.no <- 
   Q1C1max.topic %>%
