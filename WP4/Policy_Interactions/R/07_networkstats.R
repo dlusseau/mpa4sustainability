@@ -168,6 +168,7 @@ Q1.2nd.df<-data.frame(name= V(Q1.net2nd.graph)$name,
 
 rownames(Q1.2nd.df) <- NULL
 
+# save Query 1 2nd order network stats:
 write.csv(Q1.2nd.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.networkdata.csv", row.names=FALSE)
 
 head(Q1.2nd.df)
@@ -232,6 +233,7 @@ Q1C1.term.df<-data.frame(name= V(Q1C1.terms.graph)$name,
                        betweenness=Q1C1.term.betweenness,
                        component=as.numeric(membership(Q1C1.termclusters))) 
 
+# Saving Q1C1 term networks stats:
 write.csv(Q1C1.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C1.term.df.csv", row.names=FALSE)
 
 Q1C1.term.df %>%
@@ -243,7 +245,6 @@ Q1C1.term.df %>%
   filter( degree == max(degree))%>%
   select(name, degree)
 # environmental protection     68
-
 
 plot_dendrogram(Q1C1.termclusters)
 
@@ -266,7 +267,7 @@ plot(Q1C1.terms.graph,
      vertex.size=1,
      layout = l2)
 
-# to make the plot slightly more legable lets remove those that have degree >= 13 (mean)
+# to make the plot slightly more legable lets remove those that have degree >= 13 (mean=12.41)
 member.attributesQ1C1 <- as.data.frame(as.matrix(membership(Q1C1.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
 
 Q1C1.terms.meta2 <-
@@ -368,6 +369,7 @@ Q1C2.term.df<-data.frame(name= V(Q1C2.terms.graph)$name,
                          betweenness=Q1C2.term.betweenness,
                          component=as.numeric(membership(Q1C2.termclusters))) 
 
+# Saving Q1C2 term networks stats:
 write.csv(Q1C2.term.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C2.term.data.csv", row.names=FALSE)
 
 Q1C2.term.df %>%
@@ -402,7 +404,7 @@ plot(Q1C2.terms.graph,
      vertex.size=1,
      layout = l2)
 
-# to make the plot slightly more legable lets remove those that have degree >= 16 (the mean)
+# to make the plot slightly more legable lets remove those that have degree >= 16 (the mean=15.7)
 member.attributesQ1C2 <- as.data.frame(as.matrix(membership(Q1C2.termclusters))) %>%   rownames_to_column() %>% rename("membership" = "V1" )
 
 
