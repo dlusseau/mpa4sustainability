@@ -414,8 +414,7 @@ n_distinct(mpaterms.text.data1$CELEX)
 # 100 
 # Save files ---------------------------------------------------------------------
 
-# All these data were pulled from query, "cleaned", and saved in this script on Sep 22nd, 2022
-# this data was updated Jan 3rd to ensure better data cleansing
+# files saved Jan 3rd 
 
 # "marine protected" term  search results:
 write.csv(x = mpa.policy.df,
