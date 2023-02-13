@@ -83,15 +83,15 @@ plot(Q1.1st.degree.in ~ Q1.1st.degree.out)
 
 # betweenness
 # "The vertex and edge betweenness are (roughly) defined by the (shortest paths) going through a vertex or an edge." -- CRAN PDF
-# larger value means a greater bottleneck for the control of information passing between nodes.
+# larger value means a greater bottleneck for the "control of information" passing between nodes.
 Q1.1st.betweenness<-betweenness(Q1.net1st.graph,directed = TRUE,normalized=TRUE) # normalized so we can compare to different size networks later
 
 plot(Q1.1st.degree.in ~ Q1.1st.betweenness)
 plot(Q1.1st.degree.out ~ Q1.1st.betweenness )
 
-# module
+# modules:
 # as we have multiple components in the network we first need to identify components
-# first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clsuters
+# first we look for weakly connected component, so that any edge between clusters of text is considered as connecting the clusters
 
 Q1.1st.comp.weak<-components(Q1.net1st.graph,mode="weak")
 
@@ -103,6 +103,7 @@ Q1.1st.df<-data.frame(name= V(Q1.net1st.graph)$name,
 
 rownames(Q1.1st.df) <- NULL
 
+# save Query 1 1st order network stats:
 write.csv(Q1.1st.df, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/07.Q1C1.networkdata.csv", row.names=FALSE)
 
 
