@@ -338,7 +338,7 @@ network.attributes.final4 <-
                             CELEX == "32014R0508" & pulled.from == "reference2" ~ "remove",
                             TRUE ~ "keep")) %>%
   filter(remove == "keep") %>%
-  distinct(CELEX, .keep_all = TRUE) # now remove the double 32013D1386
+  distinct(CELEX, .keep_all = TRUE) # now ensure there are no duplicates
 
 # 678 - 3 = 675
 
