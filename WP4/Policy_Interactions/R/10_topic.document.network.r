@@ -9,6 +9,7 @@ library("igraph")
 library("tidyverse")
 library("stm")
 
+
 # Load data ---------------------------------------------------------------
 
 Q1C1.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q1C1.edgelist.topics.csv")
@@ -26,6 +27,9 @@ load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord
 Q2C2.edgelist.topics<- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/09.Q2C2.edgelist.topics.csv")
 load(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/Q2C2_stm.Rdata")
 
+#######################################################################################################################################
+## Note for David: I did not have enough time to really go through all this in depth before I leave however here is what I started ####
+#######################################################################################################################################
 
 ########### Query 1 Citation 1 ##################
 
@@ -110,7 +114,7 @@ cloud(Q1C1.stm, topic = 41) # geographical location topic
 cloud(Q1C1.stm, topic = 58) # journal and scientific study findings?? -NOT CLEAR
 cloud(Q1C1.stm, topic = 7)  # fishing vessel and vessel managment
 
-# all other topics 
+# all other topics...
 cloud(Q1C1.stm, topic = 1) # nhc
 cloud(Q1C1.stm, topic = 2) #  
 cloud(Q1C1.stm, topic = 3) #  
@@ -419,45 +423,6 @@ cloud(Q2C2.stm, topic = 16) # compund/solution sensitivities
 cloud(Q2C2.stm, topic = 55) # Oil and gas extraction
 cloud(Q2C2.stm, topic = 26) # programme financing and suport
 
-# archival --------------
 
-###########################################
-
-# just wanted to try out this idea but looks very very funky and messy...
-
-#Q1C1.same.topics <- 
-#  Q1C1.edgelist.topics %>%
-#  ungroup%>%
-#  filter(same.topic == TRUE)%>%
-#  select(-from.topic) %>%
-#  group_by(from, to, same.topic) %>%
-#  summarise(n.topics = n_distinct(to.topic))
-
-#Q1C1.NOTsame.topics <- 
-#  Q1C1.edgelist.topics %>%
-#  ungroup%>%
-#  filter(same.topic == FALSE)%>%
-#  select(-from.topic) %>%
-#  group_by(from, to, same.topic) %>%
-#  summarise(n.topics = n_distinct(to.topic))
-
-#new.edgelist <-
-#  rbind(Q1C1.same.topics,Q1C1.NOTsame.topics)
-
-#network <- graph_from_data_frame(new.edgelist, directed = TRUE) 
-#V(network)
-
-#E(network)$color[E(network)$same.topic == TRUE] <- 'green'
-#E(network)$color[E(network)$same.topic == FALSE] <- 'red'
-
-
-#l <- layout.fruchterman.reingold(network)
-
-#plot(network,
-#     vertex.label=NA,
-#     edge.width =E(network)$n.topics/2,
-#     edge.color= E(network)$color,
-#     vertex.size= 2,
-#     layout = l)
 
      
