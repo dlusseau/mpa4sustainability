@@ -12,7 +12,11 @@ library("purrr")
 
 # Build a legislation-title key -------------------------------------------------
 
-# EURLEX KEY
+# we need this so we can link the Swedish data citations to a celex number 
+# since the celex number is information not given, we will use the title info 
+# in the citation to then link to these keys
+
+# EURLEX KEY: This contains document types that are directives, regulations, decisions, reccomendations, and opinions
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
 
 document.key.df1 <- 
@@ -28,7 +32,7 @@ document.key.df1 %>%
 
 rm(document.key.df) # remove this bc it takes up a lot of space
 
-# --- Directives --- #
+# --- Directives Key --- #
 
 # run on 25-10-2022
 directive.titles <- 
@@ -53,9 +57,10 @@ test[i]<-elx_fetch_data(directive.titles$work[i],type="title")
 
 directive.titles$titles<-test
 
+# a directives key
 write.csv(directive.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
        
-# --- Decisions --- #
+# --- Decisions key --- #
 
 decision.titles <- 
   document.key.df1 %>%
