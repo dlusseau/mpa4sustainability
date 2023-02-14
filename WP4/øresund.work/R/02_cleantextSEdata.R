@@ -144,16 +144,16 @@ SEtext.dk1 %>%
   filter(search.term == "jakt" & birdhunt == "TRUE") # 3 fågel
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal == "TRUE") # 1 mention säl fisk
+  filter(search.term == "jakt" & seal == "TRUE") # 1 mention säl 
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal2 == "TRUE") # 3 mention säl fisk
+  filter(search.term == "jakt" & seal2 == "TRUE") # 3 mention säl 
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal3 == "TRUE") # 2 mention säl fisk
+  filter(search.term == "jakt" & seal3 == "TRUE") # 2 mention säl 
 
 SEtext.dk1 %>%
-  filter(search.term == "jakt" & seal4 == "TRUE") # 1 mention säl fisk
+  filter(search.term == "jakt" & seal4 == "TRUE") # 1 mention säl 
 
 
 SEtext.dk1 %>%
@@ -254,7 +254,7 @@ document.dir.key.df1 <-
   select(work,celex)
 
 
-# directives: title key from another r script:
+# directives: title key from another r script (1.5_EurlextitlekeyforSEdata.R)
 directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
 
 
