@@ -32,7 +32,8 @@ document.key.df1 %>%
 
 rm(document.key.df) # remove this bc it takes up a lot of space
 
-# --- Directives Key --- #
+##########################
+# --- Directives Key -----
 
 # run on 25-10-2022
 directive.titles <- 
@@ -59,8 +60,9 @@ directive.titles$titles<-test
 
 # a directives key
 write.csv(directive.titles, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
-       
-# --- Decisions key --- #
+
+#############################   
+# --- Decisions key -----
 
 decision.titles <- 
   document.key.df1 %>%
@@ -359,11 +361,12 @@ Eurlexkey.decision.titles1 <-
 
 write.csv(Eurlexkey.decision.titles1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv", row.names=FALSE) 
 
-# --- Regulation --- #
+########################
+# --- Regulation -------
 
-# ok the harvard database has up to 2019 so we will only extract 2020-2022 and then combine the hardvad dataset later
+# ok the harvard database has up to 2019 so # https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0EGYWY 
+# we will only extract 2020-2022 and then combine the harvard dataset later
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
-# https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0EGYWY 
 
 library(lubridate)
 
@@ -401,7 +404,8 @@ regulation.titles1$titles<-reg.test
 
 write.csv(regulation.titles1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.regulation.titles.yr2020.2022.csv", row.names=FALSE) 
 
-# --- Reccomendations --- #
+###############################
+# --- Reccomendations --------
 
 reccomendations.titles <- 
   document.key.df1 %>%
