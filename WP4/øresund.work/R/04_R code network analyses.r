@@ -136,15 +136,6 @@ colnames(dkse.bi)[c(36,1,8,111)]
 
 
 
-###R code vessel speed regulations ------
-
-dk<-read.csv("C:/Users/David/OneDrive - Danmarks Tekniske Universitet/MPA4Sustainability/WP4/Øresundsvandssamarbejdet/data (5)/02.DKdoctags.csv",header=T)
-unique(dk$search.term)
-
-boaty<-dk[dk$search.term=="sotrafik",]
-
-boaty$url
-
 
 #################################################################
 ## bipartite network analyses
