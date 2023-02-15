@@ -12,9 +12,6 @@ library("lubridate")
 library("patchwork")
 library("kableExtra")
 library("stringr")
-# Define functions -------------------------------------------------------------
-
-# No defined function for this script
 
 # Load data --------------------------------------------------------------------
 
