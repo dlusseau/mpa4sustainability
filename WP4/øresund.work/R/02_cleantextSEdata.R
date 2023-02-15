@@ -201,16 +201,16 @@ EU.links <-
 
 EU.links2 <-
   EU.links %>%
-  pivot_longer(.,
+  pivot_longer(.,                   
                cols = dir:rec,
                names_to = "type",
-               values_to = "ref") %>%
+               values_to = "ref") %>% # make it into a long format
   distinct() %>%
   mutate(ref=as.factor(ref),
          text=as.character(text)) %>%
   filter(!is.na(ref)) # remove na values (sentences that dont reference a legislation type)
 
-# then lets pull all the codes in those sentences...
+# then lets pull all the possible codes in those sentences...
 
 EU.links3 <-
   EU.links2 %>%
@@ -224,7 +224,7 @@ EU.links3 <-
                           ref == "Genomförandebeslut" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)|[:digit:]+/[:digit:]+/[:digit:]+")),
                           ref == "rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")),
                           ref == "Rekommendation" ~   as.character(str_extract_all(text, "[:digit:]+/[:digit:]+/[:alpha:]+")))) %>%
-  # if it is a Character vector string edit it to just be the codes to be cleaner
+  # if it is a Character vector string edit it so some of the the codes are cleaner (issues i saw by hand)
   mutate(code = str_replace_all(code,"c\\(",""), 
          code = str_replace_all(code,"(?<!G|0|U)\\)",""),
          code = str_replace_all(code,'\\"',"")) %>%
@@ -237,10 +237,8 @@ EU.links3 <-
          code = str_replace_all(code, "nr", "No"),
          code = str_replace_all(code, "RIF", "JHA"))
 
-
-
-
-#### title Keys from EurLex ###
+#################################################################
+# here we will make a key which provides the title and its code:
 
 # EURLEX KEY
 document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
@@ -254,23 +252,22 @@ document.dir.key.df1 <-
   select(work,celex)
 
 
-# directives: title key from another r script (1.5_EurlextitlekeyforSEdata.R)
+# directives title key from another r script (1.5_EurlextitlekeyforSEdata.R)
 directive.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EurLexKey.directive.titles.csv") 
-
 
 directive.titles.cut <-
   directive.titles %>%
   select(-X) %>% 
   left_join(.,document.dir.key.df1, by = c("work")) %>%
-  mutate(title2 = str_trunc(titles,75,side = c("right"))) %>%
+  mutate(title2 = str_trunc(titles,75,side = c("right"))) %>% # shorten the title because some include other keys later on in the titles if they ref another doc. but their code is in the beginning
   mutate(code =  str_extract(titles, "[:digit:]+/[:digit:]+/[:alpha:]+|\\([:alpha:]+\\)\\s[:digit:]+/[:digit:]+(?!/)")) %>%
   mutate(type = "dir")  
 
 directive.titles1 <-
   directive.titles.cut%>%
-  select(celex,type,code) # those with NA just dont have a title code within the title...
+  select(celex,type,code) # those with NA just dont have a title code within the title. We will check by hand later the actual df so this should be a huge issue
 
-
+# now this is a df where we have all the other codes in the title that are not the actual title code. (we will use this later)
 directive.removalcodes <-
   directive.titles.cut %>%
   select(-title2) %>%
@@ -284,8 +281,9 @@ EU.links4 <-
   left_join(., directive.titles1, by = c("type", "code")) %>%
   rename(celex.dir = celex)
 
+# we repeat this same process for the other legislation types below: 
 
-# decisions: title key from another r script:
+# decisions title key another r script (1.5_EurlextitlekeyforSEdata.R)
 
 decision.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurLexKey.decision.titles.csv") 
 
@@ -313,10 +311,9 @@ EU.links5 <-
   rename(celex.dec = celex)%>%
   mutate(celex.dir = as.character(celex.dir))
 
-# reccomendations: : title key from another r script:
+# reccomendations title key from another r script (1.5_EurlextitlekeyforSEdata.R)
 
 reccomendation.titles <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.reccomendations.titles.csv") 
-
 
 document.rec.key.df1 <- 
   document.key.df %>% 
@@ -350,9 +347,10 @@ EU.links6 <-
   left_join(., reccomendation.titles1, by = c("type", "code")) %>%
   rename(celex.rec = celex)
 
+
 #load the data from Harvard that has all Eurlex info up until 2019
 regulation.titles <-  read_excel("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/EurLex_regulations_no_text_all.xlsx") 
-#load the years that are not in harvard data
+#load the years that are not in harvard data: title key from another r script (1.5_EurlextitlekeyforSEdata.R)
 regulation.titles.yr2020.2022 <- 
   read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03EurlLexKey.regulation.titles.yr2020.2022.csv") %>%
   select(-work) 
@@ -393,7 +391,7 @@ regulation.removalcodes <-
 Removal.code.list <-
   rbind(directive.removalcodes,decision.removalcodes,regulation.removalcodes,reccomendation.removalcodes)
 #the str_remove is not working for the all the dfs... no idea why... so I will also make a case when title code = remove code then remove from df...
-
+# to ensure it preformed correctly:
 Removal.code.list.2 <-
   Removal.code.list %>%
   mutate(delete = 
@@ -401,14 +399,15 @@ Removal.code.list.2 <-
                        # if not...
                        TRUE ~ "NO" 
            )) %>%
-  filter(delete=="NO") %>%
+  filter(delete=="NO") %>% # keep only those that actually have the title code
   select(-code,-delete,-type) %>%
   filter(!is.na(codes.to.remove))
 
+# here we have a row for every "bad" code within a celex title code 
 Removal.code.list.3 <-
   Removal.code.list.2 %>%
   distinct() %>%
-  mutate(celex = as.character(celex)) # here we have a row for every "bad" code within a celex title code 
+  mutate(celex = as.character(celex)) 
 
 EU.links7 <-
   EU.links6 %>%
@@ -417,12 +416,14 @@ EU.links7 <-
   rename(celex.reg = celex) %>%
   mutate(ref = as.character(ref))
 
+#checking those that have NA celexes and are regulations 
 check1 <-
   EU.links7 %>%
   filter(type=="reg" & is.na(celex.reg))%>%
   mutate(code = as.factor(code)) 
 unique(check1$code)
 
+# then they were checked by hand and changed if needed below: 
 
 EU.links7 <-
   EU.links6 %>%
@@ -475,7 +476,6 @@ EU.links7 <-
   filter(doc.id != "sfs-2019-84" | ref != "förordning" | code != "(EU) 2019/420")  %>% # filter this one out bc it is a directive not a regulation
   mutate(celex.reg = case_when(doc.id == "sfs-2022-1461" & sentence_id == 13 & code == "(EU) 2021/2115" ~ "32021R2115", # 
                                TRUE ~ celex.reg))
-  
 
 
 check1 <-
@@ -484,7 +484,8 @@ check1 <-
   mutate(code = as.factor(code)) 
 unique(check1$code)
 
-# Now if there are duplicate codes but one doesnot have a celex but the other does remove the one without since this is a mistake
+# Now check if there are duplicate codes but one does not have a celex 
+# but the other does remove the one without since this is a mistake
 
 EU.links8 <-
   EU.links7 %>%
@@ -512,7 +513,7 @@ EU.links9 <-
   ungroup() %>%
   filter(delete != "YES")
 
-
+# now check the others if there are more NAs
 check2 <-
   EU.links9  %>%
   filter(is.na(celex.dir) &
@@ -523,6 +524,7 @@ check2 <-
 n_distinct(check2$code) #6
 n_distinct(check2$doc.id)#11
 
+# checked and fixed by hand 
 EU.links9 <- 
   EU.links9  %>%
 mutate(celex.dec = case_when(type == "dec" & code == "2009/371/JHA" ~ "32009D0371", #  this offcical title didnt have its code so missing from the key and did not come out of the eurlex pull
@@ -542,7 +544,7 @@ check2 <-
 n_distinct(check2$code) #3
 n_distinct(check2$doc.id)#8
 
-# These got deleted since idk if it is a typo or not...
+# These I could not conclude the issue by hand so they got deleted since idk if it is a typo or not...
 # directives
 #  89/106/EC  real title with EEC	--> not clear even in the sentences
 # 2004/42/EC	real title is CE --> for sfs.2008.245	it is def the code with CE (32004L0042) but others not clear even in the sentences
@@ -556,7 +558,7 @@ EU.links10 <-
                values_to = "celex",
                values_drop_na = TRUE)
 
-#check if cele codes have mutiple resource types within a sentence...
+#check if celex codes have mutiple resource types within a sentence...
 check2 <-
   EU.links10  %>%
   group_by(doc.id,element_id,sentence_id,code) %>%
@@ -565,7 +567,9 @@ check2 <-
 
 n_distinct(check2$code)
 
-# chang from wide to long formate:
+# hand checked and fixed below: 
+
+# change from wide to long formate:
 EU.links10 <- 
   EU.links9 %>%
   select(-dup.first,-dup.last,-delete) %>%
@@ -607,7 +611,7 @@ EU.links10 <-
   filter(ref != "beslut" | code != "93/74/EEC") %>%  # filter this one out bc it is not referencing a dec it is a dir. 
   filter(ref != "beslut" | code != "2013/40/EU") # filter this one out bc it is not referencing a dec it is a dir. 
   
-#check if cele codes have mutiple resource types within a sentence...
+#check if celex codes have mutiple resource types within a sentence...
 check2 <-
   EU.links10  %>%
   group_by(doc.id,element_id,sentence_id,code) %>%
@@ -619,11 +623,17 @@ n_distinct(check2$code)
 EU.links11 <-
   EU.links10 
 
-# ok now we have to remove codes that are parts of othe celex titles that label which it is ammending...
-  
+# ok now we have a cleaned version of the sentence to its referenced title code and celex
+# but now we need to remove "bad" codes: thos that are parts of other celex titles but are within the title of another since
+# they might be ammending them or etc...
+
+# ok so if a "bad code" is in the same document then it is removed. 
+# We assume that if it references the amending or repealing legislation the "bad codes" are not directly referenced 
+# they are their bc they are a part of the citations title  
+
 text1 <- 
   EU.links11 %>%
-  mutate(doc.sentence.id = paste(doc.id,element_id, sep = "_")) # ok so if a bad code is in the same document then it is removed. We assume that if it references the amending or repealing legislation the "bad codes are not directly referenced anymore"
+  mutate(doc.sentence.id = paste(doc.id,element_id, sep = "_")) 
 
 se.doc<-unique(text1$doc.sentence.id)
 
@@ -632,11 +642,6 @@ temp<-text1[text1$doc.sentence.id==se.doc[i],]
 
 bad.celex<-temp$celex[which(temp$celex%in%Removal.code.list.3$celex)] #those are the "bad" celex codes in this text?
 remove.temp<-unique(Removal.code.list.3$codes.to.remove[which(Removal.code.list.3$celex%in%bad.celex)]) #those are the associated removal codes
-
-#text.clean<-temp[-which(temp$code%in%remove.temp),] #we find the codes that match the removal codes and remove those rows
-
-#Anna's edits:
-# ok if none of the bad codes were found it returns empty so made an if else statment to put in the loop
 
 if(dim(temp[-which(temp$code%in%remove.temp),])[1]==0){
   text.clean <-temp
