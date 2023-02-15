@@ -19,6 +19,8 @@ library("stringr")
 DK.metadata <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKdocmetadata.clean.csv")
 SE.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv")
 
+# Plot Legislation queries over time (not used in the report, just for some slides) ---------------
+
 dk.labs <- c("fiskeri" ="fiskeri (n=1011)", "jagt"="jagt (n=346)", "søtrafik"="søtrafik (n=8)")
 
 DK.metadata %>%
