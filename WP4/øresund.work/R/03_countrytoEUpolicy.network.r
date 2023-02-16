@@ -430,6 +430,112 @@ names(modules) <- c("1","2","3","4","5","6","7", "8")
 
 plotModuleWeb(SEDK.modules, labsize = .55)
 
+indices <- c( "degree","PDI","nestedrank")
+
+h.SEDK.networkstats <- 
+  specieslevel(adj.matrix, index=  indices, level = "higher",
+               nested.weighted=FALSE,  PDI.normalise=TRUE,
+               nested.method="NODF", 
+               nested.normalised=TRUE)
+
+
+
+l.SEDK.networkstats <- 
+  specieslevel(adj.matrix, index=  indices, level = "lower",
+               nested.weighted=FALSE,  PDI.normalise=TRUE,
+               nested.method="NODF", 
+               nested.normalised=TRUE)
+
+summary(h.SEDK.networkstats) # dk
+#degree         nestedrank        PDI        
+#Min.   :1.000   Min.   :0.00   Min.   :0.8780  
+#1st Qu.:2.000   1st Qu.:0.25   1st Qu.:0.9512  
+#Median :3.000   Median :0.50   Median :0.9634  
+#Mean   :3.026   Mean   :0.50   Mean   :0.9641  
+#3rd Qu.:3.000   3rd Qu.:0.75   3rd Qu.:0.9756  
+#Max.   :9.000   Max.   :1.00   Max.   :1.0000 
+
+h.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+#/eli/lta/2022/162 & 1 & 1.0000000 & 1\\
+#/eli/lta/2022/1207 & 1 & 0.9934211 & 1\\
+#/eli/lta/2022/1155 & 1 & 0.9868421 & 1\\
+
+h.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+#/eli/lta/2022/100 & 9 & 0.0000000 & 0.9105691\\
+#/eli/lta/2022/787 & 8 & 0.0065789 & 0.9430894\\
+#/eli/lta/2022/988 & 8 & 0.0131579 & 0.9024390\\
+
+h.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=1)
+#                     has    degree nestedrank PDI
+#/eli/lta/2022/162      1          1   1
+# most specialized
+
+h.SEDK.networkstats %>%
+  slice_max(., order_by = PDI, n=1) # specalist
+
+h.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=1)  # generalist
+#              degree nestedrank PDI
+# /eli/lta/2022/100      9          0 0.9105691
+
+h.SEDK.networkstats %>%
+  slice_min(., order_by = PDI, n=1) # # generalist
+# /eli/lta/2021/2249      6 0.03947368 0.8780488
+# /eli/lta/2022/964       6 0.04605263 0.8780488
+
+summary(l.SEDK.networkstats) # se
+# Min.   : 1.00   Min.   :0.00   Min.   :0.6623  
+#1st Qu.: 2.00   1st Qu.:0.25   1st Qu.:0.9605  
+#Median : 4.00   Median :0.50   Median :0.9825  
+#Mean   :11.02   Mean   :0.50   Mean   :0.9591  
+#3rd Qu.: 9.50   3rd Qu.:0.75   3rd Qu.:0.9951  
+#Max.   :89.00   Max.   :1.00   Max.   :1.0000 
+
+
+l.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+#sfs-2021-194 & 1 & 1.0000000 & 1\\
+#sfs-2020-838 & 1 & 0.9756098 & 1\\
+#sfs-2011-1494 & 1 & 0.9512195 & 1\\
+
+l.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=3)%>%
+  kable(., "latex")
+#sfs-1998-808 & 89 & 0.0000000 & 0.6622807\\
+#sfs-2007-845 & 85 & 0.0243902 & 0.6710526\\
+#sfs-1998-1252 & 82 & 0.0487805 & 0.7335526\\
+
+
+l.SEDK.networkstats %>%
+  slice_max(., order_by = nestedrank, n=1)
+#                     has    degree nestedrank PDI
+# sfs-2021-194      1          1   1  # most specialized
+
+l.SEDK.networkstats %>%
+  slice_max(., order_by = PDI, n=1) # specalist
+
+
+l.SEDK.networkstats %>%
+  slice_min(., order_by = nestedrank, n=1)  # generalist
+#              degree nestedrank PDI
+# sfs-1998-808     89          0 0.6622807
+
+l.SEDK.networkstats %>%
+  slice_min(., order_by = PDI, n=1) # # generalist
+# sfs-1998-808     89          0 0.6622807 
+
+
+SEDK.networkstats <- 
+  rbind(l.SEDK.networkstats,h.SEDK.networkstats) %>%
+  rownames_to_column(., var = "name")
+
+network.SEDK.adj1 <- network.SEDK.adj
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/DKSEeu.networks.clusters.png",
     width = 1750, height = 1250)
@@ -463,7 +569,7 @@ title("(B)",cex.main=2)
 dev.off()
 
 
-# ok lets see what discussions are similar between the countries: 
+# ok lets see what discussions are similar between the countries by plotting the EuroVOc word clouds associated to these modules
 SE.adj.EUlinkscelexs <- 
   inner_join(SEEUlinks1,DKEUlinks1, by = "to") %>% 
   select(-from.y) %>%
@@ -519,7 +625,7 @@ adj.network.df1 %>%
   filter(n == max(n))
 #   module to             n
 #<chr>  <chr>      <int>
-# 1      31992L0043    79
+#  1      31992L0043    79
 #2 2      32014R0651     5
 #3 3      32000L0060     6
 #4 4      32013R1303    13
@@ -550,6 +656,7 @@ adj.network.df1 %>%
   arrange(module) %>% 
   kable(., "latex")
 
+# number of associated EU leg. to each module
 adj.network.df1 %>%
   distinct(to,module) %>%
   group_by(module) %>%
@@ -700,6 +807,7 @@ MOD.8.PLOT <-
        width = 150, height = 55, units = "cm",
        limitsize = FALSE)
 
+# total number of country (DK and SE) legislation in each module
 adj.network.df1 %>%
   select(-labels,-to) %>%
   distinct() %>%
