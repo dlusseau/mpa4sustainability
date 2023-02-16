@@ -807,7 +807,7 @@ MOD.8.PLOT <-
 
 
  ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/sharedclusters.png", 
-       width = 150, height = 55, units = "cm",
+       width = 40, height = 20,
        limitsize = FALSE)
 
 # total number of country (DK and SE) legislation in each module
