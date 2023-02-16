@@ -265,6 +265,8 @@ width = 30,
 height = 14.1,
 units = c( "in"))
 
+# make sure the total numbers of leg in each search term for the countries matches our initial query results
+# and they do :)
 SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
@@ -299,7 +301,7 @@ SE.metadata %>%
   group_by(search.term, country) %>%
   summarise(n=sum(n))
 
-
+# how many ministries have legislations under them within each search term?
 SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
@@ -337,6 +339,7 @@ SE.metadata %>%
   group_by(search.term, country) %>%
   summarise(n=n_distinct(ministry.english))
 
+# What are the ministries with the highest prop of legislations for each search term? and it is given as a latex table 
 SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
@@ -378,10 +381,10 @@ SE.metadata %>%
   
 
 
-
-
-# now the governing authority for DK 
+# Now the governing authority for DK  ---------------------------------
 unique(DK.metadata$AdministrerendeMyndighed)
+
+# ggplot of the Danish managing authorities:
 DK.metadata %>%
   mutate(country = "Denmark")  %>%
   group_by(search.term, AdministrerendeMyndighed, country) %>%
@@ -394,7 +397,7 @@ DK.metadata %>%
                                   search.term == "jagt"  ~ "Hunting",
                                   search.term == "sotrafik"  ~ "Maritime traffic")) %>%
   group_by(country, search.term) %>%
-  filter(!is.na(AdministrerendeMyndighed)) %>% # remove NAs for the plot
+  filter(!is.na(AdministrerendeMyndighed)) %>% # remove NAs for the plot because it is a large prop and it is thus hard to see the others in the plot if it is added. will add this note and its value to the figure caption.
   ggplot(aes( y=`Proportion of legislation`, x=AdministrerendeMyndighed,  fill = country)) + 
   geom_bar(position="dodge", stat="identity") +
   facet_wrap(~search.term, ncol = 1) + 
@@ -411,6 +414,7 @@ ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4
 
 unique(SE.metadata$organ)
 
+#ggplot of Sweden
 SE.metadata %>%
   mutate(country = "Sweden")  %>%
   group_by(search.term, organ, country) %>%
