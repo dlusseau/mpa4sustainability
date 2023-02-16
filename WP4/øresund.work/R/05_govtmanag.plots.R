@@ -15,7 +15,6 @@ library("stringr")
 
 # Load data --------------------------------------------------------------------
 
-
 DK.metadata <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKdocmetadata.clean.csv")
 SE.metadata <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.SEdocmetadata.clean.csv")
 
@@ -85,29 +84,33 @@ DKplot + SEplot +
   plot_annotation(tag_levels = 'A')
 
 
+# Now lets look into the managing authorities and ministries -----------------------------
 
+
+# What are the danish responsible ministries in DK and lets get the english translation: 
 
 unique(DK.metadata$Ressort)
 # "Ministeriet for Fødevarer, Landbrug og Fiskeri"  Ministry of Food, Agriculture and Fisheries
-# "Erhvervsministeriet"                         The Ministry of Business and Industry           
-# "Udenrigsministeriet"                         Ministry of Foreign Affairs   
-# "Transportministeriet"                        Ministry of Transport
-# "Miljøministeriet"                            Ministry of the Environment    
-# "Statsministeriet"                            The Prime Minister's Office
-# "Uddannelses- og Forskningsministeriet"       Ministry of Education and Research
-# "Beskæftigelsesministeriet"                   Ministry of Employment
-# "Klima-, Energi- og Forsyningsministeriet"    Ministry of Climate, Energy and Supply 
-# "Justitsministeriet"                          Ministry of Justice
-# "Skatteministeriet"                           Ministry of Taxation
-# "Forsvarsministeriet"                         Ministry of Defence
-# "Kulturministeriet"                           Ministry of Culture
-# "Sundhedsministeriet"                         Ministry of Health
-# "Indenrigs- og Boligministeriet"              Ministry of the Interior and Housing
-# "Finansministeriet"                           Ministry of Finance
-# "Børne- og Undervisningsministeriet"          Ministry of Children and Education
-# "Kirkeministeriet"           Ministry of the Church
-# "Folketinget"                   the Danish parliament
+# "Erhvervsministeriet"                             The Ministry of Business and Industry           
+# "Udenrigsministeriet"                             Ministry of Foreign Affairs   
+# "Transportministeriet"                            Ministry of Transport
+# "Miljøministeriet"                                Ministry of the Environment    
+# "Statsministeriet"                                The Prime Minister's Office
+# "Uddannelses- og Forskningsministeriet"           Ministry of Education and Research
+# "Beskæftigelsesministeriet"                       Ministry of Employment
+# "Klima-, Energi- og Forsyningsministeriet"        Ministry of Climate, Energy and Supply 
+# "Justitsministeriet"                              Ministry of Justice
+# "Skatteministeriet"                               Ministry of Taxation
+# "Forsvarsministeriet"                             Ministry of Defence
+# "Kulturministeriet"                               Ministry of Culture
+# "Sundhedsministeriet"                             Ministry of Health
+# "Indenrigs- og Boligministeriet"                  Ministry of the Interior and Housing
+# "Finansministeriet"                               Ministry of Finance
+# "Børne- og Undervisningsministeriet"              Ministry of Children and Education
+# "Kirkeministeriet"                                Ministry of the Church
+# "Folketinget"                                     The Danish parliament
 
+# now lets make an english ministry column 
 dep.leg.dek <- 
   DK.metadata %>%
   mutate(ministry.english = case_when( Ressort == "Ministeriet for Fødevarer, Landbrug og Fiskeri" ~ "Ministry of Food, Agriculture and Fisheries",
@@ -136,9 +139,12 @@ dep.leg.dek <-
   ungroup() %>%
   mutate(ministry.english = as.factor(ministry.english)) 
 
+# now lets see what the Swedish ministries are
+# the codes at the end are the organisational bodies that are responsible within the ministries
+# since first we are only looking at the ministry organization. I will remove the codes at the end first  to combine ministries
 xx <- 
   SE.metadata %>%
-  mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
+  mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>% # only extract the ministries not the orginizational codes
   mutate(organ.cut = as.character(organ.cut))
 
  unique(xx$organ.cut)
@@ -147,33 +153,37 @@ xx <-
  #[7] "Statsrådsberedningen"        "Miljödepartementet"          "Kulturdepartementet"         "Utrikesdepartementet"        "Arbetsmarknadsdepartementet" "Landsbygdsdepartementet"    
  #[13] "Fiskeristyrelsen"            "Socialdepartementet"         "Utbildningsdepartementet"    "riksb"   
 
+ # English translations: 
+ 
  # "Infrastrukturdepartementet"       Ministry of Infrastructure
- # "Justitiedepartementet"         Ministry of Justice
- # "Finansdepartementet"            "Ministry of Finance"
- # "Näringsdepartementet"        Ministry of Commerce
- # "Försvarsdepartementet"          "Ministry of Defence"
- # "Statsrådsberedningen"       The Cabinet Committee
- #  "Miljödepartementet"         Ministry of the Environment
- # "Kulturdepartementet"          Ministry of Culture
- # "Utrikesdepartementet"        Ministry of Foreign Affairs
-# "Arbetsmarknadsdepartementet"    "Ministry of Labour"
- # "Landsbygdsdepartementet"     Ministry of Rural Affairs
+ # "Justitiedepartementet"            Ministry of Justice
+ # "Finansdepartementet"             "Ministry of Finance"
+ # "Näringsdepartementet"             Ministry of Commerce
+ # "Försvarsdepartementet"           "Ministry of Defence"
+ # "Statsrådsberedningen"            The Cabinet Committee
+ #  "Miljödepartementet"             Ministry of the Environment
+ # "Kulturdepartementet"             Ministry of Culture
+ # "Utrikesdepartementet"            Ministry of Foreign Affairs
+# "Arbetsmarknadsdepartementet"     "Ministry of Labour"
+ # "Landsbygdsdepartementet"         Ministry of Rural Affairs
  # "Fiskeristyrelsen"               "The Fisheries Board"
- # "Socialdepartementet"        Ministry of Social Affairs
- # "Utbildningsdepartementet"   Ministry of Education
- # "riksb"              ??            
- 
- 
-# "Civildepartementet"             "Ministry of Civil Affairs"
-# "Industridepartementet"           Ministry of Industry
-# "Inrikesdepartementet"           Ministry of the Interior
-# "Jordbruksdepartementet"         Ministry of Agriculture
-# "Kammarkollegiet"             Chamber college
-# "Kommunikationsdepartementet"   Ministry of Communications
-#  "Miljö- och samhällsbyggnadsdepartementet	-->    Ministry of the Environment and Community Development            
+ # "Socialdepartementet"             Ministry of Social Affairs
+ # "Utbildningsdepartementet"        Ministry of Education
+ # "riksb"                           ?? ----> This is unclear, could figure it out... so will leave it as the same name            
+# "Civildepartementet"              "Ministry of Civil Affairs"
+# "Industridepartementet"            Ministry of Industry
+# "Inrikesdepartementet"             Ministry of the Interior
+# "Jordbruksdepartementet"           Ministry of Agriculture
+# "Kammarkollegiet"                  Chamber college
+# "Kommunikationsdepartementet"      Ministry of Communications
+# "Miljö- och samhällsbyggnadsdepartementet	-->    Ministry of the Environment and Community Development            
 # NA  
 
- unique(SE.metadata$organ)
+ # ok now the managing organiztions within the ministries (the codes at the end)
+ unique(SE.metadata$organ) 
+ # the names of these codes I have only been able to find for some of the ministries. Others i cannot find what they mean
+ # thus I will just display the name and codes given in the code so 
+ 
  #[1] "Infrastrukturdepartementet RST TM" 
  # "Infrastrukturdepartementet RST US"
  
@@ -202,7 +212,7 @@ xx <-
  #[37] "Finansdepartementet SFÖ"           "Arbetsmarknadsdepartementet AA"   
  #[39] "Justitiedepartementet L5"    
 
- 
+ # adding an english ministry column
  SE.metadata %>%
   mutate(organ.cut = str_extract(organ,"[:alpha:]+")) %>%
   mutate(organ.cut = as.character(organ.cut)) %>%
@@ -219,26 +229,26 @@ xx <-
     organ.cut == "Statsrådsberedningen" ~ "Prime Minister's Office",
     organ.cut == "NA" ~ "NA",
     organ.cut == "riksb" ~ "riksb",
-    #these two are now together:
+    #these two are now together as one:
     organ.cut == "Landsbygdsdepartementet" | organ.cut == "Infrastrukturdepartementet" ~ "Ministry of Rural Affairs & Infrastructure",
-    #these three are now together:
+    #these three are now together as one:
     organ.cut == "Miljödepartementet" | organ.cut == "Näringsdepartementet"  ~ "Ministry of the Climate and Enterprise" ))  %>%
   mutate(country = "Sweden") %>%
   group_by(search.term, ministry.english, country) %>%
-  summarise(n=n_distinct(doc.id)) %>%
-  rbind(dep.leg.dek) %>%
+  summarise(n=n_distinct(doc.id)) %>% # how many legislaions within each country, each ministry for each query term
+  rbind(dep.leg.dek) %>% # now combine with the DK df
   mutate(ministry.english = as.factor(ministry.english)) %>%
   ungroup() %>%
-  mutate(search.term = case_when( search.term == "fiske"  ~ "Fisheries" ,
+  mutate(search.term = case_when( search.term == "fiske"  ~ "Fisheries" , # change the terms to english 
                                   search.term == "fiskeri"  ~ "Fisheries",
                                   search.term == "jagt"  ~ "Hunting",
                                   search.term == "jakt" ~ "Hunting",
                                   search.term == "sotrafik"  ~ "Maritime traffic",
                                   search.term == "sjofart"~ "Maritime traffic" )) %>%
-  group_by(country, search.term) %>%
-  mutate(total.n = sum(n)) %>%
-  mutate('Proportion of legislation' = n/total.n) %>%
-  ggplot(aes( y=`Proportion of legislation`, x=ministry.english,  fill = country)) + 
+  group_by(country, search.term) %>% 
+  mutate(total.n = sum(n)) %>% # total number of legislations in each country and search term query
+  mutate('Proportion of legislation' = n/total.n) %>% # get the ministries prop. of leg for each term 
+  ggplot(aes( y=`Proportion of legislation`, x=ministry.english,  fill = country)) + # now lets plot it nicely :)
   geom_bar(position="dodge", stat="identity") +
   facet_wrap(~search.term, ncol = 1) + 
   scale_fill_manual(values = c("#d1050c", "#004B87")) +
@@ -249,6 +259,7 @@ xx <-
         strip.text.x = element_text(size = 20),
         axis.title.x=element_blank())
 
+# and save the plot: 
 ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/ministry.plots.png",
 width = 30,
 height = 14.1,
