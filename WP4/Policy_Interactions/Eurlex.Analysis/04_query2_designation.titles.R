@@ -67,7 +67,7 @@ xx <-
   filter(search.term == "marine protected area*?") %>%
   distinct(CELEX)
 
-identical(x, xx)
+identical(x, xx) # TRUE
 
 EU.mpa.termsearch.data %>%
   filter(CELEX %in% x$CELEX) %>%
@@ -329,7 +329,7 @@ plot(network,
      vertex.label=NA,
      vertex.label.family = "sans",
      vertex.label.cex=.75,
-     edge.arrow.size=.25,
+     edge.arrow.size=1,
      edge.arrow.width=2,
      layout = l
 )
@@ -528,7 +528,7 @@ plot(network2,
      vertex.label=NA,
      vertex.label.cex=1,
      vertex.label.family = "sans",
-     edge.arrow.size=.5,
+     edge.arrow.size=1,
      edge.arrow.width=1,
      layout=l2
     
