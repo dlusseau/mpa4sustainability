@@ -193,7 +193,7 @@ labels <- network.attributes.final[1:5,1]
 
 labels2 <- rep(NA,time=141)
 labels3 <- c(labels,labels2)
-V(network)$label <- labels3 
+V(network)$label <- labels3 # we never used these...
 
 png(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/Results/query1.1st.order.networkcitations.png",
     width = 1000, height = 1000)
@@ -205,7 +205,7 @@ plot(network,
      vertex.label=NA,
      vertex.label.family = "sans",
      vertex.label.cex=.75,
-     edge.arrow.size=.25,
+     edge.arrow.size=1,
      edge.arrow.width=2,
      layout = l
      )
@@ -351,7 +351,7 @@ n_distinct(Doc.citations3$to)
 docs <- unique(Doc.citations3$from)
 cit <-  unique(Doc.citations3$to)
 xx <- as.data.frame(c(docs,cit))
-xx <- distinct(xx) #721 documents
+xx <- distinct(xx) #675 documents
 # ok so both the document citataion df and the network attributes df have the same dimensions 
 
 network2 <- graph.data.frame(d=Doc.citations3, directed = TRUE, vertices = network.attributes.final4)
@@ -379,7 +379,7 @@ plot(network2,
      vertex.label=NA ,#V(network2)$label ,
      vertex.label.cex=1,
      vertex.label.family = "sans",
-     edge.arrow.size=.5,
+     edge.arrow.size=1,
      edge.arrow.width=1,
      layout=l2
 )
