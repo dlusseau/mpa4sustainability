@@ -952,50 +952,6 @@ table(V(network.f)$source == "SE") #39
 ifelse(igraph::degree(network.f) >=9 & V(network.f)$source == "EU",
        V(network.f)$name,NA)
 
-# fisheries network stats ----------------------------------
-
-
-
-EUlinks.fisheriesmatrix <- 
-  EUlinks.fisheries %>%
-  mutate(links=1) %>%
-  pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
-  column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
-
-#EUfisheries.modules <- computeModules(EUlinks.fisheriesmatrix) #computed Nov 22nd, 2022 
-#saveRDS(EUfisheries.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUfisheries.modules.RDS") 
-EUfisheries.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUfisheries.modules.RDS")
-plotModuleWeb(EUfisheries.modules, labsize = .5)
-printoutModuleInformation(EUfisheries.modules) # 36 total modules
-
-indices <- c( "degree","PDI","nestedrank")
-
-EUfisheries.CELEX.networkstats <- 
-  specieslevel(EUlinks.fisheriesmatrix, index=  indices, level = "lower",
-               nested.weighted=FALSE,  PDI.normalise=TRUE,
-               nested.method="NODF", 
-               nested.normalised=TRUE)
-
-summary(EUfisheries.CELEX.networkstats)
-#degree         nestedrank        PDI        
-#  Min.   : 1.000   Min.   :0.00   Min.   :0.7565  
-#1st Qu.: 1.000   1st Qu.:0.25   1st Qu.:0.9948  
-#Median : 1.000   Median :0.50   Median :1.0000  
-#Mean   : 2.095   Mean   :0.50   Mean   :0.9943  
-#3rd Qu.: 2.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :48.000   Max.   :1.00   Max.   :1.0000  
-
-
-
-EUfisheries.CELEX.networkstats %>%
-  slice_min(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
-
-EUfisheries.CELEX.networkstats %>%
-  slice_max(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
-
-
 # -------- Hunting network ------------------------------
 
 EUlinks.hunting <- 
@@ -1050,44 +1006,6 @@ table(V(network.h)$source == "DK") #55
 table(V(network.h)$source == "SE") #17
 (V(network.h)) # 179 vertices
 
-# hunting network stats ----------------------------------
-
-EUlinks.huntingmatrix <- 
-  EUlinks.hunting %>%
-  mutate(links=1) %>%
-  pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
-  column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
-
-#EUhunting.modules <- computeModules(EUlinks.huntingmatrix) #computed Nov 22nd, 2022 
-#saveRDS(EUhunting.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUhunting.modules.RDS") 
-EUhunting.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUhunting.modules.RDS")
-plotModuleWeb(EUhunting.modules)
-printoutModuleInformation(EUhunting.modules) # 12 total modules
-
-indices <- c( "degree","PDI","nestedrank")
-
-EUhunting.CELEX.networkstats <- 
-  specieslevel(EUlinks.huntingmatrix, index=  indices, level = "lower",
-               nested.weighted=FALSE,  PDI.normalise=TRUE,
-               nested.method="NODF", 
-               nested.normalised=TRUE)
-
-summary(EUhunting.CELEX.networkstats)
-# Min.   : 1.00   Min.   :0.00   Min.   :0.4930  
-#1st Qu.: 1.00   1st Qu.:0.25   1st Qu.:1.0000  
-#Median : 1.00   Median :0.50   Median :1.0000  
-#Mean   : 1.99   Mean   :0.50   Mean   :0.9861  
-#3rd Qu.: 1.00   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :37.00   Max.   :1.00   Max.   :1.0000 
-
-
-EUhunting.CELEX.networkstats %>%
-  slice_min(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
-
-EUhunting.CELEX.networkstats %>%
-  slice_max(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
 
 # ------- maritime traffic network ------- 
 
@@ -1145,42 +1063,6 @@ table(V(network.m)$source == "DK") #1
 table(V(network.m)$source == "SE") #36 
 (V(network.m)) # 302 vertices
 
-# maritime network stats ----------------------------------
-EUlinks.maritimematrix <- 
-  EUlinks.maritime %>%
-  mutate(links=1) %>%
-  pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
-  column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
-
-#EUmaritime.modules <- computeModules(EUlinks.maritimematrix) #computed Nov 22nd, 2022 
-#saveRDS(EUmaritime.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUmaritime.modules.RDS") 
-EUmaritime.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.EUmaritime.modules.RDS")
-plotModuleWeb(EUmaritime.modules)
-printoutModuleInformation(EUmaritime.modules) # 24 total modules
-
-indices <- c( "degree","PDI","nestedrank")
-
-EUmaritime.CELEX.networkstats <- 
-  specieslevel(EUlinks.maritimematrix, index=  indices, level = "lower",
-               nested.weighted=FALSE,  PDI.normalise=TRUE,
-               nested.method="NODF", 
-               nested.normalised=TRUE)
-
-summary(EUmaritime.CELEX.networkstats)
-#  Min.   :1.000   Min.   :0.00   Min.   :0.9245  
-#1st Qu.:1.000   1st Qu.:0.25   1st Qu.:1.0000  
-#Median :1.000   Median :0.50   Median :1.0000  
-#Mean   :1.355   Mean   :0.50   Mean   :0.9933  
-#3rd Qu.:1.000   3rd Qu.:0.75   3rd Qu.:1.0000  
-#Max.   :5.000   Max.   :1.00   Max.   :1.0000  
-
-EUmaritime.CELEX.networkstats %>%
-  slice_min(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
-
-EUmaritime.CELEX.networkstats %>%
-  slice_max(., order_by = nestedrank, n=3)%>%
-  kable(., "latex")
 
 # -------- plot them all together -----------
 
