@@ -801,8 +801,9 @@ MOD.8.PLOT <-
   ggtitle("Module 8: Defense") +
   theme(plot.title = element_text(hjust = 0.5, size = 30))
 
-((MOD.1.PLOT + MOD.2.PLOT)+(MOD.3.PLOT + MOD.4.PLOT))/ 
-((MOD.5.PLOT + MOD.6.PLOT) + (MOD.7.PLOT+MOD.8.PLOT))
+(MOD.1.PLOT + MOD.2.PLOT + MOD.3.PLOT)/
+(MOD.4.PLOT + MOD.5.PLOT + MOD.6.PLOT)/ 
+(MOD.7.PLOT + MOD.8.PLOT)
 
 
  ggsave("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/Results/sharedclusters.png", 
