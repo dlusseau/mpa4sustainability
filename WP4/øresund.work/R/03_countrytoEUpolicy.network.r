@@ -620,9 +620,9 @@ adj.network.df1 <-
 adj.network.df1 %>%
   distinct(name,to,module) %>%
   group_by(module,to) %>%
-  summarise(n=n_distinct(name)) %>%
+  summarise(n=n_distinct(name)) %>% # how many leg. cite each celex in a module
   group_by(module) %>%
-  filter(n == max(n))
+  filter(n == max(n)) # what is that top celex?
 #   module to             n
 #<chr>  <chr>      <int>
 #  1      31992L0043    79
@@ -673,6 +673,8 @@ adj.network.df1 %>%
 #8 8          1
 
 
+
+# how many modules is a celex associated with?
 x <- adj.network.df1 %>%
   distinct(to,module) %>%
   group_by(to) %>%
@@ -826,6 +828,48 @@ adj.network.df1 %>%
 #6 6             14
 #7 7              9
 #8 8              3
+
+# total number of DK legislation in each module
+adj.network.df1 %>%
+  select(-labels,-to) %>%
+  distinct() %>%
+  mutate(country = case_when(
+    str_detect(name,"sfs-") ~ "SE",
+    TRUE ~ "DK")) %>%
+  filter(country == "DK") %>%
+  mutate(module = as.factor(module)) %>%
+  group_by(module) %>%
+  summarise(n.country = n()) 
+#module n.country
+#  1             79
+#  2              4
+#  3              9
+#  4             33
+#  5             13
+#  6              7
+#  7              7
+#  8              1
+
+# total number of SE legislation in each module
+adj.network.df1 %>%
+  select(-labels,-to) %>%
+  distinct() %>%
+  mutate(country = case_when(
+    str_detect(name,"sfs-") ~ "SE",
+    TRUE ~ "DK")) %>%
+  filter(country == "SE") %>%
+  mutate(module = as.factor(module)) %>%
+  group_by(module) %>%
+  summarise(n.country = n()) 
+#module n.country
+#  1 1              3
+#  2 2              5
+#  3 3              2
+#  4 4              9
+#  5 5             12
+#  6 6              7
+#  7 7              2
+#  8 8              2
 
 #################### Now subset via the query search term ######################
 
