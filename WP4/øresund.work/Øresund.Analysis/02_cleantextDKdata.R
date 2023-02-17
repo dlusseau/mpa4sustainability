@@ -1,0 +1,217 @@
+
+# Clear work space -------------------------------------------------------------
+rm(list = ls())
+Sys.setenv(LANG = "en") # change the language to english 
+
+# Load libraries ---------------------------------------------------------------
+
+library("readr")
+library("tidyr")
+library("tibble")
+library("tm")
+library("corpus")
+library("stringr")
+library("dplyr")
+
+# Load data --------------------------------------------------------------------
+
+setwd("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/raw_data/DK_policy")
+
+retsinformation.file.list <- list.files(pattern='*.csv')
+
+retsinformation.df <- read_delim(retsinformation.file.list, 
+                                 id = "search.term",
+                                 delim = ";",
+                                 locale = locale(encoding="ISO-8859-1"))
+
+retsinformation.df <-
+  retsinformation.df %>%
+  mutate(search.term = str_extract_all(search.term,"\\w+\\."),
+         search.term = str_replace_all(search.term,"[:punct:]+",""))
+
+# text data for all URLs in retsinformation search result
+DK.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01_DK.text.list.1")
+
+#  link that worked later after I ran the initial loop on Fri. Sep 30th 2022
+DK.apped.text <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01_DK.apped.text")
+
+# documents DK docs link to 
+DK.text.ref <- readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01_DK.textREF.list.1" ) 
+
+# Our document-data key
+document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+
+document.key.df <- 
+  document.key.df %>%
+  filter(!is.na(celex))
+
+#  lets make it into a df to use -----------------------------------------------
+
+DK.text.df <- as.data.frame(cbind(DK.text))
+
+DK.apped.text.df <- 
+  as.data.frame(cbind(DK.apped.text)) %>%
+  mutate(url = "https://www.retsinformation.dk/eli/retsinfo/2000/20071")%>%
+  rename("text" = "DK.apped.text")
+
+DK.text.df2 <- 
+  DK.text.df %>% 
+  rownames_to_column(., var = "url") %>%
+  rename("text" = "DK.text") %>%
+  rbind(.,DK.apped.text.df) %>%
+  left_join(.,retsinformation.df, by = c("url" = "EliUrl")) %>%
+  mutate(country = "DK") %>%
+  as_tibble() %>%
+  unnest(text,keep_empty = TRUE)
+
+str(DK.text.df2)
+# ok so this df has 1365 obs. but the original has 1367, this is because the one problem URL
+# it has two rows since it appears in both the fiskeri and jagt search queries so 1365 obs. is correct
+
+#looking for the other forms of hunting and fishing (fulglejagt, sæljagt, harpunfiskeri)
+DK.text.df3 <-
+  DK.text.df2 %>%
+    mutate(harpun = case_when(search.term == "fiskeri" ~ str_detect(text, "harpun|Harpun")), #stringr is case sensitive so make sure to have both :)
+           spearfish1 = case_when(search.term == "fiskeri" ~ str_detect(text, "undervandsfisk|Undervandsfisk")),
+           spearfish2 = case_when(search.term == "fiskeri" ~ str_detect(text, "undervandsjagt|Undervandsjagt")),
+           kommercielt = case_when(search.term == "fiskeri" ~ str_detect(text, "kommercielt fisk|Kommercielt fisk")),
+           erhvervsmæssigt = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsmæssigt fisk|Erhvervsmæssigt fisk")),
+           erhvervs = case_when(search.term == "fiskeri" ~ str_detect(text, "erhvervsfisk|Erhvervsfisk")),
+           rekreativt = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreativt fisk|Rekreativt fisk")),
+           rekreative = case_when(search.term == "fiskeri" ~ str_detect(text, "rekreative fisk|Rekreative fisk")), 
+           lystfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "lystfiske|Lystfiske")), 
+           fritidsfiske = case_when(search.term == "fiskeri" ~ str_detect(text, "fritidsfiske|Fritidsfiske")), 
+           sæl    = case_when(search.term == "jagt" ~ str_detect(text, "sæljagt|Sæljagt")),
+           sæl2    = case_when(search.term == "jagt" ~ str_detect(text, "sæl\\s|Sæl\\s")),
+           sæl3    = case_when(search.term == "jagt" ~ str_detect(text, "\\ssæl\\s|Sæl\\s")),
+           sæl4    = case_when(search.term == "jagt" ~ str_detect(text, "\\ssæler\\s|Sæler\\s")),
+           fugle = case_when(search.term == "jagt" ~ str_detect(text, "fugle|Fugle")),
+           boat.traffic = case_when(search.term == "sotrafik" ~ str_detect(text, "bådtraffik|Bådtraffik")))
+
+DK.text.df3 %>%
+  group_by(search.term) %>%
+  summarise(n=n_distinct(url))
+
+# fiskeri      1011
+# jagt          346
+# sotrafik        8
+
+DK.text.df3 %>% summarise(n=n_distinct(url))
+# 1212
+    
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & harpun == "TRUE") # 3 out of 1011 fisheries documents mention harpun
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & spearfish1 == "TRUE") # 3 out of 1011 fisheries documents mention harpun
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & spearfish2 == "TRUE") # 0 out of 1011 fisheries documents mention harpun
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & kommercielt == "TRUE") # 3 out of 1011 fisheries documents mention kommercielt fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & erhvervsmæssigt == "TRUE") # 55 out of 1011 fisheries documents mention erhvervsmæssigt fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & erhvervs == "TRUE") # 97 out of 1011 fisheries documents mention erhvervsfisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & rekreativt == "TRUE") # 10 out of 1011 fisheries documents mention rekreativt fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & rekreative == "TRUE") # 3 out of 1011 fisheries documents mention rekreative fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & lystfiske == "TRUE") # 61 out of 1011 fisheries documents mention lystfiske fisk
+
+DK.text.df3 %>%
+  filter(search.term == "fiskeri" & fritidsfiske == "TRUE") # 10 out of 1011 fisheries documents mention fritidsfiske fisk
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl == "TRUE") # 0 out of 346 hunting documents mention seal hunting
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl2 == "TRUE") # 6 out of 346 hunting documents mention seal
+
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl3 == "TRUE") # 4
+
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl4 == "TRUE") # 8
+
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & sæl2 == "TRUE" & sæl3 == "TRUE") # 45 out of 346 hunting documents both mention bird and seal
+
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & fugle == "TRUE") # 175 out of 346 hunting documents mention bird
+
+DK.text.df3 %>%
+  filter(search.term == "jagt" & fugle == "TRUE" & sæl == "TRUE") # 45 out of 346 hunting documents both mention bird and seal
+
+DK.text.df3 %>%
+  filter(search.term == "sotrafik" & boat.traffic == "TRUE") # 0
+
+
+DK.text.df3 %>%
+  write.csv(., file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKdoctags.csv", row.names=FALSE)
+
+
+DK.text.df4 <-  
+  DK.text.df3 %>%
+  select(-text)
+  
+write.csv(DK.text.df4, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKdocmetadata.clean.csv", row.names=FALSE)
+
+# Getting Eurlex links ---------------------------------------------------------
+
+DK.ref.df <- as.data.frame(cbind(DK.text.ref)) 
+
+DK.EU.links <- 
+  DK.ref.df %>% 
+  rownames_to_column(., var = "retsinfo.url") %>%
+  rename("links" = "DK.text.ref") %>%
+  unnest(links, keep_empty=TRUE) %>% # ,keep_empty = TRUE for when the full loop has been run through
+  mutate(EU.link.CELEX = str_extract_all(links, "[:digit:]+[:alpha:]+[:digit:]+\\(Note\\)")) %>%
+  unnest(EU.link.CELEX) %>%
+  select(retsinfo.url,EU.link.CELEX) %>%
+  mutate(EU.link.CELEX = str_replace_all(EU.link.CELEX, "\\(Note\\)", ""))
+
+n_distinct(DK.EU.links$retsinfo.url) # 450 DK documents link to EU legal acts
+n_distinct(DK.EU.links$EU.link.CELEX) # in total DK documents relates to 244 EU legal acts
+
+
+DK.EU.links1 <-
+  DK.EU.links %>%
+  left_join(.,document.key.df, by = c("EU.link.CELEX" = "celex"))
+
+n_distinct(DK.EU.links1$retsinfo.url) #450 dk documents are linked to an EU legislation
+n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
+unique(DK.EU.links1$resource.type)
+#in the proposal we are only looking into documents linking to 
+# Directives, Regulations, Decisions, and recommendations
+# looks fine... nas are those that dont have a celex linkage...
+
+n_distinct(DK.EU.links1$retsinfo.url) #450 dk documents are linked to an EU legislation
+n_distinct(DK.EU.links1$EU.link.CELEX) # 244 EU legislation is linked
+unique(DK.EU.links1$resource.type)
+
+# which keywords link to which EU documents:
+DK.EU.links2 <- 
+  DK.text.df4 %>%
+  select(url,search.term,harpun,kommercielt,erhvervsmæssigt,erhvervs,rekreativt,rekreative,lystfiske, fritidsfiske, sæl,sæl2, sæl3, sæl4,fugle,boat.traffic) %>%
+  distinct(url, .keep_all = TRUE) %>%
+  left_join(.,DK.EU.links1, by = c("url" = "retsinfo.url"))
+
+n_distinct(DK.EU.links2$url) #1212 dk documents 
+n_distinct(DK.EU.links2$EU.link.CELEX) # 244 EU legislation is linked
+
+# Save -------
+
+write.csv(DK.EU.links2, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKEUlinks.csv", row.names=FALSE)
+
