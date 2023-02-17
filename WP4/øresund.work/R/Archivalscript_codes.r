@@ -333,6 +333,43 @@ regulation.titles <-
 
 # 02_cleantextDKdata Archival -------------------------
 
+# Cleaning Pre-processing the text data
+# This part is unrelated to our Manuscript but was preformed because we might use it later for further investigation
+gc()
+# this is taking wayyyyy to long than it ever did before...trying it again later another day when there is time
+# cleaning and pre-processing text data 
+DKtext.df.clean <-
+  DK.text.df3 %>%
+  select(url,text) %>% # to run faster remove un-nec data for text cleaning... will rejoin later 
+  distinct(., .keep_all=TRUE) %>%
+  rename("clean.text" = "text") %>%
+  mutate(clean.text = tolower(clean.text),                                  # convert all to lower case
+         clean.text = str_replace_all(clean.text,"[:punct:]",""),     # remove punctuation
+         clean.text = str_replace_all(clean.text,"[:digit:]",""),     # remove numbers
+         clean.text = str_replace_all(clean.text, "[^[:alnum:]]"," "),# remove all special characters
+         clean.text = removeWords(clean.text,stopwords("da")),        # remove danish stop words
+         clean.text = stripWhitespace(clean.text)) %>%                # strip extra whote space away --> tm package
+  mutate(clean.text = text_tokens(.$clean.text, stemmer = "da")) %>%  # stemming words
+  unnest(clean.text) %>%
+  group_by(url) %>%
+  mutate(clean.text = paste(clean.text, collapse = " ")) %>%
+  distinct(url, .keep_all=TRUE) %>%
+  select(url,clean.text) %>%
+  rename("text" = "clean.text") %>%
+  ungroup() %>%
+  as.data.frame()
+
+str(DKtext.df.clean)
+
+DKtext.df.clean1 <- 
+  DK.text.df3 %>%
+  select(-text) %>%
+  right_join(.,DKtext.df.clean, by = c("url"))
+
+# Save -------
+
+write.csv(DKtext.df.clean1, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/02.DKtext.clean.csv", row.names=FALSE)
+
 # Archival for making it into a stm corpus will probably need to do later 
 
 # lets mak it into the good df format
