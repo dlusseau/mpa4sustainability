@@ -1096,3 +1096,38 @@ EUmaritime.CELEX.networkstats %>%
 EUmaritime.CELEX.networkstats %>%
   slice_max(., order_by = nestedrank, n=3)%>%
   kable(., "latex")
+
+
+# 04_r code network stats ------------------------------------
+
+
+identical(as.data.frame(dkse.bi), adj.matrix)
+all.equal(dkse.bi, adj.matrix)
+
+#dkse.clusters<-computeModules(dkse.bi) #are those the same?
+SEDK.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS")
+
+plotModuleWeb(dkse.clusters)
+
+sedkdependence<-linklevel(dkse.bi,"dependence")
+
+sedkdependence$LL #is Sweden dependence on DK
+sedkdependence$HL #is DK dependnce on SE
+
+
+table(apply(sedkdependence$HL,2,which.max)) # what SE text are DK texts most dependent on
+#looks like SE 17th
+rownames(dkse.bi)[17]
+#"sfs-1999-657" # happens to be top betweenness
+
+
+table(apply(sedkdependence$LL,1,which.max)) # what DK text are SE texts most dependent on
+#looks like DK 36, but close also 1, 8, and 111
+colnames(dkse.bi)[c(36,1,8,111)]
+# "/eli/lta/2021/2246" "/eli/lta/2019/985"  "/eli/lta/2022/964"  "/eli/lta/2022/139"
+
+
+
+#eudk.module<-computeModules(eudk.bi)  # are those the same?
+#euSE.module<-computeModules(euSE.bi)  # are those the same?
+
