@@ -589,6 +589,40 @@ EU.linksTEST <-
 
 # 03_countrytoEUpolicy.network.r ------------------
 
+#these are not in the final report. we did them for the first draft, but didnt make it in the final and wasnt updated after some changes to the data extraction
+
+# modules 
+
+library("bipartite")
+
+DKEU.matrix <- 
+  DKEUlinks1 %>%
+  mutate(links=1) %>%
+  pivot_wider(names_from = from, values_from = links,values_fill = 0) %>%
+  column_to_rownames(var = "to") #higher trophic level (country docs) is the columns
+
+#DKEU.modules <- computeModules(DKEU.matrix) # ran and saved on Nov. 24th 2022
+#saveRDS(DKEU.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.DKEU.modules.RDS") 
+DKEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.DKEU.modules.RDS")
+plotModuleWeb(DKEU.modules)
+listModuleInformation(DKEU.modules)
+printoutModuleInformation(DKEU.modules) # total 18 modules
+
+library("bipartite")
+
+SEEU.matrix <- 
+  SEEUlinks1 %>%
+  mutate(links=1) %>%
+  pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
+  column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
+
+#SEEU.modules <- computeModules(SEEU.matrix) #computed Nov 24th, 2022 
+#saveRDS(SEEU.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEEU.modules.RDS") 
+SEEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEEU.modules.RDS")
+plotModuleWeb(SEEU.modules)
+printoutModuleInformation(SEEU.modules) # total 22 modules
+
+
 # network stats (these are wrong since I did it as an undirected network but it is a directed network. BUT this code could be good to reference in the future if i need to do something similar later :) 
 
 # degree 
