@@ -136,22 +136,7 @@ legend(x=-1.2,y=-1.025, c("31992L0043: Protecting Europe’s biodiversity (Natur
 
 dev.off()
 
-# modules ------------------------------------------------------
 
-library("bipartite")
-
-DKEU.matrix <- 
-  DKEUlinks1 %>%
-  mutate(links=1) %>%
-  pivot_wider(names_from = from, values_from = links,values_fill = 0) %>%
-  column_to_rownames(var = "to") #higher trophic level (country docs) is the columns
-
-#DKEU.modules <- computeModules(DKEU.matrix) # ran and saved on Nov. 24th 2022
-#saveRDS(DKEU.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.DKEU.modules.RDS") 
-DKEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.DKEU.modules.RDS")
-plotModuleWeb(DKEU.modules)
-listModuleInformation(DKEU.modules)
-printoutModuleInformation(DKEU.modules) # total 18 modules
 
 ################################################################################
 ###########################        SWEDEN          #############################
@@ -203,7 +188,7 @@ sort(degree)
 
 quantile(degree,probs = c(0,.25,.5,.75,.95,1))
 #  0%   25%   50%   75%   95%  100% 
-#   1    1    1    2   10   30  
+#   1    1    1      2   10   30  
 
 
 l.se <- layout.fruchterman.reingold(seeu.network)
@@ -222,23 +207,8 @@ plot(seeu.network,
      vertex.label.cex = .75,
      vertex.size= 3,
      layout = l.se)
-#labels are those EU docs that are >= the 95% percentile for the degree number
+#labels are those EU docs that are > the 95% percentile for the degree number
 
-# modules ------------------------------------------------------
-
-library("bipartite")
-
-SEEU.matrix <- 
-  SEEUlinks1 %>%
-  mutate(links=1) %>%
-  pivot_wider(names_from = from, values_from = links ,values_fill = 0) %>%
-  column_to_rownames(var = "to") #higher trophic level (EU docs) is the columns
-
-#SEEU.modules <- computeModules(SEEU.matrix) #computed Nov 24th, 2022 
-#saveRDS(SEEU.modules, file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEEU.modules.RDS") 
-SEEU.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEEU.modules.RDS")
-plotModuleWeb(SEEU.modules)
-printoutModuleInformation(SEEU.modules) # total 22 modules
 
 ## plot them side-by-side for the report -----------------
 
