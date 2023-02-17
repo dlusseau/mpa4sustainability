@@ -23,9 +23,13 @@ library("purrr")
 
 # EURLEX KEY: This contains document types that are directives, regulations, decisions, reccomendations, and opinions
 # ** NOTE: this initial R script was run btwn 25-10-2022 - 03-11-2022. 
-# but this EUrlex Key below was updated for the other project and re-recreated on 03-01-2023 so the dimentions in the code below will not match up 
+# and this line noted below was used to grab the df 
+# document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+# but this EUrlex Key was then updated for the other project and re-recreated on 03-01-2023 so the dimentions in the code below will not match up 
 # this is because some addition to and from the eurlex database overtime.
-document.key.df <- read.csv(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/Policy_Interactions/data/01_SPARQL.key.df.csv")
+
+# so here is the actual archvied df used in this script:
+document.key.df <- read.csv(file ="C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/01_SPARQL.key.oresund.used.df.csv")
 
 document.key.df1 <- 
   document.key.df %>% 
