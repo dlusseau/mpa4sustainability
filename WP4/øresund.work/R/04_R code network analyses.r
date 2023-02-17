@@ -108,33 +108,6 @@ igraph::degree(DKSE) %>%
 #2          /eli/lta/2022/988      8
 #3          /eli/lta/2022/787      8
 
-identical(as.data.frame(dkse.bi), adj.matrix)
-all.equal(dkse.bi, adj.matrix)
-
-#dkse.clusters<-computeModules(dkse.bi) #are those the same?
-SEDK.modules <-  readRDS(file = "C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/03.SEDK.modules.RDS")
-
-plotModuleWeb(dkse.clusters)
-
-sedkdependence<-linklevel(dkse.bi,"dependence")
-
-sedkdependence$LL #is Sweden dependence on DK
-sedkdependence$HL #is DK dependnce on SE
-
-
-table(apply(sedkdependence$HL,2,which.max)) # what SE text are DK texts most dependent on
-#looks like SE 17th
-rownames(dkse.bi)[17]
-#"sfs-1999-657" # happens to be top betweenness
-
-
-table(apply(sedkdependence$LL,1,which.max)) # what DK text are SE texts most dependent on
-#looks like DK 36, but close also 1, 8, and 111
-colnames(dkse.bi)[c(36,1,8,111)]
-# "/eli/lta/2021/2246" "/eli/lta/2019/985"  "/eli/lta/2022/964"  "/eli/lta/2022/139"
-
-
-
 
 
 #################################################################
@@ -144,7 +117,7 @@ library(bipartite)
 
 ############################################
 #### DK - EU first --------------
-#  chaning the order to make sure it is an information flow network 
+#  changing the order to make sure it is an information flow network 
 DKEU<-readRDS("C:/Users/aeljor/OneDrive - Danmarks Tekniske Universitet/Skrivebord/mpa4sustainability/WP4/øresund.work/data/dkeu.networkigraph.rds")
 
 dkeu.edge<-as.data.frame(get.edgelist(DKEU))
@@ -165,7 +138,6 @@ temp<-eudk.edge[eudk.edge$EU==unique(eudk.edge$EU)[i],]
 eudk.bi[i,match(temp$Denmark,colnames(eudk.bi))]<-1
 }
 
-#eudk.module<-computeModules(eudk.bi)  # are those the same?
 
 eudk.stat<-specieslevel(eudk.bi,nested.weighted=FALSE)
 
@@ -256,7 +228,6 @@ temp<-euSE.edge[euSE.edge$EU==unique(euSE.edge$EU)[i],]
 euSE.bi[i,match(temp$Sweden,colnames(euSE.bi))]<-1
 }
 
-#euSE.module<-computeModules(euSE.bi)  # are those the same?
 
 euSE.stat<-specieslevel(euSE.bi,nested.weighted=FALSE)
 
