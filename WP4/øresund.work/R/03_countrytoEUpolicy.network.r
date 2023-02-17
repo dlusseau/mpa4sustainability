@@ -400,6 +400,12 @@ names(modules) <- c("1","2","3","4","5","6","7", "8")
 
 plotModuleWeb(SEDK.modules, labsize = .55)
 
+
+# here these network stat dfs are old and should be moved to archival however. 
+# we use them later to build a df that allows us to count the number of documents in the modules
+# as a result I am keeping it here so the code makes since when you move down further
+# but it should be noted that the stats in h.SEDK.networkstats,l.SEDK.networkstats and SEDK.networkstats
+# are not those used in the report. The ones in the report are in the 04 script.
 indices <- c( "degree","PDI","nestedrank")
 
 h.SEDK.networkstats <- 
