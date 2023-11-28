@@ -69,6 +69,7 @@ for (p in 1:length(pages)) {
  #### processing
  
 setwd("F:/Madeira_law/")
+mydir<-"F:/Madeira_law/"
 pages<-c("1serie/","2serie/","3serie/","4serie/")
 
 
@@ -76,20 +77,29 @@ library(tidyverse)
 library(pdftools)
 library(pdfsearch)
 
-for p( in 1:length(pages)) {
-files<-list.files(pages[p],full.names=T)
+for (p in 1:length(pages)) {
 
-result <- keyword_search(paste0("F:/Madeira_law/",files[1]), keyword = c('biodiversidade'),path = TRUE)
-result$file<-files[1]
+folders<-list.dirs(pages[p], full.names = TRUE, recursive = FALSE)   
+
+for (i in 1:length(folders)) { 
+files<-list.files(folders[i],full.names=T)
+
+result <- keyword_search(paste0(mydir,files[i]), keyword = c('biodiversidade'),path = TRUE)
+result$file<-files[i]
 
 for (f in 2:length(files)) {
-temp<-keyword_search(paste0("F:/Madeira_law/",files[f]), keyword = c('biodiversidade'),path = TRUE)
+temp<-keyword_search(paste0(mydir,files[f]), keyword = c('biodiversidade'),path = TRUE)
 temp$file<-files[f]
 result<-rbind(result,temp)
 
+
 } #end files
+
+} #end folders
 
 } #end page
  
+ 
+  
  
  
