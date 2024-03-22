@@ -234,19 +234,16 @@ search_page<- matches %>%  map_chr(c(2))
   # })
   }
 
-# all_legal_text_result<-as.data.frame(all_legal_text)
+all_legal_text_result<-as.data.frame(all_legal_text)
 # 
 # openxlsx::write.xlsx(all_legal_text_result, paste0(keyword, ".xlsx"),
 #                      asTable = TRUE)
 
 #find year and series
-all_legal_text$year <-  str_sub(all_legal_text$name, -10, -7)
-all_legal_text$series <-  str_extract(all_legal_text$name, "(?i)Série I++")
+all_legal_text_result$year <-  str_sub(all_legal_text_result$date, 1, 4)
+# all_legal_text$series <-  str_extract(all_legal_text$name, "(?i)Série I++")
 
 setwd(dir_resul)
 name_Rfile <- paste0('result_', keyword, "_diario_da_republica_Madeira.RData")
 save(all_legal_text, file=name_Rfile)
 
-
-
-# load(name_Rfile)
