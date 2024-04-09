@@ -355,6 +355,7 @@ for (i in 1:length(law_dre_web)){
     url <- full_EU.link
   remDr$navigate(url)
   
+  Sys.sleep(3)
   page_source <- remDr$getPageSource()[[1]]
   html <- read_html(page_source)
   
