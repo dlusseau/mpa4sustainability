@@ -339,6 +339,7 @@ for (i in 1:length(law_dre_web)){
   
   # rSel$server$stop()
   # Now we get the page source and use rvest to parse it
+  Sys.sleep(3)
   page_source <- remDr$getPageSource()[[1]]
   html <- read_html(page_source)
   
